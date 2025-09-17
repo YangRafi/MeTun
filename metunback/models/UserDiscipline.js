@@ -13,7 +13,7 @@ const UserDiscipline = sequelize.define('UserDiscipline', {
     join_date: Sequelize.DATE
 }, {
     tableName: "user_discipline",
-    timestamps: false,
+    timestamps: false
 });
 
 module.exports = UserDiscipline;

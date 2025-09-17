@@ -13,7 +13,7 @@ const Group = sequelize.define('Group', {
     discipline_id: Sequelize.INTEGER
 }, {
     tableName: "groups",
-    timestamps: false,
+    timestamps: false
 });
 
 module.exports = Group;

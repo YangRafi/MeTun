@@ -13,7 +13,7 @@ const UserUniversity = sequelize.define('UserUniversity', {
     discipline_id: Sequelize.INTEGER
 }, {
     tableName: "user_university",
-    timestamps: false,
+    timestamps: false
 });
 
 module.exports = UserUniversity;

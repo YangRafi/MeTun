@@ -1,5 +1,4 @@
 const Sequelize = require('sequelize');
-
 const sequelize = require('../util/database');
 
 const Faculty = sequelize.define('Faculty', {
@@ -9,12 +8,11 @@ const Faculty = sequelize.define('Faculty', {
         allowNull: false,
         primaryKey: true
     },
-    faculty_name: {
-        type: Sequelize.STRING,
-        allowNull: false
-    }}, {
-        tableName: "faculties",
-        timestamps: false,
+    faculty_name: Sequelize.STRING,
+    university_id: Sequelize.INTEGER
+}, {
+    tableName: "faculties",
+    timestamps: false
 });
 
 module.exports = Faculty;

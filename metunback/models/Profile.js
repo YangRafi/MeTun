@@ -18,12 +18,12 @@ const Profile = sequelize.define('Profile', {
     },
     bio: Sequelize.TEXT,
     profile_picture: Sequelize.STRING,
-    date_of_birth: Sequelize.DATEONLY,
-    gender: Sequelize.ENUM('male', 'female', 'other'),
+    date_of_birth: Sequelize.DATE,
+    gender: Sequelize.ENUM('male','female','other'),
     location: Sequelize.STRING
 }, {
     tableName: "profiles",
-    timestamps: false,
+    timestamps: false
 });
 
 module.exports = Profile;

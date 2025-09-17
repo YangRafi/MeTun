@@ -11,10 +11,10 @@ const GroupMember = sequelize.define('GroupMember', {
         primaryKey: true
     },
     join_date: Sequelize.DATE,
-    role: Sequelize.STRING(50)
+    role: Sequelize.STRING
 }, {
     tableName: "group_members",
-    timestamps: false,
+    timestamps: false
 });
 
 module.exports = GroupMember;

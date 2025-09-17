@@ -14,7 +14,7 @@ const UserMatch = sequelize.define('UserMatch', {
     is_active: Sequelize.BOOLEAN
 }, {
     tableName: "user_match",
-    timestamps: false,
+    timestamps: false
 });
 
 module.exports = UserMatch;
