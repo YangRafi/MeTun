@@ -1,8 +1,10 @@
+require('dotenv').config({ path: '../key.env' });
+
 const Sequelize = require('sequelize');
 
-const sequelize = new Sequelize('node-complete', 'root', 'ebeebe', {
+const sequelize = new Sequelize('MeTun', process.env.DB_USER,process.env.DB_PASSWORD, {
     dialect: 'mysql',
-    host: 'localhost'
+    host: process.env.DB_HOST,
 });
 
 module.exports = sequelize;
