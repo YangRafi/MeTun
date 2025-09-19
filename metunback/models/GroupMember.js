@@ -10,7 +10,10 @@ const GroupMember = sequelize.define('GroupMember', {
         type: Sequelize.INTEGER,
         primaryKey: true
     },
-    join_date: Sequelize.DATE,
+    join_date: {
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW
+    },
     role: Sequelize.STRING
 }, {
     tableName: "group_members",

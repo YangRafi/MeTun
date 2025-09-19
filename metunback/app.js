@@ -1,110 +1,44 @@
-const path = require('path');
-
 const express = require('express');
-const bodyParser = require('body-parser');
-const session = require('express-session');
-const csrf = require('csurf');
-
-const errorController = require('./controllers/error');
 const sequelize = require('./util/database');
-const Product = require('./models/product');
-const User = require('./models/User');
-const Cart = require('./models/cart');
-const CartItem = require('./models/cart-item');
-const Order = require('./models/order');
-const OrderItem = require('./models/order-item');
-const MongoDBStore = require('connect-mongodb-session')(session);
+
+const universityRoutes = require('./routes/universityRoutes.js');
+const disciplineRoutes = require('./routes/disciplineRoutes');
+const profileRoutes = require('./routes/profileRoutes');
+const userRoutes = require('./routes/userRoutes');
+const facultyRoutes = require('./routes/facultyRoutes');
+const groupRoutes = require('./routes/groupRoutes');
+const groupMemberRoutes = require('./routes/groupMemberRoutes');
 
 sequelize.authenticate()
   .then(() => console.log("✅ Połączono z bazą"))
   .catch(err => console.error("❌ Błąd połączenia:", err));
 
 const app = express();
-const store = new MongoDBStore({
-  uri: 'mongodb+srv://jdrafalswiderski:sessionpassword@cluster0.yzjd0.mongodb.net/mydatabase',
-  collection: 'sessions'
-})
 
-const csrfProtection = csrf({
+// middleware do JSON
+app.use(express.json());
 
-});
+// twoje routy API
+app.use('/api/universities', universityRoutes);
+app.use('/api/disciplines', disciplineRoutes);
+app.use('/api/profiles', profileRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/faculties', facultyRoutes);
+app.use('/api/groups', groupRoutes);
+app.use('/api/group-members', groupMemberRoutes);
 
-app.set('view engine', 'ejs');
-app.set('views', 'views');
-
-const adminRoutes = require('./routes/admin');
-const shopRoutes = require('./routes/shop');
-const authRoutes = require('./routes/auth');
-
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(
-  session({ 
-    secret: 'zadymka siusiu', 
-    resave: false, 
-    saveUninitialized: false, 
-    store: store 
-  })
-);
-
-app.use(csrfProtection);
+// obsługa 404 jako JSON
 app.use((req, res, next) => {
-  res.locals.isAuthenticated = req.session.isLoggedIn;
-  res.locals.csrfToken = req.csrfToken();
-  next();
+  res.status(404).json({ error: 'Not found' });
 });
-
-app.use((req, res, next) => {
-  if (!req.session.user) {
-    return next(); // nie ma usera w sesji → przechodzimy dalej
-  }
-
-  User.findByPk(req.session.user.id)
-    .then(user => {
-      if (!user) {
-        return next();
-      }
-      req.user = user; // Sequelize instance (ma metody getCart itp.)
-      next();
-    })
-    .catch(err => {
-      console.log(err);
-      next(err);
-    });
-});
-
-app.use((req, res , next) => {
-  res.locals.isAuthenticated = req.session.isLoggedIn;
-  res.locals.csrfToken = req.csrfToken();
-  next();
-})
-
-app.use('/admin', adminRoutes);
-app.use(shopRoutes);
-app.use(authRoutes);
-
-app.use(errorController.get404);
-
-Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
-User.hasMany(Product);
-User.hasOne(Cart);
-Cart.belongsTo(User);
-Cart.belongsToMany(Product, { through: CartItem });
-Product.belongsToMany(Cart, { through: CartItem });
-User.hasMany(Order);
-Order.belongsTo(User);
-Order.belongsToMany(Product, { through: OrderItem });
-Product.belongsToMany(Order, { through: OrderItem });
-
 
 sequelize
-  //.sync({ force: true })
   .sync()
-  .then(result => {
+  .then(() => {
     app.listen(3000, () => {
       console.log('Server is running on http://localhost:3000');
     });
   })
   .catch(err => {
-    console.log(err);
+    console.error(err);
   });

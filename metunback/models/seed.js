@@ -18,9 +18,12 @@ async function seed() {
         const fac1 = await Faculty.create({ faculty_name: "Wydział Informatyki", university_id: uni1.university_id });
         const fac2 = await Faculty.create({ faculty_name: "Wydział Matematyki", university_id: uni2.university_id });
 
-        // 4. Seedowanie dyscyplin
-        const disc1 = await Discipline.create({ name: "Programowanie Obiektowe", faculty_id: fac1.faculty_id });
-        const disc2 = await Discipline.create({ name: "Algebra", faculty_id: fac2.faculty_id });
+        // 4. Seedowanie kierunków (Discipline = StudyField)
+        const disc1 = await Discipline.create({ name: "Informatyka", faculty_id: fac1.faculty_id });
+        const disc2 = await Discipline.create({ name: "Matematyka", faculty_id: fac2.faculty_id });
+        const disc3 = await Discipline.create({ name: "Ekonomia", faculty_id: fac2.faculty_id });
+        const disc4 = await Discipline.create({ name: "Filologia Angielska", faculty_id: fac1.faculty_id });
+        const disc5 = await Discipline.create({ name: "Prawo", faculty_id: fac1.faculty_id });
 
         // 5. Seedowanie użytkowników
         const user1 = await User.create({ name: "Jan", surname: "Kowalski", email: "jan@test.com", password: "1234" });
