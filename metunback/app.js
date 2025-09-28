@@ -8,6 +8,7 @@ const userRoutes = require('./routes/userRoutes');
 const facultyRoutes = require('./routes/facultyRoutes');
 const groupRoutes = require('./routes/groupRoutes');
 const groupMemberRoutes = require('./routes/groupMemberRoutes');
+const authRoutes = require('./routes/auth');
 
 sequelize.authenticate()
   .then(() => console.log("✅ Połączono z bazą"))
@@ -18,7 +19,6 @@ const app = express();
 // middleware do JSON
 app.use(express.json());
 
-// twoje routy API
 app.use('/api/universities', universityRoutes);
 app.use('/api/disciplines', disciplineRoutes);
 app.use('/api/profiles', profileRoutes);
@@ -26,6 +26,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/faculties', facultyRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/group-members', groupMemberRoutes);
+app.use('/api/auth', authRoutes);
 
 // obsługa 404 jako JSON
 app.use((req, res, next) => {

@@ -1,5 +1,5 @@
 {
-  "name": "metunfront",
+  "name": "MeTunFront",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,10 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@primeuix/themes": "^1.2.5",
+    "@primevue/forms": "^4.3.9",
     "@tailwindcss/vite": "^4.1.13",
+    "primeicons": "^7.0.0",
+    "primevue": "^4.3.9",
     "tailwindcss": "^4.1.13",
     "vue": "^3.5.21",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.5.1",
+    "zod": "^4.1.11"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",
