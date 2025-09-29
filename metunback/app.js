@@ -1,5 +1,7 @@
 const express = require('express');
 const sequelize = require('./util/database');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 const universityRoutes = require('./routes/universityRoutes.js');
 const disciplineRoutes = require('./routes/disciplineRoutes');
@@ -8,7 +10,9 @@ const userRoutes = require('./routes/userRoutes');
 const facultyRoutes = require('./routes/facultyRoutes');
 const groupRoutes = require('./routes/groupRoutes');
 const groupMemberRoutes = require('./routes/groupMemberRoutes');
-const authRoutes = require('./routes/auth');
+const authRoutes = require('./routes/authRoutes');
+
+
 
 sequelize.authenticate()
   .then(() => console.log("✅ Połączono z bazą"))
@@ -16,8 +20,14 @@ sequelize.authenticate()
 
 const app = express();
 
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
+
 // middleware do JSON
 app.use(express.json());
+app.use(cookieParser());
 
 app.use('/api/universities', universityRoutes);
 app.use('/api/disciplines', disciplineRoutes);

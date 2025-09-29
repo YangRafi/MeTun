@@ -27,9 +27,12 @@
 <script setup>
 import { reactive } from 'vue'
 import { z } from 'zod'
+import { useRouter } from 'vue-router'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
+
+const router = useRouter()
 
 const form = reactive({
   email: '',
@@ -43,7 +46,7 @@ const schema = z.object({
   password: z.string().min(6, 'Hasło musi mieć minimum 6 znaków')
 })
 
-const onSubmit = () => {
+const onSubmit = async () => {
   const result = schema.safeParse(form)
   if (!result.success) {
     errors.email = ''
@@ -54,6 +57,28 @@ const onSubmit = () => {
     return
   }
 
-  console.log('✅ Logowanie:', form)
+  try {
+    const res = await fetch('http://localhost:3000/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+      credentials: 'include'
+    })
+
+    const data = await res.json()
+    console.log('Login response:', data) // 🔹 tu zobaczysz backend message
+
+    if (!res.ok) {
+      alert(data.error || 'Nieprawidłowy login')
+      return
+    }
+
+    // ✅ jeśli login OK, przekieruj na dashboard
+    router.push('/dashboard')
+
+  } catch (err) {
+    console.error(err)
+    alert(err.message)
+  }
 }
 </script>

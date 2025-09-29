@@ -7,9 +7,17 @@
     </div>
 
     <!-- Nawigacja -->
-    <nav class="flex gap-4">
+    <nav class="flex gap-4 items-center">
       <router-link to="/" class="px-4 py-2 text-white hover:text-blue-300">Strona główna</router-link>
       <router-link to="/more" class="px-4 py-2 text-white hover:text-blue-300">Więcej</router-link>
+
+      <!-- 🔹 Zaloguj się -->
+      <router-link
+        to="/login"
+        class="px-4 py-2 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-600 transition"
+      >
+        Zaloguj się
+      </router-link>
     </nav>
   </header>
 </template>

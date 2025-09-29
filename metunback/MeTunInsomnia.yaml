@@ -1,0 +1,1089 @@
+type: collection.insomnia.rest/5.0
+name: MeTun Insomnia
+meta:
+  id: wrk_db0f2658e595456483128bb927890bb2
+  created: 1759077928177
+  modified: 1759077959847
+  description: ""
+collection:
+  - name: MeTun
+    meta:
+      id: fld_0035069d7fd143d1a61f4e033af12a4b
+      created: 1758266462009
+      modified: 1759077227408
+      sortKey: -1758266462009
+      description: ""
+    children:
+      - name: University
+        meta:
+          id: fld_ddb5e7884f6e4bc3b73afbc73889279d
+          created: 1758266502352
+          modified: 1758269451931
+          sortKey: -1758266502352
+          description: ""
+        children:
+          - url: http://localhost:3000/api/universities
+            name: Get All Universities
+            meta:
+              id: req_d81eabe147a44707b1a8831ec94d65b7
+              created: 1758266536370
+              modified: 1758269158974
+              isPrivate: false
+              description: ""
+              sortKey: -1758266536370
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/universities/2
+            name: Get University by ID
+            meta:
+              id: req_587958973c694aabaa460279e30c4895
+              created: 1758269445487
+              modified: 1758269518514
+              isPrivate: false
+              description: ""
+              sortKey: -1758269445487
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/universities
+            name: Add University
+            meta:
+              id: req_b2dae720cc1e4a54b85f6c521bc7c78f
+              created: 1758269525016
+              modified: 1758269662068
+              isPrivate: false
+              description: ""
+              sortKey: -1758269525016
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "university_name": 	"Uniwersytet Białostocki",
+                  "location": "Białystok",
+                  "type": "Public"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/universities/2
+            name: Update University
+            meta:
+              id: req_4b8f9b2b6ab14c81ad4d8370d003165e
+              created: 1758269758206
+              modified: 1758269833844
+              isPrivate: false
+              description: ""
+              sortKey: -1758269758206
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |
+                {
+                  "university_name": "Politechnika Warszawska",
+                  "location": "Warszawa",
+                  "type": "Public"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/universities/3
+            name: Delete University
+            meta:
+              id: req_092895533ccb4b2c9619cf2d03642740
+              created: 1758269845329
+              modified: 1758269871506
+              isPrivate: false
+              description: ""
+              sortKey: -1758269845329
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Discipline
+        meta:
+          id: fld_806b236a60394e66967bbb300c6a8b6f
+          created: 1758270460809
+          modified: 1758271168493
+          sortKey: -1758270460810
+          description: ""
+        children:
+          - url: http://localhost:3000/api/disciplines
+            name: Get All Disciplines
+            meta:
+              id: req_7b1c1ee3158349b7ab2460253d8cbfd7
+              created: 1758270464256
+              modified: 1758270543107
+              isPrivate: false
+              description: ""
+              sortKey: -1758270464256
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/disciplines/2
+            name: Get Discipline by ID
+            meta:
+              id: req_03633dca55fe4a77bd818485c15f45bf
+              created: 1758270545439
+              modified: 1758270575815
+              isPrivate: false
+              description: ""
+              sortKey: -1758270545439
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/disciplines
+            name: Add Discipline
+            meta:
+              id: req_b3114b6a72bd472096162060fdf233fe
+              created: 1758270578953
+              modified: 1758271194779
+              isPrivate: false
+              description: ""
+              sortKey: -1758270578953
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"name": "Polski",
+                	"faculty_id": "2"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/disciplines/6
+            name: Update Discipline
+            meta:
+              id: req_dd9d48362892448a8af7751314ede952
+              created: 1758270770372
+              modified: 1758271109902
+              isPrivate: false
+              description: ""
+              sortKey: -1758270770372
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "name": "Algorytmy i Struktury Danych",
+                  "faculty_id": 2
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/disciplines/6
+            name: Delete Discipline
+            meta:
+              id: req_3e06f9f9ccd54edebee68a3ceba90850
+              created: 1758271144064
+              modified: 1758271188315
+              isPrivate: false
+              description: ""
+              sortKey: -1758271144064
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Profile
+        meta:
+          id: fld_3e9f593a23cc43939410c81106f34281
+          created: 1758306861436
+          modified: 1758306861436
+          sortKey: -1758306861436
+          description: ""
+        children:
+          - url: http://localhost:3000/api/profiles
+            name: Get All Profiles
+            meta:
+              id: req_4e6a4003be0b4074a137328f950271f6
+              created: 1758306863648
+              modified: 1758306883614
+              isPrivate: false
+              description: ""
+              sortKey: -1758306863648
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/profiles/2
+            name: Get Profile by ID
+            meta:
+              id: req_461ae31ac16748d8a5475284dcf04b9e
+              created: 1758306891807
+              modified: 1758306925518
+              isPrivate: false
+              description: ""
+              sortKey: -1758306891807
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/profiles
+            name: Add Profile
+            meta:
+              id: req_2268d640275a43129e98119becc76684
+              created: 1758306941928
+              modified: 1758307041194
+              isPrivate: false
+              description: ""
+              sortKey: -1758306941928
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                		"user_id": 1,
+                	"profile_picture": null,
+                		"date_of_birth": null,
+                		"name": "Bodzio",
+                		"bio": "Sprząta",
+                		"gender": "male",
+                		"location": "Białystok"
+                	}
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/profiles/4
+            name: Update Profile
+            meta:
+              id: req_352797868da24b2fbdcb10e636991e01
+              created: 1758307687602
+              modified: 1758307829918
+              isPrivate: false
+              description: ""
+              sortKey: -1758307687602
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                		"user_id": 1,
+                		"name": "Janek",
+                		"bio": "Lubi kodować",
+                		"profile_picture": null,
+                		"date_of_birth": null,
+                		"gender": "male",
+                		"location": "Białystok"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/profiles/1
+            name: Delete Profile
+            meta:
+              id: req_3f1495ff2ad041aa962a6fd3cdcb4738
+              created: 1758307785067
+              modified: 1758307801050
+              isPrivate: false
+              description: ""
+              sortKey: -1758307785067
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: User
+        meta:
+          id: fld_587c2bd28c824813a0a1bed8065e6532
+          created: 1758308495906
+          modified: 1758308495906
+          sortKey: -1758308495906
+          description: ""
+        children:
+          - url: http://localhost:3000/api/users
+            name: Get All Users
+            meta:
+              id: req_b4583a5669804f3cbf65e82f9c9dfeb7
+              created: 1758308502913
+              modified: 1758308524366
+              isPrivate: false
+              description: ""
+              sortKey: -1758308502913
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/users/2
+            name: Get User by ID
+            meta:
+              id: req_017c892bf3d64bfea379089a0d26a792
+              created: 1758308529650
+              modified: 1758308542911
+              isPrivate: false
+              description: ""
+              sortKey: -1758308529650
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/users
+            name: Add User
+            meta:
+              id: req_10f7a51e3fe7478a987165a01f4c2962
+              created: 1758308546607
+              modified: 1758308663613
+              isPrivate: false
+              description: ""
+              sortKey: -1758308546607
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"name": "Kacha",
+                	"surname": "Czeremcha",
+                	"email": 	"kacha@test.com",
+                	"password": "zadymka"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/users/4
+            name: Update User
+            meta:
+              id: req_c73589cb999d4aba8f077c3e85948332
+              created: 1758308801407
+              modified: 1758308880172
+              isPrivate: false
+              description: ""
+              sortKey: -1758308801407
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"name": "Kasia",
+                	"surname": "Czerembeta",
+                	"email": 	"kacha@test.com",
+                	"password": "zadymkasiusiu"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/users/4
+            name: Delete User
+            meta:
+              id: req_8395301209a6455eaa8442dbb8dd3d1b
+              created: 1758308882518
+              modified: 1758308906003
+              isPrivate: false
+              description: ""
+              sortKey: -1758308882518
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Faculty
+        meta:
+          id: fld_66e3a7c843f94ff5babc1ccebb618032
+          created: 1758309186994
+          modified: 1758309186994
+          sortKey: -1758309186994
+          description: ""
+        children:
+          - url: http://localhost:3000/api/faculties
+            name: Get All Faculties
+            meta:
+              id: req_b19af29b22cf41deb183e59426961dd7
+              created: 1758309302105
+              modified: 1758309319249
+              isPrivate: false
+              description: ""
+              sortKey: -1758309302105
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/faculties/2
+            name: Get Faculty by ID
+            meta:
+              id: req_3eda31f94b9e443890e2075cf026d191
+              created: 1758309326166
+              modified: 1758309336857
+              isPrivate: false
+              description: ""
+              sortKey: -1758309326166
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/faculties/2
+            name: Update Faculty
+            meta:
+              id: req_fd201a97bd934257beb72623b643d200
+              created: 1758309347175
+              modified: 1758309387134
+              isPrivate: false
+              description: ""
+              sortKey: -1758309347175
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"faculty_name": "Wydział Zadymki",
+                	"university_id": 2
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/faculties
+            name: Add Faculty
+            meta:
+              id: req_edae002dd4494868ac35d7e454653552
+              created: 1758309408997
+              modified: 1758309461565
+              isPrivate: false
+              description: ""
+              sortKey: -1758309336670.5
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"faculty_name": "Wydział Matematyki",
+                	"university_id": 2
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/faculties/3
+            name: Delete Faculty
+            meta:
+              id: req_03d10f7984914cb0b476792f7f7f1ddc
+              created: 1758309473330
+              modified: 1758309500874
+              isPrivate: false
+              description: ""
+              sortKey: -1758309473330
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Group
+        meta:
+          id: fld_0cb4347c6fad4bc394cee346bc21f221
+          created: 1758309946340
+          modified: 1758309946340
+          sortKey: -1758309946340
+          description: ""
+        children:
+          - url: http://localhost:3000/api/groups
+            name: Get All Groups
+            meta:
+              id: req_41b255167e3e4439b4758adc531111fe
+              created: 1758309949587
+              modified: 1758309976426
+              isPrivate: false
+              description: ""
+              sortKey: -1758309949587
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/groups/2
+            name: Get Group by ID
+            meta:
+              id: req_f610bb18a6eb49b4b24c5a972cad9666
+              created: 1758309979809
+              modified: 1758310035070
+              isPrivate: false
+              description: ""
+              sortKey: -1758309979809
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/groups
+            name: Add Group
+            meta:
+              id: req_8d60ae2afe034543acd3f1b34ef42e65
+              created: 1758309991598
+              modified: 1758310078076
+              isPrivate: false
+              description: ""
+              sortKey: -1758309991598
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"group_name": "Zadymiarze",
+                	"creator_user_id": 2,
+                	"discipline_id": 2
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/groups/3
+            name: Update Group
+            meta:
+              id: req_4d9d7def2040421ebbeade30a963d806
+              created: 1758310001287
+              modified: 1758310123643
+              isPrivate: false
+              description: ""
+              sortKey: -1758310001287
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"group_name": "ZadymiarzeSiusiu",
+                	"creator_user_id": 2,
+                	"discipline_id": 2
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/groups/3
+            name: Delete Group
+            meta:
+              id: req_5addc55447e945499c26d6297c1d2c6c
+              created: 1758310016565
+              modified: 1758310103120
+              isPrivate: false
+              description: ""
+              sortKey: -1758310016565
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: GroupMember
+        meta:
+          id: fld_130abf728394419fa54f0e62dc9f394d
+          created: 1758310150421
+          modified: 1758310150421
+          sortKey: -1758310150421
+          description: ""
+        children:
+          - url: http://localhost:3000/api/group-members/2
+            name: Get All GroupMembers by GroupID
+            meta:
+              id: req_e134ed07f02a47dd807b2794e74e0765
+              created: 1758310231844
+              modified: 1758310885868
+              isPrivate: false
+              description: ""
+              sortKey: -1758310231844
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/group-members/2
+            name: Add GroupMember
+            meta:
+              id: req_e56eb6f0ee7d45a285762aefac860c96
+              created: 1758310251622
+              modified: 1758311714753
+              isPrivate: false
+              description: ""
+              sortKey: -1758310251622
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                		"user_id": 5,		
+                		"role": "member"
+                	}
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/group-members/2/member/5
+            name: Update GroupMember
+            meta:
+              id: req_edda37a9299841478b77e5f2a0617eeb
+              created: 1758310270441
+              modified: 1758311794372
+              isPrivate: false
+              description: ""
+              sortKey: -1758310270441
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                		"role": "creator"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/group-members/2/member/5
+            name: Delete GroupMember
+            meta:
+              id: req_5a42a13b3ffd43a1871287a68d814afa
+              created: 1758310289573
+              modified: 1758311814894
+              isPrivate: false
+              description: ""
+              sortKey: -1758310289573
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Auth
+        meta:
+          id: fld_a67c44bb91714f659671310150319e3d
+          created: 1759074251138
+          modified: 1759074256852
+          sortKey: -1758310150521
+          description: ""
+        children:
+          - url: http://localhost:3000/api/auth/login
+            name: Login
+            meta:
+              id: req_dffc8c3e177e4e87921b543a9dfd9e78
+              created: 1759074292149
+              modified: 1759075674127
+              isPrivate: false
+              description: ""
+              sortKey: -1759074292149
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "email": "jan@example.com",
+                  "password": "tajnehaslo"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:3000/api/auth/signup
+            name: Signup
+            meta:
+              id: req_17c1aa275c0146f3823eeb74bba43cfb
+              created: 1759074305655
+              modified: 1759075685557
+              isPrivate: false
+              description: ""
+              sortKey: -1759074305655
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "name": "Jan",
+                  "surname": "Kowalski",
+                  "email": "jan@example.com",
+                  "password": "tajnehaslo"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.6.1
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_312d40808a2b43bca24a1c5f2aeaec89
+    created: 1733845749370
+    modified: 1748887641195
+  cookies:
+    - id: af899262-35a4-4c2d-8e24-baa63627ec1d
+      key: ShopCookie
+      value: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc0ODE4MTU5NiwiZXhwIjoxNzQ4MTg1MTk2fQ.V3ngScep2uB6zfpE6m_8_FR4v2t3bQ8pGREfeXBVO8w
+      domain: localhost
+      path: /
+      secure: false
+      httpOnly: true
+      extensions:
+        - Version=1
+      hostOnly: true
+    - id: fe8277d9-cca2-4514-bbce-9825a68f5fb9
+      key: RefreshCookie
+      value: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc0ODE4MTU5NiwiZXhwIjoxNzQ4Nzg2Mzk2fQ.QCtb3g1kU8U-FSTAd05biSumjz8EtrXH9J6gieCvYJY
+      domain: localhost
+      path: /
+      secure: false
+      httpOnly: true
+      extensions:
+        - Version=1
+      hostOnly: true
+    - id: 42e1750e-3fee-41ee-9d25-6ae36c920907
+      key: JSESSIONID
+      value: 1d39c54fe807968910dcb5b89c41
+      domain: localhost
+      path: /javaproject-1.0-SNAPSHOT
+      secure: false
+      httpOnly: false
+      hostOnly: true
+environments:
+  name: Base Environment
+  meta:
+    id: env_5e7b20c6284d4ce2919e9d5c369b35c4
+    created: 1733845749263
+    modified: 1746361614718
+    isPrivate: false
+  data:
+    auth_token: eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEwMDAwLCJ1c2VybmFtZSI6ImFkbWluIiwiaWF0IjoxNzQ2MzYxNjEzLCJleHAiOjE3NDY0NDgwMTN9.iy7vNsyBcjrY3XrISWu0xKliTtScj8aUrAaOhmqeiuQ
+  subEnvironments:
+    - name: Dev
+      meta:
+        id: env_58fbf87d3f99410784bf3566a09380a6
+        created: 1747658319757
+        modified: 1747658744478
+        isPrivate: false
+        sortKey: 1747658319757
+      data:
+        jwt_token: '""'
+    - name: Dev
+      meta:
+        id: env_a5a0051ec93e4568b5faf680e57cd3d8
+        created: 1747658319757
+        modified: 1747658744478
+        isPrivate: false
+        sortKey: 1747658319757
+      data:
+        jwt_token: '""'
+    - name: Dev
+      meta:
+        id: env_a7b4e8b9491f4b10a02cb07623667047
+        created: 1747658319757
+        modified: 1747658744478
+        isPrivate: false
+        sortKey: 1747658319757
+      data:
+        jwt_token: '""'
+    - name: Dev
+      meta:
+        id: env_f0b3ccd626da47a9b2f6ea55dcec9193
+        created: 1747658319757
+        modified: 1747658744478
+        isPrivate: false
+        sortKey: 1747658319757
+      data:
+        jwt_token: '""'
+    - name: Dev
+      meta:
+        id: env_f6a04faa644c4518964799599ad6f091
+        created: 1747658319757
+        modified: 1747658744478
+        isPrivate: false
+        sortKey: 1747658319757
+      data:
+        jwt_token: '""'

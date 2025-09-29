@@ -43,18 +43,21 @@
                 Weryfikacja profili i decyzji o przyjęciu na uczelnię gwarantuje, że społeczność jest autentyczna i bezpieczna.
               </p>
             </div>
+
             <div class="bg-black/30 p-6 rounded-xl shadow-lg hover:shadow-xl transition text-white">
               <h3 class="text-xl font-semibold mb-2">Łatwe rozmowy 1:1</h3>
               <p class="text-gray-200">
                 Przesuwaj profile w prawo, aby połączyć się z innymi kandydatami i rozpocząć rozmowę w prosty i intuicyjny sposób.
               </p>
             </div>
+
             <div class="bg-black/30 p-6 rounded-xl shadow-lg hover:shadow-xl transition text-white">
               <h3 class="text-xl font-semibold mb-2">Śledź aktywność</h3>
               <p class="text-gray-200">
                 Zobacz, którzy użytkownicy są aktywni w Twojej grupie i bierz udział w dyskusjach na bieżąco.
               </p>
             </div>
+
             <div class="bg-black/30 p-6 rounded-xl shadow-lg hover:shadow-xl transition text-white">
               <h3 class="text-xl font-semibold mb-2">Dołącz już teraz</h3>
               <p class="text-gray-200">
@@ -63,10 +66,14 @@
             </div>
           </div>
 
+          <!-- 🔹 Przycisk przekierowujący do rejestracji -->
           <div class="mt-12 text-center">
-            <button class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+            <router-link
+              to="/signup"
+              class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            >
               Dołącz teraz
-            </button>
+            </router-link>
           </div>
         </div>
       </section>
