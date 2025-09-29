@@ -1,5 +1,9 @@
 <template>
   <div class="min-h-screen flex flex-col relative">
+    <!-- Modale -->
+    <AuthModal type="signup" v-model:visible="showSignup" />
+    <AuthModal type="login" v-model:visible="showLogin" />
+
     <!-- Tło -->
     <div
       class="absolute inset-0 bg-cover bg-center"
@@ -11,7 +15,7 @@
 
     <!-- Treść -->
     <div class="relative z-10 flex flex-col min-h-screen">
-      <AppHeader />
+      <AppHeader @show-login="showLogin = true" />
 
       <section class="py-16 px-6 flex-1">
         <div class="max-w-5xl mx-auto">
@@ -66,14 +70,14 @@
             </div>
           </div>
 
-          <!-- 🔹 Przycisk przekierowujący do rejestracji -->
+          <!-- 🔹 Przycisk otwierający modal rejestracji -->
           <div class="mt-12 text-center">
-            <router-link
-              to="/signup"
+            <button
+              @click="showSignup = true"
               class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
             >
               Dołącz teraz
-            </router-link>
+            </button>
           </div>
         </div>
       </section>
@@ -84,6 +88,11 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import AppHeader from '../components/AppHeader.vue'
 import AppFooter from '../components/AppFooter.vue'
+import AuthModal from '../components/AuthModal.vue'
+
+const showSignup = ref(false)
+const showLogin = ref(false)
 </script>

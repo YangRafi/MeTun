@@ -1,5 +1,9 @@
 <template>
   <div class="min-h-screen flex flex-col relative">
+    <!-- Modale -->
+    <AuthModal type="signup" v-model:visible="showSignup" />
+    <AuthModal type="login" v-model:visible="showLogin" />
+
     <!-- Wideo w tle -->
     <video
       autoplay
@@ -16,7 +20,7 @@
 
     <!-- Treść -->
     <div class="relative z-10 flex flex-col min-h-screen">
-      <AppHeader />
+      <AppHeader @show-login="showLogin = true" />
 
       <main class="flex-1 flex flex-col items-center justify-center px-4">
         <!-- Logo -->
@@ -41,13 +45,13 @@
           nowych ludzi i dołączaj do grup kierunkowych!
         </p>
 
-        <!-- Przycisk Utwórz konto -->
-        <router-link
-          to="/signup"
+        <!-- Przycisk Utwórz konto (otwiera modal) -->
+        <button
+          @click="showSignup = true"
           class="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
         >
           Utwórz konto
-        </router-link>
+        </button>
       </main>
 
       <AppFooter />
@@ -56,6 +60,11 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import AppHeader from '../components/AppHeader.vue'
 import AppFooter from '../components/AppFooter.vue'
+import AuthModal from '../components/AuthModal.vue'
+
+const showSignup = ref(false)
+const showLogin = ref(false)
 </script>
