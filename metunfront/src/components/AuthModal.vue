@@ -3,17 +3,17 @@
     <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center">
       <!-- Overlay -->
       <div
-        class="absolute inset-0 bg-black/60"
+        class="absolute inset-0 bg-black/70 backdrop-blur-sm"
         @click="close"
       ></div>
 
       <!-- Modal -->
-      <transition name="scale">
+      <transition name="scale-up">
         <div
-          class="relative bg-white rounded-lg shadow-lg p-6 w-full max-w-md z-10"
+          class="relative bg-gradient-to-br from-red-900 via-orange-800 to-yellow-700 rounded-2xl shadow-2xl p-8 w-full max-w-md z-10 text-white"
           @click.stop
         >
-          <h2 class="text-2xl font-bold mb-6 text-center">
+          <h2 class="text-3xl font-bold mb-6 text-center drop-shadow-lg">
             {{ type === 'signup' ? 'Rejestracja' : 'Logowanie' }}
           </h2>
 
@@ -21,49 +21,70 @@
             <!-- Signup -->
             <template v-if="type === 'signup'">
               <div class="mb-4">
-                <label class="block mb-1">Imię</label>
-                <InputText v-model="form.firstName" class="w-full" />
-                <span class="text-red-600 text-sm">{{ errors.firstName }}</span>
+                <label class="block mb-1 font-medium">Imię</label>
+                <InputText
+                  v-model="form.firstName"
+                  class="w-full rounded-md px-3 py-2 text-gray-900 bg-white/90 border border-orange-300 shadow-inner"
+                />
+                <span class="text-red-200 text-sm">{{ errors.firstName }}</span>
               </div>
 
               <div class="mb-4">
-                <label class="block mb-1">Nazwisko</label>
-                <InputText v-model="form.lastName" class="w-full" />
-                <span class="text-red-600 text-sm">{{ errors.lastName }}</span>
+                <label class="block mb-1 font-medium">Nazwisko</label>
+                <InputText
+                  v-model="form.lastName"
+                  class="w-full rounded-md px-3 py-2 text-gray-900 bg-white/90 border border-orange-300 shadow-inner"
+                />
+                <span class="text-red-200 text-sm">{{ errors.lastName }}</span>
               </div>
             </template>
 
             <!-- Email -->
             <div class="mb-4">
-              <label class="block mb-1">Email</label>
-              <InputText v-model="form.email" class="w-full" placeholder="Podaj email" />
-              <span class="text-red-600 text-sm">{{ errors.email }}</span>
+              <label class="block mb-1 font-medium">Email</label>
+              <InputText
+                v-model="form.email"
+                class="w-full rounded-md px-3 py-2 text-gray-900 bg-white/90 border border-orange-300 shadow-inner"
+                placeholder="Podaj email"
+              />
+              <span class="text-red-200 text-sm">{{ errors.email }}</span>
             </div>
 
             <!-- Hasło -->
             <div class="mb-4">
-              <label class="block mb-1">Hasło</label>
-              <Password v-model="form.password" :feedback="false" toggleMask class="w-full" placeholder="Podaj hasło" />
-              <span class="text-red-600 text-sm">{{ errors.password }}</span>
+              <label class="block mb-1 font-medium">Hasło</label>
+              <Password
+                v-model="form.password"
+                :feedback="false"
+                toggleMask
+                class="w-full rounded-md px-3 py-2 text-gray-900 bg-white/90 border border-orange-300 shadow-inner"
+                placeholder="Podaj hasło"
+              />
+              <span class="text-red-200 text-sm">{{ errors.password }}</span>
             </div>
 
             <!-- Confirm password (signup only) -->
             <div v-if="type === 'signup'" class="mb-4">
-              <label class="block mb-1">Powtórz hasło</label>
-              <Password v-model="form.confirmPassword" :feedback="false" toggleMask class="w-full" />
-              <span class="text-red-600 text-sm">{{ errors.confirmPassword }}</span>
+              <label class="block mb-1 font-medium">Powtórz hasło</label>
+              <Password
+                v-model="form.confirmPassword"
+                :feedback="false"
+                toggleMask
+                class="w-full rounded-md px-3 py-2 text-gray-900 bg-white/90 border border-orange-300 shadow-inner"
+              />
+              <span class="text-red-200 text-sm">{{ errors.confirmPassword }}</span>
             </div>
 
             <Button
               type="submit"
               :label="type === 'signup' ? 'Zarejestruj się' : 'Zaloguj się'"
-              class="w-full mt-4"
+              class="w-full mt-4 bg-gradient-to-r from-orange-600 via-red-700 to-yellow-600 hover:from-yellow-600 hover:to-red-700 text-white font-semibold rounded-lg shadow-lg"
             />
           </form>
 
           <!-- Zamknij -->
           <button
-            class="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+            class="absolute top-3 right-3 text-white hover:text-gray-200 text-xl font-bold"
             @click="close"
           >✕</button>
         </div>
@@ -73,7 +94,7 @@
 </template>
 
 <script setup>
-import { reactive, watch, toRefs } from 'vue'
+import { reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
@@ -81,7 +102,7 @@ import Button from 'primevue/button'
 import { z } from 'zod'
 
 const props = defineProps({
-  type: { type: String, default: 'signup' }, // 'signup' lub 'login'
+  type: { type: String, default: 'signup' },
   visible: { type: Boolean, default: false }
 })
 
@@ -97,7 +118,6 @@ const form = reactive({
 })
 const errors = reactive({})
 
-// Schemat walidacji
 const schema = props.type === 'signup'
   ? z.object({
       firstName: z.string().min(1, 'Imię jest wymagane'),
@@ -163,12 +183,11 @@ const close = () => emit('update:visible', false)
 </script>
 
 <style>
-/* Animacje */
 .fade-enter-active, .fade-leave-active { transition: opacity 0.25s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
-.scale-enter-active { transition: transform 0.3s ease; }
-.scale-enter-from { transform: scale(0.8); }
-.scale-leave-active { transition: transform 0.2s ease; }
-.scale-leave-to { transform: scale(0.8); }
+.scale-up-enter-active { transition: all 0.35s cubic-bezier(0.68,-0.55,0.27,1.55); }
+.scale-up-enter-from { opacity: 0; transform: scale(0); }
+.scale-up-leave-active { transition: all 0.2s ease-in; }
+.scale-up-leave-to { opacity: 0; transform: scale(0); }
 </style>

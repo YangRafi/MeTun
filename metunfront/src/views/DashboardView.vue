@@ -37,7 +37,7 @@ const logout = async () => {
   } catch (err) {
     console.error(err)
   } finally {
-    router.push('/login')
+    router.push('/')
   }
 }
 
