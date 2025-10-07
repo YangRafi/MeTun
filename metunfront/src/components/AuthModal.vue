@@ -171,13 +171,19 @@ const onSubmit = async () => {
     const data = await res.json()
     if (!res.ok) throw new Error(data.error || 'Błąd')
 
-    if (props.type === 'signup') alert('Rejestracja zakończona sukcesem!')
-    router.push(props.type === 'signup' ? '/login' : '/dashboard')
-    close()
+    if (props.type === 'signup') {
+      alert('Rejestracja zakończona sukcesem!')
+      close() // zamykamy modal rejestracji
+      emit('open-login') // otwieramy modal logowania
+    } else {
+      router.push('/create-profile')
+      close()
+    }
   } catch (err) {
     alert(err.message)
   }
 }
+
 
 const close = () => emit('update:visible', false)
 </script>

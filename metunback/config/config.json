@@ -1,0 +1,10 @@
+{
+  "development": {
+    "username": "root",
+    "password": "ebeebe",
+    "database": "MeTun",
+    "host": "localhost",
+    "port": 3307,
+    "dialect": "mysql"
+  }
+}

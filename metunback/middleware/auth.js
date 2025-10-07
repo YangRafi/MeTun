@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = "supersecretkey";
+require('dotenv').config({ path: __dirname + '/../secret.env' }); // załaduj secret.env
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 exports.authenticate = (req, res, next) => {
   const token = req.cookies.token; // odczytujemy token z cookie

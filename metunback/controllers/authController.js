@@ -2,7 +2,9 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-const JWT_SECRET = "supersecretkey"; // 🔑 wrzuć do .env w przyszłości
+require('dotenv').config({ path: __dirname + '/../secret.env' }); // załaduj secret.env
+
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = "1h";
 
 // REGISTER (signup)

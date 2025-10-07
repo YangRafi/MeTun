@@ -1,7 +1,11 @@
 <template>
   <div class="min-h-screen flex flex-col relative">
     <!-- Modale -->
-    <AuthModal type="signup" v-model:visible="showSignup" />
+    <AuthModal 
+      type="signup" 
+      v-model:visible="showSignup" 
+      @open-login="showLogin = true"
+    />
     <AuthModal type="login" v-model:visible="showLogin" />
 
     <!-- Wideo w tle -->
