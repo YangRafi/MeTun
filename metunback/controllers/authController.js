@@ -2,8 +2,6 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-require('dotenv').config({ path: __dirname + '/../secret.env' }); // załaduj secret.env
-
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = "1h";
 
@@ -56,8 +54,8 @@ exports.login = async (req, res) => {
     // ustawienie HttpOnly cookie
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // tylko HTTPS w produkcji
-      sameSite: 'strict', // albo 'lax', zależy od potrzeb
+      secure: false,
+      sameSite: 'lax',
       maxAge: 3600000 // 1h w ms
     });
 
@@ -96,8 +94,8 @@ exports.me = async (req, res) => {
 exports.logout = (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
+    secure: false,
+    sameSite: 'lax'
   });
   res.json({ message: "Logout successful" });
 };

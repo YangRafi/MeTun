@@ -165,7 +165,7 @@ const onSubmit = async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-      credentials: 'include'
+      credentials: 'include' // ważne, żeby cookie JWT były przesyłane
     })
 
     const data = await res.json()
@@ -173,16 +173,32 @@ const onSubmit = async () => {
 
     if (props.type === 'signup') {
       alert('Rejestracja zakończona sukcesem!')
-      close() // zamykamy modal rejestracji
-      emit('open-login') // otwieramy modal logowania
+      close()
+      emit('open-login')
     } else {
-      router.push('/create-profile')
+      // Logowanie – sprawdzamy, czy użytkownik ma profil
+      const checkProfileRes = await fetch('http://localhost:3000/api/profiles/check', {
+        credentials: 'include'
+      })
+      const checkData = await checkProfileRes.json()
+      
+      if (checkProfileRes.ok) {
+        if (checkData.hasProfile) {
+          router.push('/dashboard')
+        } else {
+          router.push('/create-profile')
+        }
+      } else {
+        throw new Error(checkData.error || 'Nie udało się sprawdzić profilu użytkownika')
+      }
+
       close()
     }
   } catch (err) {
     alert(err.message)
   }
 }
+
 
 
 const close = () => emit('update:visible', false)

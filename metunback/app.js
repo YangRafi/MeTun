@@ -37,6 +37,7 @@ app.use('/api/faculties', facultyRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/group-members', groupMemberRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/uploads', express.static('uploads'));
 
 // obsługa 404 jako JSON
 app.use((req, res, next) => {
