@@ -1,4 +1,4 @@
-// scripts/importFaculties.js
+// seeders?
 require('dotenv').config();
 const { Sequelize } = require('sequelize');
 const sequelize = require('../util/database');
@@ -7,8 +7,8 @@ const University = require('../models/University');
 
 async function importFaculties() {
     try {
-        await sequelize.authenticate();
-        console.log('✅ Połączono z bazą danych');
+        //await sequelize.authenticate();
+        //console.log('✅ Połączono z bazą danych');
 
         const universities = await University.findAll();
         console.log(`📘 Znaleziono ${universities.length} uczelni w bazie`);
@@ -59,8 +59,7 @@ async function importFaculties() {
     } catch (err) {
         console.error('Błąd połączenia z bazą danych:', err);
     } finally {
-        await sequelize.close();
+       // await sequelize.close();
     }
 }
-
-importFaculties();
+module.exports = importFaculties;
