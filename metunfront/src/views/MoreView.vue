@@ -93,9 +93,9 @@
 
 <script setup>
 import { ref } from 'vue'
-import AppHeader from '../components/AppHeader.vue'
-import AppFooter from '../components/AppFooter.vue'
-import AuthModal from '../components/AuthModal.vue'
+import AppHeader from '../components/Layout/AppHeader.vue'
+import AppFooter from '../components/Layout/AppFooter.vue'
+import AuthModal from '../components/Layout/AuthModal.vue'
 
 const showSignup = ref(false)
 const showLogin = ref(false)
