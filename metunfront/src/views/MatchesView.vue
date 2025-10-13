@@ -1,151 +1,164 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-red-900 via-orange-800 to-yellow-700 text-white flex flex-col">
-    <!-- HEADER -->
-    <UserHeader :profile="profile" />
+  <div class="max-w-3xl mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-6 text-center">Znajdź dopasowania</h1>
 
-    <!-- MAIN CONTENT -->
-    <div class="flex flex-1 overflow-hidden">
-      <!-- LEFT SIDEBAR: lista dopasowań + filtry -->
-      <aside class="w-1/4 bg-black/30 backdrop-blur-md p-4 flex flex-col">
-        <!-- Filtry -->
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-bold">Twoje dopasowania</h2>
-          <button
-            @click="toggleFilters"
-            class="px-2 py-1 bg-yellow-400/20 rounded hover:bg-yellow-400/40"
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <!-- Płeć -->
+      <div>
+        <label class="block mb-1 text-sm font-medium">Płeć</label>
+        <select v-model="filters.gender" class="w-full border rounded-lg p-2">
+          <option value="">Dowolna</option>
+          <option value="M">Mężczyzna</option>
+          <option value="F">Kobieta</option>
+        </select>
+      </div>
+
+      <!-- Wiek -->
+      <div class="flex gap-2">
+        <div class="flex-1">
+          <label class="block mb-1 text-sm font-medium">Wiek od</label>
+          <input v-model.number="filters.ageMin" type="number" class="w-full border rounded-lg p-2" min="18" />
+        </div>
+        <div class="flex-1">
+          <label class="block mb-1 text-sm font-medium">Wiek do</label>
+          <input v-model.number="filters.ageMax" type="number" class="w-full border rounded-lg p-2" min="18" />
+        </div>
+      </div>
+
+      <!-- Uczelnia -->
+      <div class="md:col-span-2">
+        <label class="block mb-1 text-sm font-medium">Uczelnia</label>
+        <input
+          v-model="universityQuery"
+          @input="fetchUniversities"
+          type="text"
+          placeholder="Wpisz nazwę uczelni..."
+          class="w-full border rounded-lg p-2"
+        />
+        <ul v-if="universitySuggestions.length > 0" class="border rounded-lg bg-white shadow mt-1 max-h-40 overflow-y-auto">
+          <li
+            v-for="u in universitySuggestions"
+            :key="u.university_id"
+            @click="selectUniversity(u)"
+            class="p-2 hover:bg-gray-100 cursor-pointer"
           >
-            Filtry
-          </button>
-        </div>
+            {{ u.university_name }}
+          </li>
+        </ul>
+      </div>
 
-        <div v-if="showFilters" class="mb-4 p-2 bg-black/20 rounded">
-          <label class="block mb-1">Płeć:</label>
-          <select v-model="filters.gender" class="w-full mb-2 text-black rounded px-2 py-1">
-            <option value="">Wszystkie</option>
-            <option value="male">Mężczyzna</option>
-            <option value="female">Kobieta</option>
-          </select>
+      <!-- Wydział -->
+      <div>
+        <label class="block mb-1 text-sm font-medium">Wydział</label>
+        <select v-model="filters.facultyId" @change="fetchDisciplines" class="w-full border rounded-lg p-2">
+          <option value="">Wybierz...</option>
+          <option v-for="f in faculties" :key="f.faculty_id" :value="f.faculty_id">
+            {{ f.faculty_name }}
+          </option>
+        </select>
+      </div>
 
-          <label class="block mb-1">Uczelnia:</label>
-          <input
-            v-model="filters.university"
-            type="text"
-            placeholder="Wpisz uczelnię"
-            class="w-full mb-2 text-black rounded px-2 py-1"
-          />
-
-          <label class="block mb-1">Wydział:</label>
-          <input
-            v-model="filters.faculty"
-            type="text"
-            placeholder="Wpisz wydział"
-            class="w-full text-black rounded px-2 py-1"
-          />
-        </div>
-
-        <!-- Lista dopasowań -->
-        <div class="flex-1 overflow-y-auto">
-          <ul>
-            <li
-              v-for="match in filteredMatches"
-              :key="match.id"
-              @click="selectMatch(match)"
-              :class="['cursor-pointer p-2 rounded-lg mb-2 flex items-center', selectedMatch?.id === match.id ? 'bg-yellow-400/30' : 'hover:bg-yellow-400/20']"
-            >
-              <img
-                v-if="match.profile_picture"
-                :src="'http://localhost:3000' + match.profile_picture"
-                class="w-10 h-10 rounded-full mr-2 object-cover"
-              />
-              <div>
-                <div>{{ match.name }}</div>
-                <div class="text-sm text-white/60">{{ match.university || '' }}</div>
-              </div>
-            </li>
-
-            <li v-if="filteredMatches.length === 0" class="text-white/50 p-2">
-              Brak dopasowań
-            </li>
-          </ul>
-        </div>
-      </aside>
-
-      <!-- CENTER: czat -->
-      <main class="flex-1 flex flex-col p-4">
-        <ChatBox v-if="selectedMatch" :match="selectedMatch" />
-        <div v-else class="flex-1 flex items-center justify-center text-white/70">
-          Wybierz dopasowanie, aby rozpocząć czat
-        </div>
-      </main>
+      <!-- Kierunek -->
+      <div>
+        <label class="block mb-1 text-sm font-medium">Kierunek</label>
+        <select v-model="filters.disciplineId" class="w-full border rounded-lg p-2">
+          <option value="">Wybierz...</option>
+          <option v-for="d in disciplines" :key="d.discipline_id" :value="d.discipline_id">
+            {{ d.name }}
+          </option>
+        </select>
+      </div>
     </div>
+
+    <button @click="fetchMatches" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 w-full">
+      Szukaj dopasowań
+    </button>
+
+    <!-- Wyniki -->
+    <div v-if="matches.length > 0" class="mt-6">
+      <h2 class="text-xl font-semibold mb-4">Znalezione osoby:</h2>
+      <ul class="space-y-4">
+        <li
+          v-for="m in matches"
+          :key="m.id"
+          class="p-4 border rounded-lg shadow-sm hover:shadow-md transition"
+        >
+          <p class="font-bold">{{ m.name }} ({{ m.age }} lat)</p>
+          <p class="text-sm text-gray-600">
+            {{ m.university_name }} — {{ m.faculty_name }} — {{ m.discipline_name }}
+          </p>
+        </li>
+      </ul>
+    </div>
+
+    <p v-else-if="searched" class="mt-6 text-gray-600 text-center">Brak wyników dopasowań.</p>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import UserHeader from '../components/Layout/UserHeader.vue'
-import ChatBox from '../components/Chat/ChatBox.vue'
+import { ref } from "vue";
 
-const router = useRouter()
-const profile = reactive({})
-const matches = ref([])
-const selectedMatch = ref(null)
+const filters = ref({
+  gender: "",
+  ageMin: "",
+  ageMax: "",
+  universityId: "",
+  facultyId: "",
+  disciplineId: "",
+});
 
-const showFilters = ref(false)
-const filters = reactive({
-  gender: '',
-  university: '',
-  faculty: ''
-})
+const universityQuery = ref("");
+const universitySuggestions = ref([]);
+const faculties = ref([]);
+const disciplines = ref([]);
+const matches = ref([]);
+const searched = ref(false);
 
-const toggleFilters = () => {
-  showFilters.value = !showFilters.value
-}
-
-const filteredMatches = computed(() => {
-  return matches.value.filter(match => {
-    const genderOk = !filters.gender || match.gender === filters.gender
-    const universityOk = !filters.university || match.university?.toLowerCase().includes(filters.university.toLowerCase())
-    const facultyOk = !filters.faculty || match.faculty?.toLowerCase().includes(filters.faculty.toLowerCase())
-    return genderOk && universityOk && facultyOk
-  })
-})
-
-const fetchUser = async () => {
-  try {
-    const res = await fetch('http://localhost:3000/api/auth/me', {
-      method: 'GET',
-      credentials: 'include'
-    })
-    if (!res.ok) throw new Error('Nie zalogowany')
-    const data = await res.json()
-    Object.assign(profile, data)
-  } catch {
-    router.push('/')
+// 🔹 Dynamiczne podpowiedzi uczelni
+async function fetchUniversities() {
+  if (universityQuery.value.length < 1) {
+    universitySuggestions.value = [];
+    return;
   }
+
+  const res = await fetch(`http://localhost:3000/api/universities?query=${encodeURIComponent(universityQuery.value)}`);
+  const data = await res.json();
+  universitySuggestions.value = data.slice(0, 10); // maks. 10 wyników
 }
 
-const fetchMatches = async () => {
-  try {
-    const res = await fetch('http://localhost:3000/api/matches', {
-      method: 'GET',
-      credentials: 'include'
-    })
-    if (!res.ok) throw new Error('Błąd ładowania dopasowań')
-    const data = await res.json()
-    matches.value = data
-  } catch (err) {
-    console.error(err)
-  }
+// 🔹 Po wybraniu uczelni
+async function selectUniversity(u) {
+  filters.value.universityId = u.university_id;
+  universityQuery.value = u.university_name;
+  universitySuggestions.value = [];
+  await fetchFaculties();
 }
 
-const selectMatch = (match) => {
-  selectedMatch.value = match
+// 🔹 Pobieranie wydziałów danej uczelni
+async function fetchFaculties() {
+  if (!filters.value.universityId) return;
+  const res = await fetch(`http://localhost:3000/api/faculties?universityId=${filters.value.universityId}`);
+  faculties.value = await res.json();
+  disciplines.value = []; // reset kierunków
+  filters.value.facultyId = "";
+  filters.value.disciplineId = "";
 }
 
-onMounted(() => {
-  fetchUser()
-  fetchMatches()
-})
+// 🔹 Pobieranie kierunków danego wydziału
+async function fetchDisciplines() {
+  if (!filters.value.facultyId) return;
+  const res = await fetch(`http://localhost:3000/api/disciplines?facultyId=${filters.value.facultyId}`);
+  disciplines.value = await res.json();
+}
+
+// 🔹 Pobieranie dopasowań
+async function fetchMatches() {
+  const params = new URLSearchParams(
+    Object.entries(filters.value).filter(([_, v]) => v !== "" && v !== null)
+  );
+
+  const res = await fetch(`http://localhost:3000/api/matches?${params.toString()}`);
+  matches.value = await res.json();
+  searched.value = true;
+}
 </script>

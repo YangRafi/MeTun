@@ -10,6 +10,26 @@ exports.getAllDisciplines = async (req, res) => {
   }
 };
 
+exports.getDisciplinesByFaculty = async (req, res) => {
+  try {
+    const { facultyId } = req.query;
+
+    if (!facultyId) {
+      return res.status(400).json({ error: "facultyId query parameter is required" });
+    }
+
+    const disciplines = await Discipline.findAll({
+      where: { faculty_id: facultyId },
+      attributes: ['discipline_id', 'name']
+    });
+
+    res.json(disciplines);
+  } catch (err) {
+    console.error("❌ Error fetching disciplines by faculty:", err);
+    res.status(500).json({ error: "Server error while fetching disciplines" });
+  }
+};
+
 exports.getDisciplineById = async (req, res) => {
   try {
     const discipline = await Discipline.findByPk(req.params.id);

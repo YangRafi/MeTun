@@ -3,11 +3,25 @@ const Faculty = require('../models/Faculty');
 // GET all faculties
 exports.getAllFaculties = async (req, res) => {
   try {
-    const faculties = await Faculty.findAll();
+    const { universityId } = req.query;
+
+    const whereClause = {};
+    if (universityId) {
+      whereClause.university_id = universityId;
+    }
+
+    const faculties = await Faculty.findAll({
+      where: whereClause,
+      order: [['faculty_name', 'ASC']]
+    });
+
     res.json(faculties);
   } catch (err) {
     console.error("❌ Error fetching faculties:", err);
-    res.status(500).json({ error: "Server error while fetching faculties" });
+    res.status(500).json({
+      error: "Server error while fetching faculties",
+      details: err.message
+    });
   }
 };
 

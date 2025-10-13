@@ -1,15 +1,33 @@
 const University = require('../models/University');
+const { Op, Sequelize } = require('sequelize');
 
 // GET all universities
 exports.getAllUniversities = async (req, res) => {
   try {
-    const universities = await University.findAll();
+    const { query } = req.query;
+    let universities;
+
+    if (query) {
+      universities = await University.findAll({
+        where: Sequelize.where(
+          Sequelize.fn('LOWER', Sequelize.col('university_name')),
+          {
+            [Op.like]: `${query.toLowerCase()}%`
+          }
+        ),
+        limit: 10
+      });
+    } else {
+      universities = await University.findAll();
+    }
+
     res.json(universities);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("❌ Błąd SQL:", err.message);
+    res.status(500).json({ error: 'Server error', details: err.message });
   }
 };
+
 
 // GET one university by ID
 exports.getUniversityById = async (req, res) => {
