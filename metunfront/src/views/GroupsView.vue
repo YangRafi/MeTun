@@ -1,6 +1,7 @@
 <template>
   <div class="p-8">
     <UserHeader :profile="profile" />
+    <ChatSidebar />
     <h1 class="text-3xl font-bold mb-6">Grupy</h1>
     <!-- Tu później lista grup i czaty grupowe -->
   </div>
@@ -10,6 +11,7 @@
 import { reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import UserHeader from '../components/Layout/UserHeader.vue'
+import ChatSidebar from "../components/Chat/ChatSidebar.vue";
 
 const router = useRouter()
 const profile = reactive({})
