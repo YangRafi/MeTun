@@ -7,7 +7,6 @@ const Faculty = require('./Faculty');
 const Discipline = require('./Discipline');
 const Group = require('./Group');
 const GroupMember = require('./GroupMember');
-const UserDiscipline = require('./UserDiscipline');
 const UserUniversity = require('./UserUniversity');
 const UserMatch = require('./UserMatch');
 
@@ -21,9 +20,6 @@ Discipline.belongsTo(Faculty, { foreignKey: "faculty_id" });
 
 User.hasOne(Profile, { foreignKey: "user_id" });
 Profile.belongsTo(User, { foreignKey: "user_id" });
-
-User.belongsToMany(Discipline, { through: UserDiscipline, foreignKey: "user_id" });
-Discipline.belongsToMany(User, { through: UserDiscipline, foreignKey: "discipline_id" });
 
 User.belongsToMany(University, { through: UserUniversity, foreignKey: "user_id" });
 University.belongsToMany(User, { through: UserUniversity, foreignKey: "university_id" });
@@ -45,7 +41,6 @@ module.exports = {
     Discipline,
     Group,
     GroupMember,
-    UserDiscipline,
     UserUniversity,
     UserMatch
 };

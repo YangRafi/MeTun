@@ -86,9 +86,7 @@ async function importDisciplines() {
     console.log('\n🎯 Import kierunków zakończony pomyślnie!');
   } catch (err) {
     console.error('❌ Błąd podczas importu kierunków:', err);
-  } finally {
-    await sequelize.close();
-  }
+  } 
 }
 
 // Pozwala uruchamiać plik samodzielnie lub jako moduł w seed.js
