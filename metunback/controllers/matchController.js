@@ -1,9 +1,142 @@
-const { UserMatch, Profile, UserUniversity, University, Faculty, Discipline } = require('../models');
+const { UserMatch, Profile, UserUniversity, University, Faculty, Discipline, User } = require('../models');
 const { Op } = require('sequelize');
 
-// 🔹 Polubienie profilu
+// 🔹 Pobranie potencjalnych dopasowań (filtry + losowe + 48h)
+exports.getPotentialMatches = async (req, res) => {
+  const userId = req.user.userId;
+  const { gender, ageMin, ageMax, universityId, facultyId, disciplineId } = req.query;
+
+  try {
+    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    const minutesAgo = new Date(new Date() - 60);
+
+    let profiles = await Profile.findAll({
+      where: {
+        user_id: { [Op.ne]: userId },
+        ...(gender ? { gender } : {}),
+        ...(ageMin || ageMax
+          ? {
+              date_of_birth: {
+                [Op.between]: [
+                  ageMax ? new Date(new Date() - ageMax * 365 * 24 * 60 * 60 * 1000) : new Date('1900-01-01'),
+                  ageMin ? new Date(new Date() - ageMin * 365 * 24 * 60 * 60 * 1000) : new Date()
+                ]
+              }
+            }
+          : {})
+      },
+      include: [
+        {
+          model: User,
+          include: [
+            {
+              model: UserUniversity,
+              include: [University, Faculty, Discipline]
+            }
+          ]
+        }
+      ]
+    });
+
+    // Filtrowanie po uczelni/wydziale/kierunku
+    profiles = profiles.filter(p => {
+      const uni = p.User?.UserUniversities?.[0];
+      if (!uni) return false;
+      if (universityId && uni.university_id != universityId) return false;
+      if (facultyId && uni.faculty_id != facultyId) return false;
+      if (disciplineId && uni.discipline_id != disciplineId) return false;
+      return true;
+    });
+
+    // Wykluczenie profili głosowanych w ciągu ostatnich 48h
+    const votes = await UserMatch.findAll({
+      where: {
+        [Op.or]: [{ user_id_1: userId }, { user_id_2: userId }],
+        match_date: { [Op.gt]: minutesAgo } // <- używamy match_date
+      }
+    });
+
+    const votedIds = votes.map(v => (v.user_id_1 === userId ? v.user_id_2 : v.user_id_1));
+    profiles = profiles.filter(p => !votedIds.includes(p.user_id));
+
+    // Losowa kolejność
+    profiles = profiles.sort(() => Math.random() - 0.5);
+
+    // Mapowanie danych dla frontendu
+    res.json(
+        profiles.map(p => {
+            const uni = p.User?.UserUniversities?.[0];
+            return {
+            user_id: p.user_id,
+            name: p.name,
+            age: Math.floor((new Date() - new Date(p.date_of_birth)) / (365.25*24*60*60*1000)), // obliczamy wiek
+            gender: p.gender,
+            university_name: uni?.University?.university_name || '',
+            faculty_name: uni?.Faculty?.faculty_name || '',
+            discipline_name: uni?.Discipline?.name || '',
+            profile_picture: p.profile_picture || null
+            };
+        })
+    );
+
+  } catch (err) {
+    console.error('❌ Błąd getPotentialMatches:', err);
+    res.status(500).json({ error: 'Server error', details: err.message });
+  }
+};
+
+// 🔹 Polubienie / odrzucenie profilu (swipe left/right)
+exports.voteUser = async (req, res) => {
+  const userId = req.user.userId;
+  const { userId: otherUserId, like } = req.body;
+
+  try {
+    let match = await UserMatch.findOne({
+      where: {
+        [Op.or]: [
+          { user_id_1: userId, user_id_2: otherUserId },
+          { user_id_1: otherUserId, user_id_2: userId }
+        ]
+      }
+    });
+
+    if (!match) {
+      if (userId < otherUserId) {
+        match = await UserMatch.create({
+          user_id_1: userId,
+          user_id_2: otherUserId,
+          user_1_like: like,
+          user_2_like: false,
+          match_active: false
+        });
+      } else {
+        match = await UserMatch.create({
+          user_id_1: otherUserId,
+          user_id_2: userId,
+          user_1_like: false,
+          user_2_like: like,
+          match_active: false
+        });
+      }
+    } else {
+      if (match.user_id_1 === userId) match.user_1_like = like;
+      else match.user_2_like = like;
+
+      match.match_active = match.user_1_like && match.user_2_like;
+      match.match_date = new Date(); // aktualizacja daty ostatniej aktywności
+      await match.save();
+    }
+
+    res.json({ success: true, matchActive: match.match_active });
+  } catch (err) {
+    console.error('❌ Błąd voteUser:', err);
+    res.status(500).json({ error: 'Server error', details: err.message });
+  }
+};
+
+// 🔹 Like / Unlike
 exports.likeUser = async (req, res) => {
-  const userId = req.user.user_id; // zalogowany użytkownik
+  const userId = req.user.userId;
   const likedUserId = parseInt(req.params.id);
 
   try {
@@ -17,7 +150,6 @@ exports.likeUser = async (req, res) => {
     });
 
     if (!match) {
-      // Tworzymy nowy wpis, jeśli nie ma jeszcze żadnego
       match = await UserMatch.create({
         user_id_1: userId,
         user_id_2: likedUserId,
@@ -26,11 +158,11 @@ exports.likeUser = async (req, res) => {
         match_active: false
       });
     } else {
-      // Aktualizujemy istniejący wpis
       if (match.user_id_1 === userId) match.user_1_like = true;
       else match.user_2_like = true;
 
       match.match_active = match.user_1_like && match.user_2_like;
+      match.match_date = new Date();
       await match.save();
     }
 
@@ -41,9 +173,8 @@ exports.likeUser = async (req, res) => {
   }
 };
 
-// 🔹 Cofnięcie polubienia / unlike
 exports.unlikeUser = async (req, res) => {
-  const userId = req.user.user_id;
+  const userId = req.user.userId;
   const otherUserId = parseInt(req.params.id);
 
   try {
@@ -62,76 +193,12 @@ exports.unlikeUser = async (req, res) => {
     else match.user_2_like = false;
 
     match.match_active = match.user_1_like && match.user_2_like;
+    match.match_date = new Date();
     await match.save();
 
     res.json(match);
   } catch (err) {
     console.error('❌ Błąd unlikeUser:', err);
-    res.status(500).json({ error: 'Server error', details: err.message });
-  }
-};
-
-// 🔹 Pobranie dopasowań aktywnych dla zalogowanego użytkownika
-exports.getMatches = async (req, res) => {
-  const userId = req.user.user_id;
-
-  try {
-    const matches = await UserMatch.findAll({
-      where: {
-        match_active: true,
-        [Op.or]: [
-          { user_id_1: userId },
-          { user_id_2: userId }
-        ]
-      },
-      include: [
-        {
-          model: Profile,
-          as: 'user1',
-          include: [
-            {
-              model: UserUniversity,
-              include: [
-                { model: University },
-                { model: Faculty },
-                { model: Discipline }
-              ]
-            }
-          ]
-        },
-        {
-          model: Profile,
-          as: 'user2',
-          include: [
-            {
-              model: UserUniversity,
-              include: [
-                { model: University },
-                { model: Faculty },
-                { model: Discipline }
-              ]
-            }
-          ]
-        }
-      ]
-    });
-
-    // Mapujemy, żeby frontend dostał profile drugiej osoby w parze
-    const results = matches.map(m => {
-      const otherProfile = m.user_id_1 === userId ? m.user2 : m.user1;
-      return {
-        id: m.match_id,
-        name: otherProfile.name,
-        age: Math.floor((new Date() - new Date(otherProfile.date_of_birth)) / (1000 * 60 * 60 * 24 * 365)),
-        university_name: otherProfile.UserUniversities?.[0]?.University?.university_name || '',
-        faculty_name: otherProfile.UserUniversities?.[0]?.Faculty?.faculty_name || '',
-        discipline_name: otherProfile.UserUniversities?.[0]?.Discipline?.name || ''
-      };
-    });
-
-    res.json(results);
-  } catch (err) {
-    console.error('❌ Błąd getMatches:', err);
     res.status(500).json({ error: 'Server error', details: err.message });
   }
 };

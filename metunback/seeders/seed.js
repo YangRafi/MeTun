@@ -18,6 +18,9 @@ const {
   GroupMember 
 } = models;
 
+// 👇 Ustal adres backendu (możesz zmienić, jeśli masz inny port)
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+
 async function seed() {
   try {
     await sequelize.sync({ force: true });
@@ -71,7 +74,8 @@ async function seed() {
         bio: data.bio,
         gender: data.gender,
         location: data.location,
-        profile_picture: `uploads/profile_pictures/${data.photo}`,
+        // 👇 pełny URL do zdjęcia
+        profile_picture: `${BASE_URL}/uploads/profile_pictures/${data.photo}`,
         date_of_birth: new Date(
           1998 + Math.floor(Math.random() * 6),
           Math.floor(Math.random() * 12),
@@ -113,22 +117,22 @@ async function seed() {
       await UserUniversity.create({
         user_id: users[i].user_id,
         university_id: 14, // Politechnika Białostocka
+        faculty_id: 53,
         discipline_id: disciplineId
       });
     }
     console.log(`✅ Przypisano uczelnię i kierunki użytkownikom.`);
 
     // 6️⃣ Przykładowe dopasowania
-
     for (let i = 0; i < users.length - 1; i++) {
-    await UserMatch.create({
-      user_id_1: users[i].user_id,
-      user_id_2: users[i + 1].user_id,
-      user_1_like: true,
-      user_2_like: true,
-      match_active: true
-    });
-  }
+      await UserMatch.create({
+        user_id_1: users[i].user_id,
+        user_id_2: users[i + 1].user_id,
+        user_1_like: true,
+        user_2_like: true,
+        match_active: true
+      });
+    }
 
     console.log('🎉 SEEDOWANIE zakończone pomyślnie!');
     process.exit();

@@ -8,7 +8,11 @@ const UserUniversity = sequelize.define('UserUniversity', {
   },
   university_id: {
     type: Sequelize.INTEGER,
-    primaryKey: true
+    allowNull: false
+  },
+  faculty_id: {         // nowa kolumna
+    type: Sequelize.INTEGER,
+    allowNull: false
   },
   discipline_id: {
     type: Sequelize.INTEGER,

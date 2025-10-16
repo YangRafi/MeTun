@@ -2,6 +2,7 @@ const express = require('express');
 const sequelize = require('./util/database');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 
 const universityRoutes = require('./routes/universityRoutes.js');
 const disciplineRoutes = require('./routes/disciplineRoutes');
@@ -11,7 +12,7 @@ const facultyRoutes = require('./routes/facultyRoutes');
 const groupRoutes = require('./routes/groupRoutes');
 const groupMemberRoutes = require('./routes/groupMemberRoutes');
 const authRoutes = require('./routes/authRoutes');
-
+const matchRoutes = require('./routes/matchRoutes');
 
 
 sequelize.authenticate()
@@ -28,6 +29,7 @@ app.use(cors({
 // middleware do JSON
 app.use(express.json());
 app.use(cookieParser());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/api/universities', universityRoutes);
 app.use('/api/disciplines', disciplineRoutes);
@@ -37,6 +39,7 @@ app.use('/api/faculties', facultyRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/group-members', groupMemberRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/matches', matchRoutes);
 app.use('/uploads', express.static('uploads'));
 
 // obsługa 404 jako JSON

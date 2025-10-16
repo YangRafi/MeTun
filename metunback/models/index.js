@@ -10,28 +10,50 @@ const GroupMember = require('./GroupMember');
 const UserUniversity = require('./UserUniversity');
 const UserMatch = require('./UserMatch');
 
-// Relacje
+// ----------------- Relacje -----------------
 
+// University - Faculty - Discipline
 University.hasMany(Faculty, { foreignKey: "university_id" });
 Faculty.belongsTo(University, { foreignKey: "university_id" });
 
 Faculty.hasMany(Discipline, { foreignKey: "faculty_id" });
 Discipline.belongsTo(Faculty, { foreignKey: "faculty_id" });
 
+// User - Profile
 User.hasOne(Profile, { foreignKey: "user_id" });
 Profile.belongsTo(User, { foreignKey: "user_id" });
 
-User.belongsToMany(University, { through: UserUniversity, foreignKey: "user_id" });
-University.belongsToMany(User, { through: UserUniversity, foreignKey: "university_id" });
+// User - UserUniversity
+User.hasMany(UserUniversity, { foreignKey: "user_id" });
+UserUniversity.belongsTo(User, { foreignKey: "user_id" });
 
+// UserUniversity - University/Faculty/Discipline
+University.hasMany(UserUniversity, { foreignKey: "university_id" });
+UserUniversity.belongsTo(University, { foreignKey: "university_id" });
+
+Faculty.hasMany(UserUniversity, { foreignKey: "faculty_id" });
+UserUniversity.belongsTo(Faculty, { foreignKey: "faculty_id" });
+
+Discipline.hasMany(UserUniversity, { foreignKey: "discipline_id" });
+UserUniversity.belongsTo(Discipline, { foreignKey: "discipline_id" });
+
+// User - Group
 User.hasMany(Group, { foreignKey: "creator_user_id" });
 Group.belongsTo(User, { foreignKey: "creator_user_id" });
 
+// User - GroupMember
 User.belongsToMany(Group, { through: GroupMember, foreignKey: "user_id" });
 Group.belongsToMany(User, { through: GroupMember, foreignKey: "group_id" });
 
-User.belongsToMany(User, { as: "MatchedUsers", through: UserMatch, foreignKey: "user_id_1", otherKey: "user_id_2" });
+// UserMatch - Profile (dla frontendu)
+UserMatch.belongsTo(Profile, { foreignKey: 'user_id_1', as: 'user1' });
+UserMatch.belongsTo(Profile, { foreignKey: 'user_id_2', as: 'user2' });
 
+// User - UserMatch
+User.hasMany(UserMatch, { foreignKey: 'user_id_1', as: 'matchesAsUser1' });
+User.hasMany(UserMatch, { foreignKey: 'user_id_2', as: 'matchesAsUser2' });
+
+// ----------------- Exporty -----------------
 module.exports = {
     sequelize,
     User,
