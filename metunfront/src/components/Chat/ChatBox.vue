@@ -20,15 +20,21 @@
     <div ref="messagesContainer" class="flex-1 overflow-y-auto p-3 space-y-2">
       <div
         v-for="m in messages"
-        :key="m.message_id"
-        :class="m.sender_id === userId ? 'text-right' : 'text-left'"
+        :key="m.message_id || m.timestamp"
+        class="flex items-start gap-2"
+        :class="m.senderId === userId ? 'justify-end' : 'justify-start'"
       >
+        <!-- Avatar dla innych osób -->
+        <img
+          v-if="m.senderId !== userId"
+          :src="'http://localhost:3000' + m.senderAvatar"
+          class="w-6 h-6 rounded-full mt-1"
+        />
+
         <div
           :class="[
-            'inline-block p-2 rounded-lg',
-            m.sender_id === userId
-              ? 'bg-yellow-400 text-black'
-              : 'bg-gray-200 text-black'
+            'inline-block p-2 rounded-lg max-w-[75%]',
+            m.senderId === userId ? 'bg-yellow-400 text-black' : 'bg-gray-200 text-black'
           ]"
         >
           {{ m.content }}
@@ -59,7 +65,7 @@ import { ref, watch, onUnmounted, nextTick } from "vue";
 import { io } from "socket.io-client";
 
 const props = defineProps({
-  chat: Object, // zawiera: match_id, user_id, name, profile_picture
+  chat: Object,   // id (match_id), name, profile_picture, user_id
   userId: Number,
 });
 
@@ -75,9 +81,7 @@ watch(
   () => props.chat,
   async (newChat) => {
     if (newChat) {
-      // upewnij się, że używamy właściwego ID matcha
-      const matchId = newChat.match_id ?? newChat.id;
-      await loadMessages(matchId);
+      await loadMessages(newChat.id);
       socket.emit("register", props.userId);
       scrollToBottom();
     } else {
@@ -89,25 +93,38 @@ watch(
 
 // 🔹 Odbieranie wiadomości przez socket
 socket.on("receive_message", (msg) => {
-  // filtruj po match_id, a nie po id chatu
-  if (msg.matchId === props.chat?.match_id) {
-    messages.value.push(msg);
-    scrollToBottom();
+  if (msg.matchId === props.chat?.id && msg.senderId !== props.userId) {
+    // Dodaj tylko jeśli nie ma w liście
+    if (!messages.value.some(m => m.timestamp === msg.timestamp && m.senderId === msg.senderId)) {
+      messages.value.push({
+        ...msg,
+        senderAvatar: msg.senderAvatar || props.chat.profile_picture
+      });
+      scrollToBottom();
+    }
   }
 });
 
 // 🔹 Fetch historii wiadomości
 async function loadMessages(matchId) {
   try {
-    const res = await fetch(`http://localhost:3000/api/chat/${matchId}`, {
+    const res = await fetch(`http://localhost:3000/api/chats/private/${matchId}`, {
       credentials: "include",
     });
     if (!res.ok) throw new Error("Błąd pobierania wiadomości");
 
-    // backend powinien zwracać wszystkie wiadomości dla match_id
     const data = await res.json();
-    // sortowanie po czasie rosnąco
-    messages.value = data.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    messages.value = data
+      .map(m => ({
+        message_id: m.message_id,
+        senderId: m.sender_id,
+        receiverId: m.receiver_id,
+        content: m.content,
+        timestamp: m.timestamp,
+        senderAvatar: m.sender_id === props.userId ? null : props.chat.profile_picture
+      }))
+      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
     await nextTick();
     scrollToBottom();
@@ -121,31 +138,35 @@ async function sendMessage() {
   if (!newMessage.value.trim()) return;
 
   const msg = {
-    matchId: props.chat.match_id,
+    matchId: props.chat.id,
     senderId: props.userId,
     receiverId: props.chat.user_id,
     content: newMessage.value,
+    timestamp: new Date().toISOString()
   };
 
+  // 🔹 Emit tylko do odbiorcy (nie dodawaj od razu swojego)
   socket.emit("send_message", msg);
 
+  // 🔹 Wyślij do backendu tylko raz
   try {
-    await fetch(`http://localhost:3000/api/chat/${props.chat.match_id}`, {
+    await fetch(`http://localhost:3000/api/chats/private/${props.chat.id}`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(msg),
+      body: JSON.stringify({ content: msg.content }),
     });
   } catch (err) {
     console.error(err);
   }
 
+  // 🔹 Dodajemy lokalnie
   messages.value.push(msg);
   newMessage.value = "";
   scrollToBottom();
 }
 
-// 🔹 Scroll
+// 🔹 Scroll na dół
 function scrollToBottom() {
   nextTick(() => {
     if (messagesContainer.value) {
@@ -154,7 +175,7 @@ function scrollToBottom() {
   });
 }
 
-// 🔹 Zamknięcie
+// 🔹 Zamknięcie chatu
 function closeChat() {
   emit("close");
 }
