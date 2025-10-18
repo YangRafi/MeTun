@@ -9,6 +9,7 @@ const Group = require('./Group');
 const GroupMember = require('./GroupMember');
 const UserUniversity = require('./UserUniversity');
 const UserMatch = require('./UserMatch');
+const Message = require('./Message');
 
 // ----------------- Relacje -----------------
 
@@ -53,6 +54,10 @@ UserMatch.belongsTo(Profile, { foreignKey: 'user_id_2', as: 'user2' });
 User.hasMany(UserMatch, { foreignKey: 'user_id_1', as: 'matchesAsUser1' });
 User.hasMany(UserMatch, { foreignKey: 'user_id_2', as: 'matchesAsUser2' });
 
+// UserMatch - Message
+UserMatch.hasMany(Message, { foreignKey: 'match_id' });
+Message.belongsTo(UserMatch, { foreignKey: 'match_id' });
+
 // ----------------- Exporty -----------------
 module.exports = {
     sequelize,
@@ -64,5 +69,6 @@ module.exports = {
     Group,
     GroupMember,
     UserUniversity,
-    UserMatch
+    UserMatch,
+    Message
 };

@@ -37,7 +37,7 @@
             v-for="chat in chats"
             :key="chat.id"
             class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer transition"
-            @click="openChat(chat)"
+            @click="selectChat(chat)"
           >
             <img
               v-if="chat.profile_picture"
@@ -57,7 +57,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
+
+const emit = defineEmits(["open-chat"]);
 
 const isOpen = ref(false);
 const chats = ref([]);
@@ -72,7 +74,7 @@ function closeSidebar() {
   isOpen.value = false;
 }
 
-// 🔹 Pobieranie czatów użytkownika (np. po matchach)
+// 🔹 Pobieranie czatów użytkownika
 async function fetchChats() {
   loading.value = true;
   try {
@@ -91,9 +93,8 @@ async function fetchChats() {
   }
 }
 
-// 🔹 Kliknięcie w czat
-function openChat(chat) {
-  console.log("Otwieranie czatu z:", chat.name);
-  // Tu możesz potem dodać np. otwieranie okna czatu lub nawigację do innego widoku
+function selectChat(chat) {
+  emit("open-chat", chat);
+  closeSidebar();
 }
 </script>

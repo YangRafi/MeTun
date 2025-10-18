@@ -1,10 +1,16 @@
 <template>
-  <div class="relative">
+  <div class="relative min-h-screen bg-gray-50">
     <UserHeader :profile="profile" />
-    <ChatSidebar />
 
-    <div class="max-w-3xl mx-auto p-6 relative">
-      <!-- 🔹 Nagłówek z przyciskiem trzech kropek -->
+    <!-- 🔹 Chat Sidebar -->
+    <ChatSidebar
+      v-model:isOpen="isSidebarOpen"
+      @open-chat="openChat"
+    />
+
+    <!-- 🔹 Główny content (swipe/karty matchy) -->
+    <div class="max-w-3xl mx-auto p-6 relative" v-if="!activeChat">
+      <!-- 🔹 Nagłówek z przyciskiem filtrów -->
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-center flex-1">Znajdź dopasowania</h1>
         <button
@@ -24,7 +30,6 @@
           <div
             class="bg-white w-full max-w-md mx-auto mt-24 p-6 rounded-2xl shadow-lg relative"
           >
-            <!-- Zamknięcie -->
             <button
               @click="showFilters = false"
               class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl"
@@ -155,25 +160,22 @@
         Brak dostępnych profili.
       </p>
     </div>
+
+    <!-- 🔹 ChatBox fullscreen -->
+    <ChatBox
+      v-if="activeChat"
+      :chat="activeChat"
+      :userId="profile.user_id"
+      @close="closeChat"
+    />
   </div>
 </template>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>
-
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
 import UserHeader from "../components/Layout/UserHeader.vue";
 import ChatSidebar from "../components/Chat/ChatSidebar.vue";
+import ChatBox from "../components/Chat/ChatBox.vue";
 import MatchProfileCard from "../components/Match/MatchProfileCard.vue";
 
 const profile = reactive({});
@@ -187,6 +189,10 @@ const currentIndex = ref(0);
 const searched = ref(false);
 const showFilters = ref(true);
 
+// 🔹 Chat
+const isSidebarOpen = ref(false);
+const activeChat = ref(null);
+
 const currentProfile = computed(() => matches.value[currentIndex.value] || {});
 
 // 🔹 Pobranie profilu użytkownika
@@ -198,7 +204,38 @@ async function fetchUser() {
 
 onMounted(fetchUser);
 
-// 🔹 Dynamiczne podpowiedzi uczelni
+// 🔹 Sidebar → otwarcie chatBox
+function openChat(chat) {
+  activeChat.value = chat;
+  isSidebarOpen.value = false;
+}
+
+function closeChat() {
+  activeChat.value = null;
+}
+
+// 🔹 Swipe
+async function swipeLeft(){ await vote(false); nextProfile(); }
+async function swipeRight(){ await vote(true); nextProfile(); }
+
+async function vote(like){
+  const userToVote = currentProfile.value;
+  if(!userToVote) return;
+
+  await fetch('http://localhost:3000/api/matches/vote', {
+    method:'POST',
+    credentials:'include',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ userId:userToVote.user_id, like })
+  });
+}
+
+function nextProfile(){
+  if(currentIndex.value < matches.value.length-1) currentIndex.value++;
+  else matches.value = [];
+}
+
+// 🔹 Filtry i fetchy uczelni/fakultetów/kierunków
 async function fetchUniversities() {
   if (universityQuery.value.length < 1) { universitySuggestions.value = []; return; }
   const res = await fetch(`http://localhost:3000/api/universities?query=${encodeURIComponent(universityQuery.value)}`);
@@ -234,7 +271,6 @@ async function fetchDisciplines() {
   disciplines.value = await res.json();
 }
 
-// 🔹 Zastosowanie filtrów
 async function applyFilters(){
   const params = new URLSearchParams();
   for(const k in filters) if(filters[k]) params.append(k,filters[k]);
@@ -244,25 +280,11 @@ async function applyFilters(){
   currentIndex.value = 0;
   searched.value = true;
 }
-
-// 🔹 Swipe
-async function swipeLeft(){ await vote(false); nextProfile(); }
-async function swipeRight(){ await vote(true); nextProfile(); }
-
-async function vote(like){
-  const userToVote = currentProfile.value;
-  if(!userToVote) return;
-
-  await fetch('http://localhost:3000/api/matches/vote', {
-    method:'POST',
-    credentials:'include',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({ userId:userToVote.user_id, like })
-  });
-}
-
-function nextProfile(){
-  if(currentIndex.value < matches.value.length-1) currentIndex.value++;
-  else matches.value = [];
-}
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active { transition: opacity 0.3s ease; }
+.fade-enter-from,
+.fade-leave-to { opacity: 0; }
+</style>
