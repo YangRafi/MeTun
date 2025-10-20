@@ -77,25 +77,48 @@ io.on('connection', (socket) => {
   });
 
   socket.on('send_message', async (data) => {
-    const { matchId, senderId, receiverId, content } = data;
+  const { matchId, senderId, receiverId, content } = data;
 
-    try {
-      const msg = await Message.create({
-        match_id: matchId,
-        sender_id: senderId,
-        content
-      });
+  try {
+    // 🔹 Zapisujemy wiadomość
+    const msg = await Message.create({
+      match_id: matchId,
+      sender_id: senderId,
+      receiver_id: receiverId,
+      content,
+      timestamp: new Date()
+    });
 
-      const receiverSocket = userSockets.get(receiverId);
-      if (receiverSocket) {
-        io.to(receiverSocket).emit('receive_message', msg);
-      }
+    // 🔹 Pobieramy pełne dane o nadawcy (tak jak w kontrolerze getMessages)
+    const senderProfile = await require('./models').Profile.findOne({
+      where: { user_id: senderId },
+      attributes: ['user_id', 'profile_picture']
+    });
 
-      io.to(socket.id).emit('message_sent', msg);
-    } catch (err) {
-      console.error("❌ Błąd zapisu wiadomości:", err);
+    const fullMsg = {
+      message_id: msg.message_id,
+      matchId,
+      senderId,
+      receiverId,
+      content,
+      timestamp: msg.timestamp,
+      senderAvatar: senderProfile?.profile_picture || null
+    };
+
+    // 🔹 Nadawca dostaje potwierdzenie (message_sent)
+    io.to(socket.id).emit('message_sent', fullMsg);
+
+    // 🔹 Odbiorca dostaje wiadomość (receive_message)
+    const receiverSocket = userSockets.get(receiverId);
+    if (receiverSocket) {
+      io.to(receiverSocket).emit('receive_message', fullMsg);
     }
-  });
+
+  } catch (err) {
+    console.error("❌ Błąd zapisu wiadomości:", err);
+  }
+});
+
 
   socket.on('disconnect', () => {
     for (const [userId, sockId] of userSockets.entries()) {

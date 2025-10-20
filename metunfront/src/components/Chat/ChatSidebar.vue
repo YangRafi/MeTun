@@ -1,24 +1,33 @@
 <template>
   <div>
-    <button @click="toggleSidebar" class="fixed top-24 left-6 z-50 bg-yellow-400 hover:bg-yellow-500 text-black p-3 rounded-full shadow-lg transition" title="Otwórz czat">💬</button>
-    <div v-if="isOpen" @click="closeSidebar" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"></div>
+    <button @click="toggleSidebar" class="fixed top-24 left-6 z-50 bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 text-white p-4 rounded-full shadow-2xl hover:scale-105 transition-transform" title="Otwórz czat">💬</button>
 
-    <div class="fixed top-0 left-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300" :class="{ '-translate-x-full': !isOpen, 'translate-x-0': isOpen }">
-      <div class="flex justify-between items-center p-4 border-b bg-yellow-400">
-        <h2 class="text-lg font-semibold text-black">Czaty</h2>
-        <button @click="closeSidebar" class="text-black hover:text-gray-700 text-xl font-bold">×</button>
+    <div v-if="isOpen" @click="closeSidebar" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity"></div>
+
+    <div class="fixed top-0 left-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 rounded-r-3xl overflow-hidden border-r border-blue-200"
+         :class="{ '-translate-x-full': !isOpen, 'translate-x-0': isOpen }">
+      <div class="flex justify-between items-center p-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 text-white">
+        <h2 class="text-lg font-semibold">Czaty</h2>
+        <button @click="closeSidebar" class="text-white hover:text-gray-100 text-xl font-bold">×</button>
       </div>
 
-      <div class="p-4 overflow-y-auto h-[calc(100%-4rem)]">
+      <div class="p-4 overflow-y-auto h-[calc(100%-4rem)] scrollbar-thin scrollbar-thumb-cyan-400 scrollbar-track-blue-50">
         <p v-if="loading" class="text-gray-500 text-center mt-6">Ładowanie...</p>
-        <p v-else-if="chats.length === 0" class="text-gray-500 text-center mt-6">Brak czatów.</p>
+        <p v-else-if="chats.length === 0" class="text-gray-400 text-center mt-6 italic">Brak czatów.</p>
 
         <ul v-else class="space-y-3">
-          <li v-for="chat in chats" :key="chat.id" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer transition" @click="selectChat(chat)">
-            <img v-if="chat.profile_picture" :src="'http://localhost:3000'+chat.profile_picture" alt="avatar" class="w-10 h-10 rounded-full object-cover border border-yellow-400" />
-            <div>
-              <p class="font-semibold">{{ chat.name }}</p>
-              <p class="text-sm text-gray-500 truncate">Kliknij, aby otworzyć czat</p>
+          <li v-for="chat in chats" :key="chat.id" class="flex items-center gap-3 p-3 rounded-2xl hover:bg-blue-50 cursor-pointer transition-all"
+              @click="openChat(chat)">
+            <img v-if="chat.profile_picture" :src="chat.profile_picture" alt="avatar" class="w-12 h-12 rounded-full object-cover border-2 border-gradient-to-r from-blue-400 via-cyan-400 to-teal-400"/>
+
+            <div class="flex-1 truncate relative">
+              <p class="font-semibold text-gray-800 truncate">{{ chat.name }}</p>
+              <p class="text-sm truncate" :class="chat.unread ? 'font-bold text-gray-900' : 'text-gray-500'"
+                 :title="formatTimestamp(chat.lastMessageTimestamp)">
+                {{ chat.lastMessage ? chat.lastMessage.slice(0, 40) + (chat.lastMessage.length > 40 ? '…' : '') : 'Brak wiadomości' }}
+              </p>
+
+              <span v-if="chat.unread" class="absolute top-0 right-0 w-3 h-3 bg-blue-500 rounded-full" title="Nowa wiadomość"></span>
             </div>
           </li>
         </ul>
@@ -28,33 +37,58 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from "vue";
+import { ref } from "vue";
+
 const emit = defineEmits(["open-chat"]);
-const props = defineProps({ onlyPrivate: { type:Boolean, default:false } });
+const props = defineProps({ onlyPrivate: { type: Boolean, default: false } });
 
 const isOpen = ref(false);
 const chats = ref([]);
 const loading = ref(false);
 
-function toggleSidebar() { isOpen.value = !isOpen.value; if(isOpen.value && chats.value.length===0) fetchChats(); }
-function closeSidebar() { isOpen.value = false; }
+function toggleSidebar() {
+  isOpen.value = !isOpen.value;
+  if (isOpen.value && chats.value.length === 0) fetchChats();
+}
 
+function closeSidebar() {
+  isOpen.value = false;
+}
+
+// 🔹 Pobieranie czatów i ustawienie nieprzeczytanych
 async function fetchChats() {
   loading.value = true;
   try {
     let privateChats = [];
-    if(props.onlyPrivate) {
-      const res = await fetch("http://localhost:3000/api/chats/private", { credentials:"include" });
+    if (props.onlyPrivate) {
+      const res = await fetch("http://localhost:3000/api/chats/private", { credentials: "include" });
       privateChats = res.ok ? await res.json() : [];
     } else {
-      const privateRes = await fetch("http://localhost:3000/api/chats/private", { credentials:"include" });
-      const groupRes = await fetch("http://localhost:3000/api/chats/group", { credentials:"include" });
+      const privateRes = await fetch("http://localhost:3000/api/chats/private", { credentials: "include" });
+      const groupRes = await fetch("http://localhost:3000/api/chats/group", { credentials: "include" });
       privateChats = (privateRes.ok ? await privateRes.json() : []).concat(groupRes.ok ? await groupRes.json() : []);
     }
-    chats.value = privateChats.sort((a,b)=> new Date(b.lastMessageTimestamp||0)-new Date(a.lastMessageTimestamp||0));
-  } catch(err){ console.error("Błąd czatu:",err); }
-  finally{ loading.value=false; }
+
+    chats.value = privateChats.sort((a, b) => new Date(b.lastMessageTimestamp || 0) - new Date(a.lastMessageTimestamp || 0));
+    // unread będzie teraz ustawiane na backendzie (np. lastReadMessageId)
+  } catch (err) {
+    console.error(err);
+  } finally {
+    loading.value = false;
+  }
 }
 
-function selectChat(chat) { emit("open-chat", chat); closeSidebar(); }
+// 🔹 Kliknięcie w czat
+function openChat(chat) {
+  // oznacz jako przeczytany
+  chat.unread = false;
+  emit("open-chat", chat);
+  closeSidebar();
+}
+
+function formatTimestamp(ts) {
+  if (!ts) return '';
+  const date = new Date(ts);
+  return date.toLocaleString();
+}
 </script>

@@ -1,58 +1,58 @@
 <template>
   <div
     v-if="chat"
-    class="fixed bottom-6 right-6 w-96 bg-white rounded-2xl shadow-2xl border border-yellow-400 flex flex-col overflow-hidden"
+    class="fixed bottom-6 right-6 w-96 max-h-[55vh] bg-blue-50 rounded-3xl shadow-2xl border border-blue-200 flex flex-col overflow-hidden"
   >
-    <!-- Nagłówek -->
-    <div class="flex items-center justify-between p-3 bg-yellow-400">
+    <!-- 🔹 Header -->
+    <div class="flex items-center justify-between p-3 bg-gradient-to-r from-blue-500 via-cyan-400 to-teal-400 text-white">
       <div class="flex items-center gap-2">
-        <img
-          v-if="chat.profile_picture"
-          :src="'http://localhost:3000' + chat.profile_picture"
-          class="w-8 h-8 rounded-full border border-white"
-        />
-        <h3 class="font-semibold text-black">{{ chat.name }}</h3>
+        <img v-if="chat.profile_picture" :src="chat.profile_picture" class="w-10 h-10 rounded-full border-2 border-white" />
+        <h3 class="font-semibold">{{ chat.name }}</h3>
       </div>
-      <button @click="closeChat" class="font-bold text-xl text-black">×</button>
+      <button @click="closeChat" class="font-bold text-xl hover:text-gray-200">×</button>
     </div>
 
-    <!-- Wiadomości -->
-    <div ref="messagesContainer" class="flex-1 overflow-y-auto p-3 space-y-2">
+    <!-- 🔹 Messages -->
+    <div
+      ref="messagesContainer"
+      class="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-cyan-400 scrollbar-track-blue-50"
+    >
       <div
         v-for="m in messages"
         :key="m.message_id || m.timestamp"
         class="flex items-start gap-2"
         :class="m.senderId === userId ? 'justify-end' : 'justify-start'"
       >
-        <!-- Avatar dla innych osób -->
         <img
-          v-if="m.senderId !== userId"
-          :src="'http://localhost:3000' + m.senderAvatar"
-          class="w-6 h-6 rounded-full mt-1"
+          v-if="m.senderId !== userId && m.senderAvatar"
+          :src="m.senderAvatar"
+          class="w-8 h-8 rounded-full mt-1"
         />
-
         <div
-          :class="[
-            'inline-block p-2 rounded-lg max-w-[75%]',
-            m.senderId === userId ? 'bg-yellow-400 text-black' : 'bg-gray-200 text-black'
+          :class="[ 
+            'inline-block p-3 rounded-2xl max-w-[75%] break-words',
+            m.senderId === userId
+              ? 'bg-gradient-to-r from-blue-500 via-cyan-400 to-teal-400 text-white shadow-md'
+              : 'bg-white text-gray-800 shadow-sm'
           ]"
+          :title="formatTimestamp(m.timestamp)"
         >
           {{ m.content }}
         </div>
       </div>
     </div>
 
-    <!-- Pole wysyłania -->
-    <div class="p-3 border-t flex gap-2">
+    <!-- 🔹 Input -->
+    <div class="p-3 border-t flex gap-2 bg-white">
       <input
         v-model="newMessage"
         placeholder="Napisz wiadomość..."
-        class="flex-1 border rounded-full px-3 py-2"
+        class="flex-1 border rounded-full px-3 py-2 focus:ring-2 focus:ring-cyan-300 focus:outline-none"
         @keyup.enter="sendMessage"
       />
       <button
         @click="sendMessage"
-        class="bg-yellow-400 hover:bg-yellow-500 text-black rounded-full px-4 py-2"
+        class="bg-gradient-to-r from-blue-500 via-cyan-400 to-teal-400 hover:from-cyan-500 hover:to-teal-500 text-white rounded-full px-4 py-2 shadow-lg"
       >
         ➤
       </button>
@@ -61,71 +61,65 @@
 </template>
 
 <script setup>
-import { ref, watch, onUnmounted, nextTick } from "vue";
+import { ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { io } from "socket.io-client";
 
-const props = defineProps({
-  chat: Object,   // id (match_id), name, profile_picture, user_id
-  userId: Number,
-});
-
+const props = defineProps({ chat: Object, userId: Number });
 const emit = defineEmits(["close"]);
 
-const socket = io("http://localhost:3000");
+const socket = io("http://localhost:3000", { autoConnect: true });
 const messages = ref([]);
 const newMessage = ref("");
 const messagesContainer = ref(null);
 
-// 🔹 Watch na zmiany chatu
-watch(
-  () => props.chat,
-  async (newChat) => {
-    if (newChat) {
-      await loadMessages(newChat.id);
-      socket.emit("register", props.userId);
-      scrollToBottom();
-    } else {
-      messages.value = [];
-    }
-  },
-  { immediate: true }
-);
+// 🔹 Podłącz eventy raz przy mount
+onMounted(() => {
+  socket.emit("register", props.userId);
 
-// 🔹 Odbieranie wiadomości przez socket
-socket.on("receive_message", (msg) => {
-  if (msg.matchId === props.chat?.id && msg.senderId !== props.userId) {
-    // Dodaj tylko jeśli nie ma w liście
-    if (!messages.value.some(m => m.timestamp === msg.timestamp && m.senderId === msg.senderId)) {
-      messages.value.push({
-        ...msg,
-        senderAvatar: msg.senderAvatar || props.chat.profile_picture
-      });
-      scrollToBottom();
-    }
-  }
+  socket.on("receive_message", handleReceive);
+  socket.on("message_sent", handleMessageSent);
 });
 
-// 🔹 Fetch historii wiadomości
-async function loadMessages(matchId) {
+// 🔹 Odłącz przy unmount
+onBeforeUnmount(() => {
+  socket.off("receive_message", handleReceive);
+  socket.off("message_sent", handleMessageSent);
+});
+
+// 🔹 Handlery socket
+const handleReceive = (msg) => {
+  if (msg.matchId === props.chat?.id && !messages.value.some(m => m.message_id === msg.message_id)) {
+    messages.value.push(msg);
+    scrollToBottom();
+    props.chat.unread = true; // 🔹 oznacz jako nieprzeczytany w sidebarze
+  }
+};
+
+const handleMessageSent = (msg) => {
+  if (msg.matchId === props.chat?.id && !messages.value.some(m => m.message_id === msg.message_id)) {
+    messages.value.push(msg);
+    scrollToBottom();
+  }
+};
+
+// 🔹 Watch na zmiany czatu → oznacz jako przeczytany
+watch(() => props.chat, async (newChat) => {
+  if (newChat) {
+    newChat.unread = false;
+    await loadMessages(newChat.type, newChat.id);
+    scrollToBottom();
+  } else {
+    messages.value = [];
+  }
+}, { immediate: true });
+
+// 🔹 Ładowanie wiadomości z backendu
+async function loadMessages(chatType, chatId) {
   try {
-    const res = await fetch(`http://localhost:3000/api/chats/private/${matchId}`, {
-      credentials: "include",
-    });
+    const res = await fetch(`http://localhost:3000/api/chats/${chatType}/${chatId}`, { credentials: "include" });
     if (!res.ok) throw new Error("Błąd pobierania wiadomości");
-
     const data = await res.json();
-
-    messages.value = data
-      .map(m => ({
-        message_id: m.message_id,
-        senderId: m.sender_id,
-        receiverId: m.receiver_id,
-        content: m.content,
-        timestamp: m.timestamp,
-        senderAvatar: m.sender_id === props.userId ? null : props.chat.profile_picture
-      }))
-      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
+    messages.value = data.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     await nextTick();
     scrollToBottom();
   } catch (err) {
@@ -134,7 +128,7 @@ async function loadMessages(matchId) {
 }
 
 // 🔹 Wysyłanie wiadomości
-async function sendMessage() {
+function sendMessage() {
   if (!newMessage.value.trim()) return;
 
   const msg = {
@@ -142,45 +136,31 @@ async function sendMessage() {
     senderId: props.userId,
     receiverId: props.chat.user_id,
     content: newMessage.value,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   };
 
-  // 🔹 Emit tylko do odbiorcy (nie dodawaj od razu swojego)
   socket.emit("send_message", msg);
-
-  // 🔹 Wyślij do backendu tylko raz
-  try {
-    await fetch(`http://localhost:3000/api/chats/private/${props.chat.id}`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: msg.content }),
-    });
-  } catch (err) {
-    console.error(err);
-  }
-
-  // 🔹 Dodajemy lokalnie
-  messages.value.push(msg);
   newMessage.value = "";
-  scrollToBottom();
 }
 
-// 🔹 Scroll na dół
 function scrollToBottom() {
   nextTick(() => {
-    if (messagesContainer.value) {
-      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
-    }
+    if (messagesContainer.value) messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
   });
 }
 
-// 🔹 Zamknięcie chatu
 function closeChat() {
   emit("close");
 }
 
-onUnmounted(() => {
-  socket.disconnect();
-});
+function formatTimestamp(ts) {
+  if (!ts) return '';
+  return new Date(ts).toLocaleString();
+}
 </script>
+
+<style scoped>
+.scrollbar-thin { scrollbar-width: thin; }
+.scrollbar-thumb-cyan-400::-webkit-scrollbar-thumb { background-color: #06b6d4; border-radius: 9999px; }
+.scrollbar-track-blue-50::-webkit-scrollbar-track { background-color: #eff6ff; }
+</style>

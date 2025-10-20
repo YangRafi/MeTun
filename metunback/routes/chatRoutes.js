@@ -13,6 +13,6 @@ router.get('/group', authenticate, chatController.getGroupChats);
 router.get('/:chatType/:chatId', authenticate, chatController.getMessages);
 
 // Wysłanie wiadomości
-router.post('/:chatType/:chatId', authenticate, chatController.sendMessage);
+// router.post('/:chatType/:chatId', authenticate, chatController.sendMessage);
 
 module.exports = router;

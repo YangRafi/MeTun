@@ -16,7 +16,6 @@ exports.getPrivateChats = async (req, res) => {
 
     const chats = await Promise.all(matches.map(async m => {
       const otherUser = m.user_id_1 === userId ? m.user2 : m.user1;
-
       const lastMessage = await Message.findOne({
         where: { match_id: m.match_id },
         order: [['timestamp','DESC']]
@@ -25,8 +24,9 @@ exports.getPrivateChats = async (req, res) => {
       return {
         id: m.match_id,
         type: 'private',
+        user_id: otherUser.user_id,
         name: otherUser.name,
-        profile_picture: otherUser.profile_picture,
+        profile_picture: otherUser.profile_picture || null,
         lastMessage: lastMessage?.content || '',
         lastMessageTimestamp: lastMessage?.timestamp || null
       };
@@ -65,7 +65,7 @@ exports.getGroupChats = async (req,res) => {
         id: g.group_id,
         type: 'group',
         name: g.name,
-        profile_picture: null,
+        profile_picture: g.profile_picture || null, // jeśli chcesz dodać ikonę grupy
         lastMessage: lastMessage?.content || '',
         lastMessageTimestamp: lastMessage?.timestamp || null
       };
@@ -83,37 +83,58 @@ exports.getGroupChats = async (req,res) => {
 // 🔹 Pobieranie wiadomości
 exports.getMessages = async (req, res) => {
   const userId = req.user.userId;
-  const { chatType, chatId } = req.params; // 'private' lub 'group' + id z URL
-  const { matchId, groupId } = req.body;   // opcjonalnie z body
+  const { chatType, chatId } = req.params;
 
   try {
     let messages;
 
     if (chatType === 'private') {
-      const realMatchId = matchId || chatId;
-
       const match = await UserMatch.findOne({
-        where: { match_id: realMatchId, match_active: true, [Op.or]: [{ user_id_1: userId }, { user_id_2: userId }] }
+        where: { match_id: chatId, match_active: true, [Op.or]: [{ user_id_1: userId }, { user_id_2: userId }] },
+        include: [
+          { model: Profile, as: 'user1', attributes: ['user_id','profile_picture'] },
+          { model: Profile, as: 'user2', attributes: ['user_id','profile_picture'] }
+        ]
       });
       if (!match) return res.status(403).json({ error: "Access denied" });
 
       messages = await Message.findAll({
-        where: { match_id: realMatchId },
+        where: { match_id: chatId },
         order: [['timestamp', 'ASC']]
+      });
+
+      messages = messages.map(m => {
+        const senderProfile = m.sender_id === match.user_id_1 ? match.user1 : match.user2;
+        return {
+          message_id: m.message_id,
+          senderId: m.sender_id,
+          receiverId: m.receiver_id,
+          content: m.content,
+          timestamp: m.timestamp,
+          senderAvatar: senderProfile.profile_picture || null
+        };
       });
 
     } else if (chatType === 'group') {
-      const realGroupId = groupId || chatId;
-
-      const membership = await GroupMember.findOne({
-        where: { group_id: realGroupId, user_id: userId }
-      });
+      const membership = await GroupMember.findOne({ where: { group_id: chatId, user_id: userId } });
       if (!membership) return res.status(403).json({ error: "Access denied" });
 
       messages = await Message.findAll({
-        where: { group_id: realGroupId },
+        where: { group_id: chatId },
         order: [['timestamp', 'ASC']]
       });
+
+      messages = await Promise.all(messages.map(async m => {
+        const sender = await Profile.findOne({ where: { user_id: m.sender_id } });
+        return {
+          message_id: m.message_id,
+          senderId: m.sender_id,
+          receiverId: null,
+          content: m.content,
+          timestamp: m.timestamp,
+          senderAvatar: sender?.profile_picture || null
+        };
+      }));
 
     } else {
       return res.status(400).json({ error: "Invalid chat type" });
@@ -127,52 +148,43 @@ exports.getMessages = async (req, res) => {
   }
 };
 
-
 // 🔹 Wysyłanie wiadomości
-exports.sendMessage = async (req, res) => {
-  const userId = req.user.userId;
-  const { chatType, chatId } = req.params; // 'private' lub 'group' + id matcha/grupy
-  const { content, matchId, groupId } = req.body; // pobieramy z body
+// exports.sendMessage = async (req, res) => {
+//   const userId = req.user.userId;
+//   const { chatType, chatId } = req.params;
+//   const { content } = req.body;
 
-  try {
-    let message;
+//   try {
+//     let message;
 
-    if (chatType === 'private') {
-      // jeśli matchId jest w body, używamy go, inaczej chatId z URL
-      const realMatchId = matchId || chatId;
+//     if (chatType === 'private') {
+//       const match = await UserMatch.findOne({
+//         where: { match_id: chatId, match_active: true, [Op.or]: [{ user_id_1: userId }, { user_id_2: userId }] }
+//       });
+//       if (!match) return res.status(403).json({ error: "Access denied" });
 
-      const match = await UserMatch.findOne({
-        where: { match_id: realMatchId, match_active: true, [Op.or]: [{ user_id_1: userId }, { user_id_2: userId }] }
-      });
-      if (!match) return res.status(403).json({ error: "Access denied" });
+//       message = await Message.create({
+//         match_id: chatId,
+//         sender_id: userId,
+//         content
+//       });
 
-      message = await Message.create({
-        match_id: realMatchId,
-        sender_id: userId,
-        content
-      });
+//     } else if (chatType === 'group') {
+//       const membership = await GroupMember.findOne({ where: { group_id: chatId, user_id: userId } });
+//       if (!membership) return res.status(403).json({ error: "Access denied" });
 
-    } else if (chatType === 'group') {
-      const realGroupId = groupId || chatId;
+//       message = await Message.create({
+//         group_id: chatId,
+//         sender_id: userId,
+//         content
+//       });
 
-      const membership = await GroupMember.findOne({
-        where: { group_id: realGroupId, user_id: userId }
-      });
-      if (!membership) return res.status(403).json({ error: "Access denied" });
+//     } else return res.status(400).json({ error: "Invalid chat type" });
 
-      message = await Message.create({
-        group_id: realGroupId,
-        sender_id: userId,
-        content
-      });
+//     res.json(message);
 
-    } else return res.status(400).json({ error: "Invalid chat type" });
-
-    res.json(message);
-
-  } catch (err) {
-    console.error("❌ Błąd sendMessage:", err);
-    res.status(500).json({ error: "Server error" });
-  }
-};
-
+//   } catch (err) {
+//     console.error("❌ Błąd sendMessage:", err);
+//     res.status(500).json({ error: "Server error" });
+//   }
+// };

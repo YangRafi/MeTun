@@ -1,5 +1,5 @@
 <template>
-  <div class="relative min-h-screen bg-gray-50">
+  <div class="relative min-h-screen bg-blue-50">
     <UserHeader :profile="profile" />
 
     <!-- 🔹 Chat Sidebar (tylko prywatne czaty) -->
@@ -12,22 +12,22 @@
     <!-- 🔹 Główny content (swipe/karty matchy) -->
     <div class="max-w-3xl mx-auto p-6 relative" v-if="!activeChat">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-center flex-1">Znajdź dopasowania</h1>
-        <button @click="showFilters = !showFilters" class="text-gray-600 hover:text-gray-800 text-2xl font-bold ml-4">⋮</button>
+        <h1 class="text-3xl font-bold text-center flex-1 text-blue-800">Znajdź dopasowania</h1>
+        <button @click="showFilters = !showFilters" class="text-blue-600 hover:text-blue-800 text-2xl font-bold ml-4">⋮</button>
       </div>
 
       <!-- 🔹 Panel filtrów -->
       <transition name="fade">
-        <div v-if="showFilters" class="fixed inset-0 bg-black/40 flex justify-center items-start z-50">
-          <div class="bg-white w-full max-w-md mx-auto mt-24 p-6 rounded-2xl shadow-lg relative">
+        <div v-if="showFilters" class="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-start z-50">
+          <div class="bg-white w-full max-w-md mx-auto mt-24 p-6 rounded-3xl shadow-xl relative border border-blue-200">
             <button @click="showFilters = false" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl">✕</button>
-            <h2 class="text-xl font-semibold mb-4 text-center">Filtry dopasowań</h2>
+            <h2 class="text-xl font-semibold mb-4 text-center text-blue-800">Filtry dopasowań</h2>
 
             <div class="grid grid-cols-1 gap-4">
               <!-- Płeć -->
               <div>
-                <label class="block mb-1 text-sm font-medium">Płeć</label>
-                <select v-model="filters.gender" class="w-full border rounded-lg p-2">
+                <label class="block mb-1 text-sm font-medium text-blue-800">Płeć</label>
+                <select v-model="filters.gender" class="w-full border rounded-lg p-2 focus:ring-blue-300 focus:border-blue-300">
                   <option value="">Dowolna</option>
                   <option value="male">Mężczyzna</option>
                   <option value="female">Kobieta</option>
@@ -37,21 +37,21 @@
               <!-- Wiek -->
               <div class="flex gap-2">
                 <div class="flex-1">
-                  <label class="block mb-1 text-sm font-medium">Wiek od</label>
-                  <input v-model.number="filters.ageMin" type="number" class="w-full border rounded-lg p-2" min="18"/>
+                  <label class="block mb-1 text-sm font-medium text-blue-800">Wiek od</label>
+                  <input v-model.number="filters.ageMin" type="number" class="w-full border rounded-lg p-2 focus:ring-blue-300 focus:border-blue-300" min="18"/>
                 </div>
                 <div class="flex-1">
-                  <label class="block mb-1 text-sm font-medium">Wiek do</label>
-                  <input v-model.number="filters.ageMax" type="number" class="w-full border rounded-lg p-2" min="18"/>
+                  <label class="block mb-1 text-sm font-medium text-blue-800">Wiek do</label>
+                  <input v-model.number="filters.ageMax" type="number" class="w-full border rounded-lg p-2 focus:ring-blue-300 focus:border-blue-300" min="18"/>
                 </div>
               </div>
 
               <!-- Uczelnia -->
               <div>
-                <label class="block mb-1 text-sm font-medium">Uczelnia</label>
-                <input v-model="universityQuery" @input="fetchUniversities" type="text" placeholder="Wpisz nazwę uczelni..." class="w-full border rounded-lg p-2"/>
+                <label class="block mb-1 text-sm font-medium text-blue-800">Uczelnia</label>
+                <input v-model="universityQuery" @input="fetchUniversities" type="text" placeholder="Wpisz nazwę uczelni..." class="w-full border rounded-lg p-2 focus:ring-blue-300 focus:border-blue-300"/>
                 <ul v-if="universitySuggestions.length > 0" class="border rounded-lg bg-white shadow mt-1 max-h-40 overflow-y-auto">
-                  <li v-for="u in universitySuggestions" :key="u.university_id" @click="selectUniversity(u)" class="p-2 hover:bg-gray-100 cursor-pointer">
+                  <li v-for="u in universitySuggestions" :key="u.university_id" @click="selectUniversity(u)" class="p-2 hover:bg-blue-50 cursor-pointer">
                     {{ u.university_name }}
                   </li>
                 </ul>
@@ -59,8 +59,8 @@
 
               <!-- Wydział -->
               <div v-if="filters.universityId">
-                <label class="block mb-1 text-sm font-medium">Wydział</label>
-                <select v-model="filters.facultyId" @change="onFacultyChange" class="w-full border rounded-lg p-2">
+                <label class="block mb-1 text-sm font-medium text-blue-800">Wydział</label>
+                <select v-model="filters.facultyId" @change="onFacultyChange" class="w-full border rounded-lg p-2 focus:ring-blue-300 focus:border-blue-300">
                   <option value="">Wybierz...</option>
                   <option v-for="f in faculties" :key="f.faculty_id" :value="f.faculty_id">{{ f.faculty_name }}</option>
                 </select>
@@ -68,8 +68,8 @@
 
               <!-- Kierunek -->
               <div v-if="filters.facultyId">
-                <label class="block mb-1 text-sm font-medium">Kierunek</label>
-                <select v-model="filters.disciplineId" class="w-full border rounded-lg p-2">
+                <label class="block mb-1 text-sm font-medium text-blue-800">Kierunek</label>
+                <select v-model="filters.disciplineId" class="w-full border rounded-lg p-2 focus:ring-blue-300 focus:border-blue-300">
                   <option value="">Wybierz...</option>
                   <option v-for="d in disciplines" :key="d.discipline_id" :value="d.discipline_id">{{ d.name }}</option>
                 </select>
@@ -77,7 +77,7 @@
 
               <!-- Zastosuj -->
               <div class="mt-4">
-                <button @click="applyFilters(); showFilters = false;" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 w-full">
+                <button @click="applyFilters(); showFilters = false;" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 w-full shadow-md">
                   Zastosuj filtry
                 </button>
               </div>
@@ -92,6 +92,7 @@
         :profile="currentProfile"
         @swipe-left="swipeLeft"
         @swipe-right="swipeRight"
+        class="rounded-3xl shadow-xl match-card"
       />
       <p v-else-if="searched" class="text-center mt-6 text-gray-500">Brak dostępnych profili.</p>
     </div>
@@ -209,4 +210,10 @@ async function applyFilters(){
 .fade-leave-active { transition: opacity 0.3s ease; }
 .fade-enter-from,
 .fade-leave-to { opacity: 0; }
+
+/* Gradient karty matchy w stylu uczelnianym */
+.match-card {
+  background: linear-gradient(135deg, #1E3A8A 0%, #0EA5E9 100%);
+  color: white;
+}
 </style>
