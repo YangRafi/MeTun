@@ -8,14 +8,33 @@ const User = sequelize.define('User', {
         allowNull: false,
         primaryKey: true
     },
-    name: Sequelize.STRING,
-    surname: Sequelize.STRING,
+    name: {
+        type: Sequelize.STRING,
+        allowNull: false
+    },
+    surname: {
+        type: Sequelize.STRING,
+        allowNull: false
+    },
     email: {
         type: Sequelize.STRING,
-        unique: true
+        allowNull: false,
+        unique: true,
+        validate: {
+            isEmail: true
+        }
     },
-    password: Sequelize.STRING
-}, {
+    password: {
+        type: Sequelize.STRING,
+        allowNull: false
+    },
+    role: {
+        type: Sequelize.ENUM('user', 'admin'),
+        allowNull: false,
+        defaultValue: 'user'
+    }
+}, 
+{
     tableName: "users",
     timestamps: false
 });

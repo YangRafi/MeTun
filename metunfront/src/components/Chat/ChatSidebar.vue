@@ -22,9 +22,9 @@
 
             <div class="flex-1 truncate relative">
               <p class="font-semibold text-gray-800 truncate">{{ chat.name }}</p>
-              <p class="text-sm truncate" :class="chat.unread ? 'font-bold text-gray-900' : 'text-gray-500'"
-                 :title="formatTimestamp(chat.lastMessageTimestamp)">
-                {{ chat.lastMessage ? chat.lastMessage.slice(0, 40) + (chat.lastMessage.length > 40 ? '…' : '') : 'Brak wiadomości' }}
+              <p class="text-sm truncate" :class="chat.unread ? 'font-bold text-gray-900' : 'text-gray-500'" :title="formatTimestamp(chat.lastMessageTimestamp)">
+                <span v-if="typingStatus[chat.id]" class="typing-indicator"><span></span><span></span><span></span></span>
+                <span v-else>{{ chat.lastMessage ? chat.lastMessage.slice(0,40)+(chat.lastMessage.length>40?'…':'') : 'Brak wiadomości' }}</span>
               </p>
 
               <span v-if="chat.unread" class="absolute top-0 right-0 w-3 h-3 bg-blue-500 rounded-full" title="Nowa wiadomość"></span>
@@ -37,58 +37,74 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import { socket } from "../../socket.js";
 
 const emit = defineEmits(["open-chat"]);
-const props = defineProps({ onlyPrivate: { type: Boolean, default: false } });
+const props = defineProps({ onlyPrivate: { type: Boolean, default: false }, userId: Number });
 
 const isOpen = ref(false);
 const chats = ref([]);
 const loading = ref(false);
+const typingStatus = ref({}); // { [chatId]: true/false }
 
 function toggleSidebar() {
   isOpen.value = !isOpen.value;
-  if (isOpen.value && chats.value.length === 0) fetchChats();
+  if(isOpen.value && chats.value.length===0) fetchChats();
 }
 
-function closeSidebar() {
-  isOpen.value = false;
-}
+function closeSidebar() { isOpen.value=false; }
 
-// 🔹 Pobieranie czatów i ustawienie nieprzeczytanych
 async function fetchChats() {
   loading.value = true;
   try {
     let privateChats = [];
-    if (props.onlyPrivate) {
-      const res = await fetch("http://localhost:3000/api/chats/private", { credentials: "include" });
+    if(props.onlyPrivate){
+      const res = await fetch("http://localhost:3000/api/chats/private",{ credentials:"include" });
       privateChats = res.ok ? await res.json() : [];
     } else {
-      const privateRes = await fetch("http://localhost:3000/api/chats/private", { credentials: "include" });
-      const groupRes = await fetch("http://localhost:3000/api/chats/group", { credentials: "include" });
-      privateChats = (privateRes.ok ? await privateRes.json() : []).concat(groupRes.ok ? await groupRes.json() : []);
+      const privateRes = await fetch("http://localhost:3000/api/chats/private",{ credentials:"include" });
+      const groupRes = await fetch("http://localhost:3000/api/chats/group",{ credentials:"include" });
+      privateChats = (privateRes.ok ? await privateRes.json():[]).concat(groupRes.ok ? await groupRes.json():[]);
     }
-
-    chats.value = privateChats.sort((a, b) => new Date(b.lastMessageTimestamp || 0) - new Date(a.lastMessageTimestamp || 0));
-    // unread będzie teraz ustawiane na backendzie (np. lastReadMessageId)
-  } catch (err) {
-    console.error(err);
-  } finally {
-    loading.value = false;
-  }
+    chats.value = privateChats.sort((a,b)=>new Date(b.lastMessageTimestamp||0)-new Date(a.lastMessageTimestamp||0));
+  } catch(e){ console.error(e); } finally { loading.value=false; }
 }
 
-// 🔹 Kliknięcie w czat
-function openChat(chat) {
-  // oznacz jako przeczytany
-  chat.unread = false;
-  emit("open-chat", chat);
-  closeSidebar();
-}
+onMounted(()=>{
+  socket.emit("register", props.userId);
 
-function formatTimestamp(ts) {
-  if (!ts) return '';
-  const date = new Date(ts);
-  return date.toLocaleString();
-}
+  socket.on("receive_message", msg=>{
+    const index = chats.value.findIndex(c=>c.id===msg.matchId);
+    if(index>-1){
+      const [chat]=chats.value.splice(index,1);
+      chat.lastMessage=msg.content;
+      chat.lastMessageTimestamp=msg.timestamp;
+      chat.unread=true;
+      chats.value.unshift(chat);
+    }
+  });
+
+  socket.on("user_typing", ({ chatId, userId })=>{
+    if(userId!==props.userId){
+      typingStatus.value[chatId]=true;
+      setTimeout(()=>typingStatus.value[chatId]=false,3000);
+    }
+  });
+});
+
+function openChat(chat){ chat.unread=false; emit("open-chat", chat); closeSidebar(); }
+function formatTimestamp(ts){ if(!ts) return ''; return new Date(ts).toLocaleString(); }
 </script>
+
+<style scoped>
+.scrollbar-thin { scrollbar-width: thin; }
+.scrollbar-thumb-cyan-400::-webkit-scrollbar-thumb { background-color:#06b6d4;border-radius:9999px;}
+.scrollbar-track-blue-50::-webkit-scrollbar-track{background-color:#eff6ff;}
+
+.typing-indicator { display:inline-flex; align-items:center; gap:3px; }
+.typing-indicator span { width:6px;height:6px;background:#999;border-radius:50%;animation:blink 1.4s infinite both; }
+.typing-indicator span:nth-child(2){ animation-delay:0.2s; }
+.typing-indicator span:nth-child(3){ animation-delay:0.4s; }
+@keyframes blink{0%,80%,100%{transform:scale(0);opacity:0.3;}40%{transform:scale(1);opacity:1;}}
+</style>

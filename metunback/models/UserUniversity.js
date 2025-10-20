@@ -21,6 +21,14 @@ const UserUniversity = sequelize.define('UserUniversity', {
   join_date: {
     type: Sequelize.DATE,
     defaultValue: Sequelize.NOW
+  },
+  status: { 
+    type: Sequelize.ENUM('pending','approved','rejected'), 
+    defaultValue: 'pending' 
+  },
+  document_url: { 
+    type: Sequelize.STRING, 
+    allowNull: false 
   }
 }, {
   tableName: "user_university",
