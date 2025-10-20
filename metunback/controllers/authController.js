@@ -46,7 +46,11 @@ exports.login = async (req, res) => {
     if (!isPasswordValid) return res.status(401).json({ error: "Invalid email or password" });
 
     const token = jwt.sign(
-      { userId: user.user_id, email: user.email },
+      { 
+        userId: user.user_id, 
+        email: user.email,
+        role: user.role  // dodajemy rolę
+      },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
@@ -78,7 +82,7 @@ exports.check = (req, res) => {
 exports.me = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.userId, {
-      attributes: ['user_id', 'name', 'surname', 'email'] // bez hasła
+      attributes: ['user_id', 'name', 'surname', 'email', 'role']
     });
     if (!user) return res.status(404).json({ error: "User not found" });
 

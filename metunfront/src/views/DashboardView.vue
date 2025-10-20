@@ -10,6 +10,14 @@
         <DashboardCircle icon="Heart" label="Dopasowania" route="/matches" />
         <DashboardCircle icon="School" label="Weryfikacja" route="/verification" />
         <DashboardCircle icon="Settings" label="Ustawienia" route="/settings" />
+        
+        <!-- 🔹 Panel admina, widoczny tylko dla admina -->
+        <DashboardCircle 
+          v-if="profile.role === 'admin'" 
+          icon="ShieldCheck" 
+          label="Panel admina" 
+          route="/admin" 
+        />
       </div>
     </main>
   </div>

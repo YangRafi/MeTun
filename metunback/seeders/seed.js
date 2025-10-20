@@ -18,7 +18,6 @@ const {
   GroupMember 
 } = models;
 
-// 👇 Ustal adres backendu (możesz zmienić, jeśli masz inny port)
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
 async function seed() {
@@ -38,7 +37,30 @@ async function seed() {
     }
     console.log(`✅ Dodano ${universities.length} uczelni z pliku JSON.`);
 
-    // 2️⃣ Użytkownicy i profile
+    // 2️⃣ Admin systemu
+    const admin = await User.create({
+      name: 'System',
+      surname: 'Admin',
+      email: 'admin@system.com',
+      password: bcrypt.hashSync('Admin123', 10),
+      role: 'admin'
+    });
+
+    await Profile.create({
+      user_id: admin.user_id,
+      name: 'System Admin',
+      bio: 'Administrator systemu – zarządza weryfikacją uczelni i użytkowników',
+      gender: 'male',
+      location: 'Białystok',
+      profile_picture: `${BASE_URL}/uploads/profile_pictures/admin.jpg`,
+      date_of_birth: new Date(1990, 0, 1)
+    });
+
+
+
+    console.log('✅ Dodano admina.');
+
+    // 3️⃣ Użytkownicy i profile
     const users = [];
     const userData = [
       { name: 'Anna', surname: 'Nowak', email: 'anna@test.com', password: 'Ebeebe1', gender: 'female', location: 'Warszawa', bio: 'Miłośniczka nauki', photo: '1.jpg' },
@@ -65,7 +87,8 @@ async function seed() {
         name: data.name,
         surname: data.surname,
         email: data.email,
-        password: bcrypt.hashSync(data.password, 10)
+        password: bcrypt.hashSync(data.password, 10),
+        role: 'user'
       });
 
       await Profile.create({
@@ -74,7 +97,6 @@ async function seed() {
         bio: data.bio,
         gender: data.gender,
         location: data.location,
-        // 👇 pełny URL do zdjęcia
         profile_picture: `${BASE_URL}/uploads/profile_pictures/${data.photo}`,
         date_of_birth: new Date(
           1998 + Math.floor(Math.random() * 6),
@@ -88,7 +110,7 @@ async function seed() {
 
     console.log(`✅ Dodano ${users.length} użytkowników i profile.`);
 
-    // 3️⃣ Grupa testowa
+    // 4️⃣ Grupa testowa
     const group = await Group.create({
       group_name: 'Programiści PB',
       creator_user_id: users[0].user_id
@@ -103,14 +125,14 @@ async function seed() {
     }
     console.log(`✅ Dodano ${users.length} członków do grupy.`);
 
-    // 4️⃣ Import faktycznych danych
+    // 5️⃣ Import faktycznych danych
     console.log('🌐 Importowanie wydziałów z API...');
     await importFaculties();
 
     console.log('🌐 Importowanie kierunków z API...');
     await importDisciplines();
 
-    // 5️⃣ Przypisanie uczelni i kierunków
+    // 6️⃣ Przypisanie uczelni i kierunków (status approved)
     const disciplineIds = [177, 193, 201]; // Matematyka stosowana, Informatyka, Informatyka i ekonometria
     for (let i = 0; i < users.length; i++) {
       const disciplineId = disciplineIds[i % disciplineIds.length];
@@ -118,12 +140,14 @@ async function seed() {
         user_id: users[i].user_id,
         university_id: 14, // Politechnika Białostocka
         faculty_id: 53,
-        discipline_id: disciplineId
+        discipline_id: disciplineId,
+        status: 'approved',
+        document_url: `${BASE_URL}/uploads/documents/example_student_id.jpg`
       });
     }
-    console.log(`✅ Przypisano uczelnię i kierunki użytkownikom.`);
+    console.log(`✅ Przypisano uczelnię i kierunki użytkownikom (zweryfikowane).`);
 
-    // 6️⃣ Przykładowe dopasowania
+    // 7️⃣ Przykładowe dopasowania
     for (let i = 0; i < users.length - 1; i++) {
       await UserMatch.create({
         user_id_1: users[i].user_id,
