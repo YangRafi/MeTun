@@ -1,27 +1,37 @@
-// controllers/adminController.js
-const { User, University } = require('../models');
+const { User, University, UserUniversity, Group } = require('../models')
 
-// 📊 Główne dane panelu admina
 exports.getDashboardData = async (req, res) => {
   try {
+    // 🔸 Statystyki systemu
+    const usersCount = await User.count()
+    const verifiedCount = await UserUniversity.count({ where: { status: 'approved' } })
+    const universitiesCount = await University.count()
+    const groupsCount = await Group.count()
+
+    // 🔸 Użytkownicy
     const users = await User.findAll({
-      attributes: ['user_id', 'name', 'surname', 'email', 'role']
-    });
+      attributes: ['user_id', 'name', 'surname', 'email', 'role'],
+      order: [['user_id', 'ASC']]
+    })
 
+    // 🔸 Uczelnie
     const universities = await University.findAll({
-      attributes: ['university_id', 'university_name']
-    });
+      attributes: ['university_id', 'university_name'],
+      order: [['university_name', 'ASC']]
+    })
 
-    const stats = {
-      users: users.length,
-      universities: universities.length,
-      verified: users.filter(u => u.role === 'verified').length, // placeholder
-      groups: 0 // tu możesz dodać liczenie grup jak będziesz miał model Group
-    };
-
-    res.json({ stats, users, universities });
-  } catch (error) {
-    console.error('❌ Błąd adminController.getDashboardData:', error);
-    res.status(500).json({ message: 'Błąd serwera' });
+    res.json({
+      stats: {
+        users: usersCount,
+        verified: verifiedCount,
+        universities: universitiesCount,
+        groups: groupsCount
+      },
+      users,
+      universities
+    })
+  } catch (err) {
+    console.error('❌ Błąd admin dashboard:', err)
+    res.status(500).json({ error: 'Błąd serwera' })
   }
-};
+}

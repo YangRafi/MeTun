@@ -32,6 +32,15 @@ const User = sequelize.define('User', {
         type: Sequelize.ENUM('user', 'admin'),
         allowNull: false,
         defaultValue: 'user'
+    },
+    banned_until: {
+        type: Sequelize.DATE,
+        allowNull: true,
+        defaultValue: null
+    },
+    is_banned: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
     }
 }, 
 {

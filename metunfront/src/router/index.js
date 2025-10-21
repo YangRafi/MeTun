@@ -7,7 +7,7 @@ import GroupsView from '../views/GroupsView.vue'
 import MatchesView from '../views/MatchesView.vue'
 import SettingsView from '../views/SettingsView.vue'
 import VerificationView from '../views/VerificationView.vue'
-import AdminDashboard from '../views/AdminDashboard.vue'
+import AdminDashboard from '../views/Admin/AdminDashboard.vue'
 
 const routes = [
   { path: '/', name: 'home', component: HomeView, meta: { requiresAuth: false } },

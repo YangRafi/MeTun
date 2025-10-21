@@ -23,7 +23,7 @@ const UserUniversity = sequelize.define('UserUniversity', {
     defaultValue: Sequelize.NOW
   },
   status: { 
-    type: Sequelize.ENUM('pending','approved','rejected'), 
+    type: Sequelize.ENUM('pending','approved','rejected', 'expired'), 
     defaultValue: 'pending' 
   },
   document_url: { 

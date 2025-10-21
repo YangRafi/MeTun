@@ -17,6 +17,7 @@ const authRoutes = require('./routes/authRoutes');
 const matchRoutes = require('./routes/matchRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const adminRoutes = require('./routes/admin');
+const userUniversityRoutes = require('./routes/userUniversityRoutes');
 
 // Sockety
 const { initSocket } = require('./util/socket');
@@ -45,6 +46,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/user-universities', userUniversityRoutes);
+
 
 // Obsługa 404
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));

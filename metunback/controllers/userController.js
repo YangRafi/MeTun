@@ -1,11 +1,12 @@
 const User = require('../models/User');
-const bcrypt = require('bcryptjs'); // do hashowania haseł
+const bcrypt = require('bcryptjs');
+const { Op } = require('sequelize');
 
 // GET all users
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll({
-      attributes: { exclude: ['password'] } // ukryj hasło
+      attributes: { exclude: ['password'] }
     });
     res.json(users);
   } catch (err) {
@@ -37,13 +38,9 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ error: "Email and password are required" });
     }
 
-    // check if email already exists
     const existing = await User.findOne({ where: { email } });
-    if (existing) {
-      return res.status(400).json({ error: "Email already in use" });
-    }
+    if (existing) return res.status(400).json({ error: "Email already in use" });
 
-    // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await User.create({
@@ -53,9 +50,7 @@ exports.createUser = async (req, res) => {
       password: hashedPassword
     });
 
-    // don't return password
     const { password: _, ...safeUser } = newUser.toJSON();
-
     res.status(201).json(safeUser);
   } catch (err) {
     console.error("Error creating user:", err);
@@ -107,6 +102,70 @@ exports.deleteUser = async (req, res) => {
     res.json({ message: "User deleted" });
   } catch (err) {
     console.error("Error deleting user:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// CHANGE user role
+exports.changeUserRole = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { role } = req.body;
+
+    if (!['user', 'admin'].includes(role)) {
+      return res.status(400).json({ error: "Invalid role" });
+    }
+
+    const user = await User.findByPk(id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    user.role = role;
+    await user.save();
+
+    res.json({ message: `User role changed to ${role}` });
+  } catch (err) {
+    console.error("Error changing role:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// BAN user
+exports.banUser = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { days } = req.body;
+
+    const user = await User.findByPk(id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const untilDate = new Date(Date.now() + (days || 1) * 24 * 60 * 60 * 1000);
+
+    user.isBanned = true;
+    user.bannedUntil = untilDate;
+
+    await user.save();
+    res.json({ message: `User banned until ${untilDate.toISOString()}` });
+  } catch (err) {
+    console.error("Error banning user:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// UNBAN user
+exports.unbanUser = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const user = await User.findByPk(id);
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    user.isBanned = false;
+    user.bannedUntil = null;
+
+    await user.save();
+    res.json({ message: "User unbanned" });
+  } catch (err) {
+    console.error("Error unbanning user:", err);
     res.status(500).json({ error: "Server error" });
   }
 };
