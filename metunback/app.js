@@ -46,7 +46,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/user-universities', userUniversityRoutes);
+app.use('/api/userUniversity', userUniversityRoutes);
 
 
 // Obsługa 404

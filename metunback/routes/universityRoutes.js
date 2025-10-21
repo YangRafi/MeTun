@@ -1,20 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const universityController = require('../controllers/universityController');
+const { authenticate, isAdmin } = require('../middleware/auth');
 
-// GET all universities
-router.get('/', universityController.getAllUniversities);
+// 🔹 GET - lista wszystkich uczelni (dostępna dla zalogowanych)
+router.get('/', authenticate, universityController.getAllUniversities);
 
-// GET one university by ID
-router.get('/:id', universityController.getUniversityById);
+// 🔹 GET - jedna uczelnia po ID (również tylko dla zalogowanych)
+router.get('/:id', authenticate, universityController.getUniversityById);
 
-// POST - create a new university
-router.post('/', universityController.createUniversity);
+// 🔹 POST - dodawanie uczelni (tylko dla administratorów)
+router.post('/', authenticate, isAdmin, universityController.createUniversity);
 
-// PUT - update an existing university
-router.put('/:id', universityController.updateUniversity);
+// 🔹 PUT - aktualizacja uczelni (tylko dla administratorów)
+router.put('/:id', authenticate, isAdmin, universityController.updateUniversity);
 
-// DELETE - remove a university
-router.delete('/:id', universityController.deleteUniversity);
+// 🔹 DELETE - usunięcie uczelni (tylko dla administratorów)
+router.delete('/:id', authenticate, isAdmin, universityController.deleteUniversity);
 
 module.exports = router;

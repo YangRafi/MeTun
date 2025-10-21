@@ -4,13 +4,13 @@ const sequelize = require('../util/database');
 const UserUniversity = sequelize.define('UserUniversity', {
   user_id: {
     type: Sequelize.INTEGER,
-    primaryKey: true
+    allowNull: false
   },
   university_id: {
     type: Sequelize.INTEGER,
     allowNull: false
   },
-  faculty_id: {         // nowa kolumna
+  faculty_id: {
     type: Sequelize.INTEGER,
     allowNull: false
   },
@@ -32,7 +32,10 @@ const UserUniversity = sequelize.define('UserUniversity', {
   }
 }, {
   tableName: "user_university",
-  timestamps: false
+  timestamps: false,
+  indexes: [
+    { unique: true, fields: ['user_id','university_id','faculty_id','discipline_id'] }
+  ]
 });
 
 module.exports = UserUniversity;
