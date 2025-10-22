@@ -8,9 +8,9 @@ exports.getPotentialMatches = async (req, res) => {
   const { gender, ageMin, ageMax, universityId, facultyId, disciplineId } = req.query;
 
   try {
-    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
-    const minutesAgo = new Date(new Date() - 60);
+    const minutesAgo = new Date(new Date() - 60 * 1000); // 1 minuta
 
+    // 🔹 Pobierz profile z powiązanym UserUniversity
     let profiles = await Profile.findAll({
       where: {
         user_id: { [Op.ne]: userId },
@@ -19,8 +19,8 @@ exports.getPotentialMatches = async (req, res) => {
           ? {
               date_of_birth: {
                 [Op.between]: [
-                  ageMax ? new Date(new Date() - ageMax * 365 * 24 * 60 * 60 * 1000) : new Date('1900-01-01'),
-                  ageMin ? new Date(new Date() - ageMin * 365 * 24 * 60 * 60 * 1000) : new Date()
+                  ageMax ? new Date(new Date() - ageMax * 365.25 * 24 * 60 * 60 * 1000) : new Date('1900-01-01'),
+                  ageMin ? new Date(new Date() - ageMin * 365.25 * 24 * 60 * 60 * 1000) : new Date()
                 ]
               }
             }
@@ -39,17 +39,18 @@ exports.getPotentialMatches = async (req, res) => {
       ]
     });
 
-    // Filtrowanie po uczelni/wydziale/kierunku
+    // 🔹 Filtrowanie po uczelni/wydziale/kierunku
     profiles = profiles.filter(p => {
       const uni = p.User?.UserUniversities?.[0];
       if (!uni) return false;
+      if (!(uni.status === 'approved' || uni.trial)) return false; // tylko approved lub trial
       if (universityId && uni.university_id != universityId) return false;
       if (facultyId && uni.faculty_id != facultyId) return false;
       if (disciplineId && uni.discipline_id != disciplineId) return false;
       return true;
     });
 
-    // Wykluczenie profili głosowanych w ciągu ostatnich 48h
+    // 🔹 Wykluczenie profili głosowanych w ciągu ostatnich 1 min
     const votes = await UserMatch.findAll({
       where: {
         [Op.or]: [{ user_id_1: userId }, { user_id_2: userId }],
@@ -60,25 +61,29 @@ exports.getPotentialMatches = async (req, res) => {
     const votedIds = votes.map(v => (v.user_id_1 === userId ? v.user_id_2 : v.user_id_1));
     profiles = profiles.filter(p => !votedIds.includes(p.user_id));
 
-    // Losowa kolejność
+    // 🔹 Losowa kolejność
     profiles = profiles.sort(() => Math.random() - 0.5);
 
-    // Mapowanie danych dla frontendu
-    res.json(
-      profiles.map(p => {
-        const uni = p.User?.UserUniversities?.[0];
-        return {
-          user_id: p.user_id,
-          name: p.name,
-          age: Math.floor((new Date() - new Date(p.date_of_birth)) / (365.25 * 24 * 60 * 60 * 1000)),
-          gender: p.gender,
-          university_name: uni?.University?.university_name || '',
-          faculty_name: uni?.Faculty?.faculty_name || '',
-          discipline_name: uni?.Discipline?.name || '',
-          profile_picture: p.profile_picture || null
-        };
-      })
-    );
+    // 🔹 Mapowanie danych do frontendu
+    const mapped = profiles.map(p => {
+      const uni = p.User?.UserUniversities?.[0];
+      return {
+        user_id: p.user_id,
+        name: p.name,
+        age: Math.floor((new Date() - new Date(p.date_of_birth)) / (365.25 * 24 * 60 * 60 * 1000)),
+        gender: p.gender,
+        bio: p.bio || '',
+        profile_picture: p.profile_picture || null,
+        images: p.images || [],
+        university_name: uni?.University?.university_name || '',
+        faculty_name: uni?.Faculty?.faculty_name || '',
+        discipline_name: uni?.Discipline?.name || '',
+        isVerified: uni?.status === 'approved',
+        isTrial: uni?.trial === true
+      };
+    });
+
+    res.json(mapped);
   } catch (err) {
     console.error('❌ Błąd getPotentialMatches:', err);
     res.status(500).json({ error: 'Server error', details: err.message });

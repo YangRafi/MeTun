@@ -113,7 +113,15 @@ exports.me = async (req, res) => {
       attributes: ['user_id', 'name', 'surname', 'email', 'role']
     });
     if (!user) return res.status(404).json({ error: "User not found" });
-    res.json(user);
+     const response = {
+      user_id: user.user_id,
+      name: user.name,
+      surname: user.surname,
+      email: user.email,
+      role: user.role,
+      isVerified: req.user.isVerified
+    };
+    res.json(response);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });

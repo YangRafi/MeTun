@@ -7,10 +7,26 @@
       :style="cardStyle"
       @pointerdown="onPointerDown"
     >
+      <!-- 🔹 Overlay w prawym górnym rogu: verified / trial -->
+      <div class="absolute top-4 right-4 flex flex-col items-end gap-1 z-10">
+        <span
+          v-if="profile.isVerified"
+          class="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow"
+        >
+          ✔ Verified
+        </span>
+        <span
+          v-else-if="profile.isTrial"
+          class="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow"
+        >
+          🎁 Free Trial
+        </span>
+      </div>
+
       <!-- 🔹 Zdjęcie -->
       <div class="relative">
         <img
-          v-if="profile.profile_picture"
+          v-if="currentImage"
           :src="currentImage"
           alt="Profile Picture"
           class="w-full h-[500px] object-cover"
@@ -22,9 +38,9 @@
           Brak zdjęcia
         </div>
 
-        <!-- Gradient i opis -->
+        <!-- Gradient i overlay z podstawowymi info -->
         <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/80 to-transparent"></div>
-        <div class="absolute bottom-4 left-4 text-white">
+        <div class="absolute bottom-4 left-4 text-white z-10">
           <h2 class="text-2xl font-bold drop-shadow-md">
             {{ profile.name }}, {{ profile.age }} lat
           </h2>
@@ -47,7 +63,7 @@
       </div>
     </div>
 
-    <!-- 🔹 Przyciski (nadal działają jako alternatywa) -->
+    <!-- 🔹 Przyciski (alternatywa dla swipe) -->
     <div class="flex justify-center gap-6 mt-6">
       <button
         @click="$emit('swipe-left')"
@@ -55,7 +71,6 @@
       >
         ✖
       </button>
-
       <button
         @click="$emit('swipe-right')"
         class="bg-green-500 hover:bg-green-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-md transition transform active:scale-90"
@@ -76,7 +91,7 @@ const emit = defineEmits(['swipe-left', 'swipe-right'])
 
 const currentImageIndex = ref(0)
 const hasMultipleImages = computed(
-  () => Array.isArray(props.profile.images) && props.profile.images.length > 1
+  () => Array.isArray(props.profile.images) && props.profile.images.length > 0
 )
 const currentImage = computed(() =>
   hasMultipleImages.value
@@ -112,15 +127,10 @@ function onPointerMove(e) {
 
 function onPointerUp() {
   isDragging.value = false
-  const threshold = 150 // ile trzeba przeciągnąć w px
-
-  if (offset.value.x > threshold) {
-    animateOffScreen('right')
-  } else if (offset.value.x < -threshold) {
-    animateOffScreen('left')
-  } else {
-    offset.value = { x: 0, y: 0 } // wróć do środka
-  }
+  const threshold = 150
+  if (offset.value.x > threshold) animateOffScreen('right')
+  else if (offset.value.x < -threshold) animateOffScreen('left')
+  else offset.value = { x: 0, y: 0 }
 
   window.removeEventListener('pointermove', onPointerMove)
   window.removeEventListener('pointerup', onPointerUp)
@@ -131,8 +141,7 @@ function animateOffScreen(direction) {
   offset.value = { x, y: offset.value.y }
   setTimeout(() => {
     offset.value = { x: 0, y: 0 }
-    if (direction === 'right') emit('swipe-right')
-    else emit('swipe-left')
+    direction === 'right' ? emit('swipe-right') : emit('swipe-left')
   }, 300)
 }
 </script>

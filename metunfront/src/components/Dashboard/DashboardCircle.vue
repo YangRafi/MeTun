@@ -11,17 +11,26 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import * as Icons from 'lucide-vue-next'
+import { showVerifiedPopup } from '../../store/popupStore.js'
 
 const props = defineProps({
   icon: String,
   label: String,
-  route: String
+  route: String,
+  profile: Object
 })
 
 const router = useRouter()
 const iconComponent = Icons[props.icon]
 
 const goToRoute = () => {
+  console.log(`[DashboardCircle] Clicked ${props.label}, route: ${props.route}, isVerified: ${props.profile?.isVerified}`)
+  const requiresVerifiedRoutes = ['/groups', '/matches']
+  if (requiresVerifiedRoutes.includes(props.route) && !props.profile?.isVerified) {
+    console.log(`[DashboardCircle] Blocking route because user is NOT verified`)
+    showVerifiedPopup.value = true
+    return
+  }
   router.push(props.route)
 }
 </script>
