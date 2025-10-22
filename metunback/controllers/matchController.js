@@ -1,5 +1,6 @@
 const { UserMatch, Profile, UserUniversity, University, Faculty, Discipline, User } = require('../models');
 const { Op } = require('sequelize');
+const { emitNewMatch, getIo } = require('../util/socket');
 
 // 🔹 Pobranie potencjalnych dopasowań (filtry + losowe + 48h)
 exports.getPotentialMatches = async (req, res) => {
@@ -52,7 +53,7 @@ exports.getPotentialMatches = async (req, res) => {
     const votes = await UserMatch.findAll({
       where: {
         [Op.or]: [{ user_id_1: userId }, { user_id_2: userId }],
-        match_date: { [Op.gt]: minutesAgo } // <- używamy match_date
+        match_date: { [Op.gt]: minutesAgo }
       }
     });
 
@@ -64,21 +65,20 @@ exports.getPotentialMatches = async (req, res) => {
 
     // Mapowanie danych dla frontendu
     res.json(
-        profiles.map(p => {
-            const uni = p.User?.UserUniversities?.[0];
-            return {
-            user_id: p.user_id,
-            name: p.name,
-            age: Math.floor((new Date() - new Date(p.date_of_birth)) / (365.25*24*60*60*1000)), // obliczamy wiek
-            gender: p.gender,
-            university_name: uni?.University?.university_name || '',
-            faculty_name: uni?.Faculty?.faculty_name || '',
-            discipline_name: uni?.Discipline?.name || '',
-            profile_picture: p.profile_picture || null
-            };
-        })
+      profiles.map(p => {
+        const uni = p.User?.UserUniversities?.[0];
+        return {
+          user_id: p.user_id,
+          name: p.name,
+          age: Math.floor((new Date() - new Date(p.date_of_birth)) / (365.25 * 24 * 60 * 60 * 1000)),
+          gender: p.gender,
+          university_name: uni?.University?.university_name || '',
+          faculty_name: uni?.Faculty?.faculty_name || '',
+          discipline_name: uni?.Discipline?.name || '',
+          profile_picture: p.profile_picture || null
+        };
+      })
     );
-
   } catch (err) {
     console.error('❌ Błąd getPotentialMatches:', err);
     res.status(500).json({ error: 'Server error', details: err.message });
@@ -101,6 +101,7 @@ exports.voteUser = async (req, res) => {
     });
 
     if (!match) {
+      // Tworzymy nowy rekord
       if (userId < otherUserId) {
         match = await UserMatch.create({
           user_id_1: userId,
@@ -118,61 +119,40 @@ exports.voteUser = async (req, res) => {
           match_active: false
         });
       }
+
+      return res.json({ success: true, matchActive: false, matchJustActivated: false });
     } else {
+      // Aktualizacja istniejącego rekordu
       if (match.user_id_1 === userId) match.user_1_like = like;
       else match.user_2_like = like;
 
+      const wasActive = match.match_active;
       match.match_active = match.user_1_like && match.user_2_like;
-      match.match_date = new Date(); // aktualizacja daty ostatniej aktywności
+      match.match_date = new Date();
       await match.save();
-    }
 
-    res.json({ success: true, matchActive: match.match_active });
+      const matchJustActivated = !wasActive && match.match_active;
+
+      // 🔹 Jeśli dopiero co powstał match, wyślij socket event
+      if (matchJustActivated) {
+        const matchData = {
+          matchId: match.match_id,
+          user1Id: match.user_id_1,
+          user2Id: match.user_id_2,
+          matchDate: match.match_date
+        };
+        emitNewMatch(match.user_id_1, match.user_id_2, matchData);
+      }
+
+      return res.json({ success: true, matchActive: match.match_active, matchJustActivated });
+    }
   } catch (err) {
     console.error('❌ Błąd voteUser:', err);
     res.status(500).json({ error: 'Server error', details: err.message });
   }
 };
 
-// 🔹 Like / Unlike
-exports.likeUser = async (req, res) => {
-  const userId = req.user.userId;
-  const likedUserId = parseInt(req.params.id);
-
-  try {
-    let match = await UserMatch.findOne({
-      where: {
-        [Op.or]: [
-          { user_id_1: userId, user_id_2: likedUserId },
-          { user_id_1: likedUserId, user_id_2: userId }
-        ]
-      }
-    });
-
-    if (!match) {
-      match = await UserMatch.create({
-        user_id_1: userId,
-        user_id_2: likedUserId,
-        user_1_like: true,
-        user_2_like: false,
-        match_active: false
-      });
-    } else {
-      if (match.user_id_1 === userId) match.user_1_like = true;
-      else match.user_2_like = true;
-
-      match.match_active = match.user_1_like && match.user_2_like;
-      match.match_date = new Date();
-      await match.save();
-    }
-
-    res.json(match);
-  } catch (err) {
-    console.error('❌ Błąd likeUser:', err);
-    res.status(500).json({ error: 'Server error', details: err.message });
-  }
-};
-
+// 🔹 Unlike / cofnięcie dopasowania
 exports.unlikeUser = async (req, res) => {
   const userId = req.user.userId;
   const otherUserId = parseInt(req.params.id);
@@ -189,14 +169,21 @@ exports.unlikeUser = async (req, res) => {
 
     if (!match) return res.status(404).json({ error: 'Match not found' });
 
+    // Cofamy like i dezaktywujemy match
     if (match.user_id_1 === userId) match.user_1_like = false;
     else match.user_2_like = false;
 
-    match.match_active = match.user_1_like && match.user_2_like;
-    match.match_date = new Date();
+    match.match_active = false;
     await match.save();
 
-    res.json(match);
+    // 🔹 Emitujemy info o usunięciu matcha
+    const io = getIo();
+    if (io) {
+      const receiverId = match.user_id_1 === userId ? match.user_id_2 : match.user_id_1;
+      io.to(receiverId).emit('match_removed', { matchId: match.match_id });
+    }
+
+    res.json({ success: true, matchActive: false });
   } catch (err) {
     console.error('❌ Błąd unlikeUser:', err);
     res.status(500).json({ error: 'Server error', details: err.message });

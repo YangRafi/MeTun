@@ -5,7 +5,6 @@ const { authenticate } = require('../middleware/auth');
 
 router.get('/potential', authenticate, matchController.getPotentialMatches); // pobranie potencjalnych dopasowań
 router.post('/vote', authenticate, matchController.voteUser); // swipe left/right
-router.post('/like/:id', authenticate, matchController.likeUser);
 router.post('/unlike/:id', authenticate, matchController.unlikeUser);
 
 module.exports = router;
