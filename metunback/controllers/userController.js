@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
+const { getIo, userSockets } = require('../util/socket'); // ✅ import socketów
 
 // GET all users
 exports.getAllUsers = async (req, res) => {
@@ -99,6 +100,14 @@ exports.deleteUser = async (req, res) => {
     if (!user) return res.status(404).json({ error: "User not found" });
 
     await user.destroy();
+
+    // 🔥 powiadom użytkownika, jeśli był zalogowany
+    const io = getIo();
+    const userSocket = userSockets.get(Number(id));
+    if (io && userSocket) {
+      io.to(userSocket).emit('account_deleted');
+    }
+
     res.json({ message: "User deleted" });
   } catch (err) {
     console.error("Error deleting user:", err);
@@ -122,6 +131,14 @@ exports.changeUserRole = async (req, res) => {
     user.role = role;
     await user.save();
 
+    // 🔥 wysyłamy event socketowy do użytkownika
+    const io = getIo();
+    const userSocket = userSockets.get(Number(id));
+    if (io && userSocket) {
+      io.to(userSocket).emit('role_changed', { role });
+      console.log(`📢 Wysłano event 'role_changed' do user ${id}`);
+    }
+
     res.json({ message: `User role changed to ${role}` });
   } catch (err) {
     console.error("Error changing role:", err);
@@ -142,8 +159,16 @@ exports.banUser = async (req, res) => {
 
     user.isBanned = true;
     user.bannedUntil = untilDate;
-
     await user.save();
+
+    // 🔥 wyślij info o banie
+    const io = getIo();
+    const userSocket = userSockets.get(Number(id));
+    if (io && userSocket) {
+      io.to(userSocket).emit('user_banned', { until: untilDate });
+      console.log(`🚫 Wysłano event 'user_banned' do user ${id}`);
+    }
+
     res.json({ message: `User banned until ${untilDate.toISOString()}` });
   } catch (err) {
     console.error("Error banning user:", err);
@@ -161,8 +186,16 @@ exports.unbanUser = async (req, res) => {
 
     user.isBanned = false;
     user.bannedUntil = null;
-
     await user.save();
+
+    // 🔥 powiadom odbanowanego
+    const io = getIo();
+    const userSocket = userSockets.get(Number(id));
+    if (io && userSocket) {
+      io.to(userSocket).emit('user_unbanned');
+      console.log(`✅ Wysłano event 'user_unbanned' do user ${id}`);
+    }
+
     res.json({ message: "User unbanned" });
   } catch (err) {
     console.error("Error unbanning user:", err);

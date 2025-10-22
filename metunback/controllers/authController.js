@@ -3,33 +3,24 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = "1h";
+const JWT_ACCESS_EXPIRES = "15m"; // krótki czas życia
+const JWT_REFRESH_EXPIRES = "7d"; // dłuższy czas życia
 
-// REGISTER (signup)
+// REGISTER
 exports.signup = async (req, res) => {
   try {
     const { name, surname, email, password } = req.body;
 
-    // check if user already exists
     const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      return res.status(400).json({ error: "User with this email already exists" });
-    }
+    if (existingUser) return res.status(400).json({ error: "User already exists" });
 
-    // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // create user
-    const newUser = await User.create({
-      name,
-      surname,
-      email,
-      password: hashedPassword
-    });
+    const newUser = await User.create({ name, surname, email, password: hashedPassword });
 
     res.status(201).json({ message: "User registered successfully", userId: newUser.user_id });
   } catch (err) {
-    console.error("❌ Error in signup:", err);
+    console.error(err);
     res.status(500).json({ error: "Server error while signing up" });
   }
 };
@@ -45,37 +36,74 @@ exports.login = async (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) return res.status(401).json({ error: "Invalid email or password" });
 
-    const token = jwt.sign(
-      { 
-        userId: user.user_id, 
-        email: user.email,
-        role: user.role  // dodajemy rolę
-      },
+    // ✅ access token
+    const accessToken = jwt.sign(
+      { userId: user.user_id, email: user.email, role: user.role },
       JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
+      { expiresIn: JWT_ACCESS_EXPIRES }
     );
 
-    // ustawienie HttpOnly cookie
-    res.cookie('token', token, {
+    // ✅ refresh token
+    const refreshToken = jwt.sign(
+      { userId: user.user_id },
+      JWT_SECRET,
+      { expiresIn: JWT_REFRESH_EXPIRES }
+    );
+
+    // ustaw cookie
+    res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: false,
       sameSite: 'lax',
-      maxAge: 3600000 // 1h w ms
+      maxAge: 15 * 60 * 1000
+    });
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
-    res.json({ message: "Login successful" }); // token nie jest wysyłany w body
+    res.json({ message: "Login successful" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error while logging in" });
   }
 };
 
+// REFRESH TOKEN
+exports.refreshToken = async (req, res) => {
+  try {
+    const { refresh_token } = req.cookies;
+    if (!refresh_token) return res.status(401).json({ error: "No refresh token" });
+
+    const payload = jwt.verify(refresh_token, JWT_SECRET);
+    const user = await User.findByPk(payload.userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const newAccessToken = jwt.sign(
+      { userId: user.user_id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: JWT_ACCESS_EXPIRES }
+    );
+
+    res.cookie('access_token', newAccessToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000
+    });
+
+    res.json({ message: "Access token refreshed" });
+  } catch (err) {
+    console.error(err);
+    res.status(401).json({ error: "Invalid refresh token" });
+  }
+};
+
 // CHECK
 exports.check = (req, res) => {
-  res.json({
-    authenticated: true,
-    user: req.user, // to co decode zwróciło z JWT
-  });
+  res.json({ authenticated: true, user: req.user });
 };
 
 // ME
@@ -85,21 +113,16 @@ exports.me = async (req, res) => {
       attributes: ['user_id', 'name', 'surname', 'email', 'role']
     });
     if (!user) return res.status(404).json({ error: "User not found" });
-
     res.json(user);
   } catch (err) {
-    console.error("❌ Error in /me:", err);
+    console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 };
 
 // LOGOUT
-
 exports.logout = (req, res) => {
-  res.clearCookie('token', {
-    httpOnly: true,
-    secure: false,
-    sameSite: 'lax'
-  });
+  res.clearCookie('access_token');
+  res.clearCookie('refresh_token');
   res.json({ message: "Logout successful" });
 };

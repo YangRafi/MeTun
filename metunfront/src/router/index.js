@@ -47,23 +47,34 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   if (to.meta.requiresAuth) {
     try {
-      const res = await fetch("http://localhost:3000/api/auth/me", { credentials: "include" })
-      if (!res.ok) return next("/")
+      let res = await fetch("http://localhost:3000/api/auth/me", { credentials: "include" });
+      
+      // jeśli access token wygasł
+      if (res.status === 401) {
+        const refresh = await fetch("http://localhost:3000/api/auth/refresh-token", { credentials: "include" });
+        if (!refresh.ok) return next("/"); // brak refresh tokena, wyloguj
 
-      const user = await res.json()
-
-      if (to.meta.requiresAdmin && user.role !== "admin") {
-        return next("/dashboard") // przekierowanie np. do zwykłego dashboardu
+        // access token odświeżony, spróbuj ponownie /me
+        res = await fetch("http://localhost:3000/api/auth/me", { credentials: "include" });
       }
 
-      next()
+      if (!res.ok) return next("/");
+
+      const user = await res.json();
+
+      if (to.meta.requiresAdmin && user.role !== "admin") {
+        return next("/dashboard");
+      }
+
+      next();
     } catch (err) {
-      console.error("Auth check failed:", err)
-      next("/")
+      console.error("Auth check failed:", err);
+      next("/");
     }
   } else {
-    next()
+    next();
   }
-})
+});
+
 
 export default router

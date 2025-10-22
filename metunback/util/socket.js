@@ -2,6 +2,7 @@ const { Server } = require('socket.io');
 const { Message, Profile } = require('../models');
 
 const userSockets = new Map();
+let ioInstance = null;
 
 function initSocket(server) {
   const io = new Server(server, {
@@ -10,6 +11,8 @@ function initSocket(server) {
       credentials: true
     }
   });
+
+  ioInstance = io;
 
   io.on('connection', (socket) => {
     console.log('🟢 Użytkownik połączony:', socket.id);
@@ -82,4 +85,8 @@ function initSocket(server) {
   return io;
 }
 
-module.exports = { initSocket, userSockets };
+function getIo() {
+  return ioInstance;
+}
+
+module.exports = { initSocket, getIo, userSockets };
