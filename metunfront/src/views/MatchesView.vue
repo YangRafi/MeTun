@@ -160,10 +160,24 @@ function nextProfile(){
 }
 
 // 🔹 Filtry i fetchy uczelni/fakultetów/kierunków
+let fetchTimeout;
 async function fetchUniversities() {
-  if(universityQuery.value.length < 1){ universitySuggestions.value = []; return; }
-  const res = await fetch(`http://localhost:3000/api/universities?query=${encodeURIComponent(universityQuery.value)}`);
-  universitySuggestions.value = (await res.json()).slice(0,10);
+  if (universityQuery.value.length < 1) {
+    universitySuggestions.value = [];
+    return;
+  }
+  clearTimeout(fetchTimeout);
+  fetchTimeout = setTimeout(async () => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/universities?query=${encodeURIComponent(universityQuery.value)}`, { credentials: 'include' });
+      if (!res.ok) throw new Error('Błąd sieci');
+      const data = await res.json();
+      universitySuggestions.value = data.slice(0,10);
+    } catch (err) {
+      console.error(err);
+      universitySuggestions.value = [];
+    }
+  }, 250); // debounce
 }
 
 async function selectUniversity(u){
@@ -178,21 +192,29 @@ async function selectUniversity(u){
 }
 
 async function fetchFaculties() {
-  if(!filters.universityId) return;
-  const res = await fetch(`http://localhost:3000/api/faculties?universityId=${filters.universityId}`);
-  faculties.value = await res.json();
+  if (!filters.universityId) return;
+  try {
+    const res = await fetch(`http://localhost:3000/api/faculties?universityId=${filters.universityId}`, { credentials:'include' });
+    if (!res.ok) throw new Error('Błąd sieci');
+    faculties.value = await res.json();
+  } catch(err) {
+    console.error(err);
+    faculties.value = [];
+  }
 }
 
 async function onFacultyChange() {
   filters.disciplineId = '';
   disciplines.value = [];
-  await fetchDisciplines();
-}
-
-async function fetchDisciplines() {
-  if(!filters.facultyId) return;
-  const res = await fetch(`http://localhost:3000/api/disciplines?facultyId=${filters.facultyId}`);
-  disciplines.value = await res.json();
+  if (!filters.facultyId) return;
+  try {
+    const res = await fetch(`http://localhost:3000/api/disciplines?facultyId=${filters.facultyId}`, { credentials:'include' });
+    if (!res.ok) throw new Error('Błąd sieci');
+    disciplines.value = await res.json();
+  } catch(err) {
+    console.error(err);
+    disciplines.value = [];
+  }
 }
 
 async function applyFilters(){

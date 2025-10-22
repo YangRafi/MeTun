@@ -1,9 +1,14 @@
 <template>
-  <header class="flex justify-between items-center p-6 bg-black/30 backdrop-blur-md shadow-md">
-    <!-- Logo / przejście do Dashboardu -->
+  <header
+    :class="[
+      'flex justify-between items-center p-6 shadow-md',
+      isAdmin ? 'bg-gray-800 text-yellow-400' : 'bg-black/30 text-white backdrop-blur-md'
+    ]"
+  >
+    <!-- Logo / przejście do głównego dashboardu -->
     <div
       class="text-2xl font-bold cursor-pointer hover:text-yellow-400 transition"
-      @click="goToDashboard"
+      @click="goToMainDashboard"
     >
       🎓 MeTun
     </div>
@@ -26,7 +31,7 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import Button from 'primevue/button'
 import { defineProps } from 'vue'
 
@@ -35,11 +40,17 @@ const props = defineProps({
 })
 
 const router = useRouter()
+const route = useRoute()
 
-const goToDashboard = () => {
+// Sprawdzenie, czy jesteśmy w panelu admina
+const isAdmin = route.path.startsWith('/admin')
+
+// Funkcja przejścia do głównego dashboardu
+const goToMainDashboard = () => {
   router.push('/dashboard')
 }
 
+// Wylogowanie
 const logout = async () => {
   try {
     await fetch('http://localhost:3000/api/auth/logout', {

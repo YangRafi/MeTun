@@ -25,10 +25,15 @@
             <td class="py-3 px-4">{{ user.name }} {{ user.surname }}</td>
             <td class="py-3 px-4">{{ user.email }}</td>
             <td class="py-3 px-4 capitalize">{{ user.role }}</td>
-            <td class="py-3 px-4">{{ user.isBanned ? 'Zbanowany' : 'Aktywny' }}</td>
+            <td class="py-3 px-4">{{ user.is_banned ? `Zbanowany do ${formatDate(user.banned_until)}` : 'Aktywny' }}</td>
             <td class="py-3 px-4 space-x-2">
               <button @click="changeRole(user)" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded">Zmień rolę</button>
-              <button @click="banUser(user)" class="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded">Zbanuj</button>
+              <button 
+                @click="user.is_banned ? unbanUser(user) : banUser(user)" 
+                :class="user.is_banned ? 'bg-green-600 hover:bg-green-700' : 'bg-yellow-600 hover:bg-yellow-700'" 
+                class="px-3 py-1 rounded">
+                {{ user.is_banned ? 'Odbanuj' : 'Zbanuj' }}
+              </button>
               <button @click="deleteUser(user.user_id)" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Usuń</button>
             </td>
           </tr>
@@ -62,19 +67,43 @@ const changeRole = async (user) => {
 const banUser = async (user) => {
   const days = parseInt(prompt("Na ile dni zbanować użytkownika?", "1"))
   if (!days) return
-  await fetch(`http://localhost:3000/api/users/${user.user_id}/ban`, {
+  const res = await fetch(`http://localhost:3000/api/users/${user.user_id}/ban`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ days }),
     credentials: 'include'
   })
-  user.isBanned = true
+  if (res.ok) {
+    const data = await res.json()
+    alert(`Użytkownik zbanowany do ${formatDate(data.until)}`)
+    user.is_banned = true
+    user.banned_until = data.until
+  }
+}
+
+const unbanUser = async (user) => {
+  const res = await fetch(`http://localhost:3000/api/users/${user.user_id}/unban`, {
+    method: 'PUT',
+    credentials: 'include'
+  })
+  if (res.ok) {
+    alert('Użytkownik został odbanowany')
+    user.is_banned = false
+    user.banned_until = null
+  }
 }
 
 const deleteUser = async (id) => {
   if (!confirm("Na pewno usunąć użytkownika?")) return
   await fetch(`http://localhost:3000/api/users/${id}`, { method: 'DELETE', credentials: 'include' })
   users.value = users.value.filter(u => u.user_id !== id)
+}
+
+// pomocnicza funkcja do ładnego formatu daty
+const formatDate = (isoDate) => {
+  if (!isoDate) return ''
+  const d = new Date(isoDate)
+  return d.toLocaleString() // np. "22.10.2025, 14:53:18"
 }
 
 onMounted(fetchUsers)

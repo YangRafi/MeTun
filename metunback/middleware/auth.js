@@ -10,7 +10,26 @@ exports.authenticate = async (req, res, next) => {
   try {
     // próbujemy zweryfikować access token
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
+    const user = await User.findByPk(decoded.userId);
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    // ✅ Sprawdzenie bana
+    if (user.is_banned) {
+      const now = new Date();
+      if (user.banned_until && user.banned_until > now) {
+        return res.status(403).json({ 
+          error: `Twoje konto jest zbanowane do ${user.banned_until.toISOString()}` 
+        });
+      } else {
+        // ban wygasł – odbanowanie
+        user.is_banned = false;
+        user.banned_until = null;
+        await user.save();
+      }
+    }
+
+    req.user = { userId: user.user_id, email: user.email, role: user.role };
     return next();
   } catch (err) {
     // jeśli access token wygasł, próbujemy odświeżyć
@@ -21,6 +40,20 @@ exports.authenticate = async (req, res, next) => {
       const payload = jwt.verify(refreshToken, JWT_SECRET);
       const user = await User.findByPk(payload.userId);
       if (!user) return res.status(404).json({ error: "User not found" });
+
+      // ✅ Sprawdzenie bana przy odświeżeniu
+      if (user.is_banned) {
+        const now = new Date();
+        if (user.banned_until && user.banned_until > now) {
+          return res.status(403).json({ 
+            error: `Twoje konto jest zbanowane do ${user.banned_until.toISOString()}` 
+          });
+        } else {
+          user.is_banned = false;
+          user.banned_until = null;
+          await user.save();
+        }
+      }
 
       // generujemy nowy access token
       const newAccessToken = jwt.sign(

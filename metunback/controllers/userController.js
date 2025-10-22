@@ -157,8 +157,9 @@ exports.banUser = async (req, res) => {
 
     const untilDate = new Date(Date.now() + (days || 1) * 24 * 60 * 60 * 1000);
 
-    user.isBanned = true;
-    user.bannedUntil = untilDate;
+    user.is_banned = true;       // ✅ tutaj jest snake_case
+    user.banned_until = untilDate; // ✅ tutaj też
+
     await user.save();
 
     // 🔥 wyślij info o banie
@@ -184,8 +185,8 @@ exports.unbanUser = async (req, res) => {
 
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    user.isBanned = false;
-    user.bannedUntil = null;
+    user.is_banned = false;
+    user.banned_until = null;
     await user.save();
 
     // 🔥 powiadom odbanowanego
