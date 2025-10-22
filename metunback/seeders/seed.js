@@ -5,6 +5,7 @@ const universitiesData = require('./universities.json');
 
 const importFaculties = require('./importFaculties');
 const importDisciplines = require('./importDisciplines');
+const { calculateExpiryDate } = require('../util/dateUtils');
 
 const { 
   User, 
@@ -136,12 +137,17 @@ async function seed() {
     const disciplineIds = [177, 193, 201]; // Matematyka stosowana, Informatyka, Informatyka i ekonometria
     for (let i = 0; i < users.length; i++) {
       const disciplineId = disciplineIds[i % disciplineIds.length];
+      const joinDate = new Date();
+      const expiryDate = calculateExpiryDate(joinDate);
+
       await UserUniversity.create({
         user_id: users[i].user_id,
         university_id: 14, // Politechnika Białostocka
         faculty_id: 53,
         discipline_id: disciplineId,
         status: 'approved',
+        join_date: joinDate,
+        expiry_date: expiryDate,
         document_url: `${BASE_URL}/uploads/documents/example_student_id.jpg`
       });
     }

@@ -28,8 +28,24 @@ const UserUniversity = sequelize.define('UserUniversity', {
   },
   document_url: { 
     type: Sequelize.STRING, 
-    allowNull: false 
-  }
+    allowNull: true 
+  },
+  expiry_date: {
+  type: Sequelize.DATE,
+  allowNull: true
+  },
+  trial: {
+    type: Sequelize.BOOLEAN,
+    defaultValue: false
+  },
+  trial_start_date: {
+    type: Sequelize.DATE,
+    allowNull: true
+  },
+  trial_end_date: {
+    type: Sequelize.DATE,
+    allowNull: true
+},
 }, {
   tableName: "user_university",
   timestamps: false,

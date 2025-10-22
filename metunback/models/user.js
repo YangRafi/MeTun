@@ -41,7 +41,11 @@ const User = sequelize.define('User', {
     is_banned: {
         type: Sequelize.BOOLEAN,
         defaultValue: false
-    }
+    },
+    has_trial: {
+    type: Sequelize.BOOLEAN,
+    defaultValue: false
+  }
 }, 
 {
     tableName: "users",

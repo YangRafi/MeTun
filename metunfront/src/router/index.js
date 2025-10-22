@@ -9,6 +9,11 @@ import SettingsView from '../views/SettingsView.vue'
 import VerificationView from '../views/VerificationView.vue'
 import AdminDashboard from '../views/Admin/AdminDashboard.vue'
 
+// Child views dla panelu admina
+import UsersView from '../views/Admin/UsersView.vue'
+import UniversitiesView from '../views/Admin/UniversitiesView.vue'
+import RequestsView from '../views/Admin/RequestsView.vue'
+
 const routes = [
   { path: '/', name: 'home', component: HomeView, meta: { requiresAuth: false } },
   { path: '/more', name: 'more', component: MoreView, meta: { requiresAuth: false } },
@@ -18,7 +23,19 @@ const routes = [
   { path: '/matches', name: 'matches', component: MatchesView, meta: { requiresAuth: true } },
   { path: '/settings', name: 'settings', component: SettingsView, meta: { requiresAuth: true } },
   { path: '/verification', name: 'verification', component: VerificationView, meta: { requiresAuth: true } },
-  { path: '/admin', name: 'AdminDashboard', component: AdminDashboard, meta: { requiresAuth: true, requiresAdmin: true } }
+
+  // Panel admina z podstronami
+  {
+    path: '/admin',
+    name: 'AdminDashboard',
+    component: AdminDashboard,
+    meta: { requiresAuth: true, requiresAdmin: true },
+    children: [
+      { path: 'users', name: 'AdminUsers', component: UsersView },
+      { path: 'universities', name: 'AdminUniversities', component: UniversitiesView },
+      { path: 'requests', name: 'AdminRequests', component: RequestsView }
+    ]
+  }
 ]
 
 const router = createRouter({

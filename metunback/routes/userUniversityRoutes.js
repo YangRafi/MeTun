@@ -20,6 +20,11 @@ router.get('/my', authenticate, userUniversityController.getUserUniversities);
 // 🔸 Student - dodaj aplikację (z plikiem)
 router.post('/', authenticate, upload.single('document'), userUniversityController.addUserUniversity);
 
+router.post('/:id/activateTrial', authenticate, userUniversityController.activateTrial);
+
+// 🔸 Student - edytuj swój dokument
+router.put('/:id', authenticate, upload.single('document'), userUniversityController.updateDocument);
+
 // 🔸 Student - usuń swoją aplikację
 router.delete('/:id', authenticate, userUniversityController.deleteUserUniversity);
 
@@ -28,5 +33,8 @@ router.get('/all', authenticate, isAdmin, userUniversityController.getAllApplica
 
 // 🔸 Admin - zmień status aplikacji
 router.put('/:id/status', authenticate, isAdmin, userUniversityController.updateStatus);
+
+// 🔸 Admin - wnioski pogrupowane po statusie
+router.get('/requests/status', authenticate, isAdmin, userUniversityController.getApplicationsByStatus);
 
 module.exports = router;
