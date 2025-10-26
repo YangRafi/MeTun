@@ -5,7 +5,7 @@ const universitiesData = require('./universities.json');
 
 const importFaculties = require('./importFaculties');
 const importDisciplines = require('./importDisciplines');
-const { calculateExpiryDate } = require('../util/dateUtils');
+const { getNextExpiryDate } = require('../util/dateUtils');
 
 const { 
   User, 
@@ -111,34 +111,19 @@ async function seed() {
 
     console.log(`✅ Dodano ${users.length} użytkowników i profile.`);
 
-    // 4️⃣ Grupa testowa
-    const group = await Group.create({
-      group_name: 'Programiści PB',
-      creator_user_id: users[0].user_id
-    });
-
-    for (let i = 0; i < users.length; i++) {
-      await GroupMember.create({
-        group_id: group.group_id,
-        user_id: users[i].user_id,
-        role: i === 0 ? 'admin' : 'member'
-      });
-    }
-    console.log(`✅ Dodano ${users.length} członków do grupy.`);
-
-    // 5️⃣ Import faktycznych danych
+    // 4️⃣ Import faktycznych danych
     console.log('🌐 Importowanie wydziałów z API...');
     await importFaculties();
 
     console.log('🌐 Importowanie kierunków z API...');
     await importDisciplines();
 
-    // 6️⃣ Przypisanie uczelni i kierunków (status approved)
+    // 5️⃣ Przypisanie uczelni i kierunków (status approved)
     const disciplineIds = [177, 193, 201]; // Matematyka stosowana, Informatyka, Informatyka i ekonometria
     for (let i = 0; i < users.length; i++) {
       const disciplineId = disciplineIds[i % disciplineIds.length];
       const joinDate = new Date();
-      const expiryDate = calculateExpiryDate(joinDate);
+      const expiryDate = getNextExpiryDate(joinDate);
 
       await UserUniversity.create({
         user_id: users[i].user_id,
@@ -152,6 +137,36 @@ async function seed() {
       });
     }
     console.log(`✅ Przypisano uczelnię i kierunki użytkownikom (zweryfikowane).`);
+
+
+    // 6️⃣ Automatyczne tworzenie grup dla kierunków
+    for (const disciplineId of disciplineIds) {
+      // Sprawdź, czy grupa dla tego kierunku już istnieje
+      const existingGroup = await Group.findOne({ where: { discipline_id: disciplineId } });
+      if (!existingGroup) {
+        const discipline = await Discipline.findByPk(disciplineId);
+        if (!discipline) continue;
+
+        // Utwórz grupę dla danego kierunku
+        const newGroup = await Group.create({
+          group_name: `Grupa kierunku ${discipline.name}`,
+          discipline_id: disciplineId
+        });
+
+        // Dodaj wszystkich użytkowników przypisanych do tego kierunku do grupy
+        const usersInDiscipline = users.filter((u, index) => disciplineIds[index % disciplineIds.length] === disciplineId);
+        for (const [index, user] of usersInDiscipline.entries()) {
+          await GroupMember.create({
+            group_id: newGroup.group_id,
+            user_id: user.user_id,
+            role: 'member'
+          });
+        }
+
+        console.log(`✅ Utworzono grupę dla kierunku: ${discipline.name} i dodano ${usersInDiscipline.length} członków.`);
+      }
+    }
+
 
     // 7️⃣ Przykładowe dopasowania
     for (let i = 0; i < users.length - 1; i++) {

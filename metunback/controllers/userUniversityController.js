@@ -1,10 +1,14 @@
 const fs = require('fs');
 const path = require('path');
-const UserUniversity = require('../models/UserUniversity');
-const University = require('../models/University');
-const Faculty = require('../models/Faculty');
-const Discipline = require('../models/Discipline');
-const User = require('../models/User');
+const { 
+  UserUniversity, 
+  University, 
+  Faculty, 
+  Discipline, 
+  User, 
+  Group, 
+  GroupMember 
+} = require('../models');
 const { getNextExpiryDate } = require('../util/dateUtils');
 
 // 🔹 Pobierz wnioski użytkownika
@@ -17,13 +21,26 @@ exports.getUserUniversities = async (req, res) => {
     });
 
     const now = new Date();
+
     const mapped = await Promise.all(records.map(async (r) => {
       let status = r.status;
-      if (status === 'pending' && r.trial && r.trial_end_date && now > r.trial_end_date) {
+
+      // 🔹 Sprawdź, czy trial lub approved wygasł
+      if (r.trial && r.trial_end_date && now > r.trial_end_date) {
         status = 'expired';
         r.status = 'expired';
         await r.save();
+        await GroupMember.destroy({ where: { user_id: userId } });
+        console.log(`🔴 Usunięto user_id=${userId} z grupy (trial wygasł).`);
+      } 
+      else if (!r.trial && r.expiry_date && now > r.expiry_date) {
+        status = 'expired';
+        r.status = 'expired';
+        await r.save();
+        await GroupMember.destroy({ where: { user_id: userId } });
+        console.log(`🔴 Usunięto user_id=${userId} z grupy (expiry wygasł).`);
       }
+
       return {
         id: r.id,
         university_name: r.University?.university_name || '',
@@ -40,6 +57,7 @@ exports.getUserUniversities = async (req, res) => {
         document_url: r.document_url
       };
     }));
+
     res.json(mapped);
   } catch (err) {
     console.error("❌ Błąd getUserUniversities:", err);
@@ -53,6 +71,7 @@ exports.addUserUniversity = async (req, res) => {
     const userId = req.user.userId;
     const { universityId, facultyId, disciplineId } = req.body;
 
+    // 🔸 Limit aplikacji
     const count = await UserUniversity.count({ where: { user_id: userId } });
     if (count >= 2) {
       return res.status(400).json({ error: 'Możesz mieć maksymalnie 2 aplikacje.' });
@@ -61,6 +80,7 @@ exports.addUserUniversity = async (req, res) => {
     const host = req.protocol + '://' + req.get('host');
     const documentUrl = req.file ? `${host}/uploads/documents/${req.file.filename}` : null;
 
+    // 🔸 Utwórz nowy rekord UserUniversity
     const record = await UserUniversity.create({
       user_id: userId,
       university_id: universityId,
@@ -83,6 +103,7 @@ exports.addUserUniversity = async (req, res) => {
 };
 
 // 🔹 Aktywacja triala
+// 🔹 Aktywacja triala
 exports.activateTrial = async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -98,17 +119,20 @@ exports.activateTrial = async (req, res) => {
     if (record.trial) return res.status(400).json({ error: 'Ten wniosek ma już aktywny trial.' });
 
     const start = new Date();
-    const end = new Date(start.getTime() + 14*24*60*60*1000);
+    const end = new Date(start.getTime() + 14 * 24 * 60 * 60 * 1000);
 
     record.trial = true;
     record.trial_start_date = start;
     record.trial_end_date = end;
     record.expiry_date = end;
-
     await record.save();
 
     user.has_trial = true;
     await user.save();
+
+    // 🔹 Automatyczne tworzenie lub dołączanie do grupy kierunku
+    const { addUserToDisciplineGroup } = require('../util/groupUtils');
+    await addUserToDisciplineGroup(userId, record.discipline_id, true);
 
     res.json({ message: 'Trial aktywowany pomyślnie.', trial: record });
   } catch (err) {
@@ -116,6 +140,7 @@ exports.activateTrial = async (req, res) => {
     res.status(500).json({ error: 'Błąd przy aktywowaniu triala.' });
   }
 };
+
 
 // 🔹 Aktualizacja dokumentu
 exports.updateDocument = async (req, res) => {
@@ -195,7 +220,6 @@ exports.getApplicationsByStatus = async (req, res) => {
     const now = new Date();
     const formatted = records.map(r => {
       let status = r.status;
-      // 🔹 Ustawienie 'expired' dla trial lub zwykłych wniosków
       if (r.trial && r.trial_end_date && now > r.trial_end_date) status = 'expired';
       else if (!r.trial && status === 'pending' && r.expiry_date && now > r.expiry_date) status = 'expired';
 
@@ -221,7 +245,7 @@ exports.getApplicationsByStatus = async (req, res) => {
       approved: formatted.filter(r => !r.trial && r.status==='approved'),
       rejected: formatted.filter(r => !r.trial && r.status==='rejected'),
       expired: formatted.filter(r => !r.trial && r.status==='expired'),
-      trial: formatted.filter(r => r.trial) // 🔹 tutaj wszystkie trial, niezależnie od statusu
+      trial: formatted.filter(r => r.trial)
     });
   } catch (err) {
     console.error('❌ Błąd getApplicationsByStatus:', err);
@@ -229,8 +253,7 @@ exports.getApplicationsByStatus = async (req, res) => {
   }
 };
 
-
-// 🔹 ADMIN: Zaktualizuj status aplikacji
+// 🔹 ADMIN: Zaktualizuj status aplikacji i zarządzaj grupami
 exports.updateStatus = async (req,res) => {
   try {
     const { id } = req.params;
@@ -243,8 +266,44 @@ exports.updateStatus = async (req,res) => {
 
     record.status = status;
     record.expiry_date = (status==='approved') ? getNextExpiryDate() : null;
-
     await record.save();
+
+    // 🔹 Jeśli zatwierdzony → utwórz lub dołącz do grupy
+    if (status === 'approved') {
+      let group = await Group.findOne({ where: { discipline_id: record.discipline_id } });
+
+      if (!group) {
+        const discipline = await Discipline.findByPk(record.discipline_id);
+        group = await Group.create({
+          group_name: `Grupa kierunku ${discipline?.name || 'Nieznany kierunek'}`,
+          discipline_id: record.discipline_id,
+          created_at: new Date(),
+          creator_user_id: record.user_id
+        });
+
+        await GroupMember.create({
+          group_id: group.group_id,
+          user_id: record.user_id,
+          role: 'admin'
+        });
+
+        console.log(`🟢 Utworzono nową grupę "${group.group_name}" (admin user_id=${record.user_id}).`);
+      } else {
+        const exists = await GroupMember.findOne({ 
+          where: { group_id: group.group_id, user_id: record.user_id } 
+        });
+
+        if (!exists) {
+          await GroupMember.create({
+            group_id: group.group_id,
+            user_id: record.user_id,
+            role: 'member'
+          });
+          console.log(`🟣 Dodano user_id=${record.user_id} do grupy "${group.group_name}".`);
+        }
+      }
+    }
+
     res.json({ message: `Status aplikacji został zmieniony na "${status}".` });
   } catch (err) {
     console.error("❌ Błąd updateStatus:", err);
@@ -252,7 +311,7 @@ exports.updateStatus = async (req,res) => {
   }
 };
 
-// 🔹 ADMIN: Pobierz wnioski z bazy danych
+// 🔹 ADMIN: Pobierz wszystkie wnioski
 exports.getAllApplications = async (req, res) => {
   try {
     const records = await UserUniversity.findAll();
@@ -263,7 +322,7 @@ exports.getAllApplications = async (req, res) => {
   }
 };
 
-// 🔹 ADMIN: Pobierz wnioski z bazy danych
+// 🔹 ADMIN: Pobierz pojedynczy wniosek
 exports.getApplication = async (req, res) => {
   try {
     const { id } = req.params;
