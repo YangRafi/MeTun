@@ -47,14 +47,23 @@
       </transition>
 
       <!-- Lista grup -->
-      <div v-if="groups.length" class="grid grid-cols-1 gap-4">
-        <div v-for="g in groups" :key="g.group_id" @click="openGroupChat(g)" class="p-4 bg-white rounded-2xl shadow hover:shadow-lg cursor-pointer border border-blue-100 transition-all">
-          <h3 class="text-lg font-semibold text-blue-800">{{ g.group_name }}</h3>
-          <p class="text-sm text-gray-500">Założyciel: {{ g.creator?.name }} {{ g.creator?.surname }}</p>
-        </div>
+    <div v-if="groups.length" class="grid grid-cols-1 gap-4">
+      <div v-for="g in groups" :key="g.group_id" class="p-4 bg-white rounded-2xl shadow hover:shadow-lg border border-blue-100 transition-all">
+        <h3 class="text-lg font-semibold text-blue-800">{{ g.group_name }}</h3>
+        
+        <!-- Przycisk aplikowania -->
+        <button 
+          @click="applyToGroup(g)" 
+          class="mt-2 bg-blue-600 text-white py-1 px-3 rounded-lg hover:bg-blue-700"
+        >
+          Dołącz / Aplikuj
+        </button>
       </div>
+    </div>
 
-      <p v-else-if="searched" class="text-center mt-6 text-gray-500">Brak grup dla wybranego kierunku.</p>
+    <p v-else-if="searched" class="text-center mt-6 text-gray-500">
+      Brak grup dla wybranego kierunku.
+    </p>
     </div>
 
     <!-- ChatBox -->
@@ -105,12 +114,42 @@ async function selectUniversity(u){ filters.universityId=u.university_id; univer
 async function fetchFaculties(){ if(!filters.universityId) return; const res=await fetch(`http://localhost:3000/api/faculties?universityId=${filters.universityId}`,{credentials:"include"}); faculties.value=await res.json(); }
 async function onFacultyChange(){ const res=await fetch(`http://localhost:3000/api/disciplines?facultyId=${filters.facultyId}`,{credentials:"include"}); disciplines.value=await res.json(); }
 
-async function applyFilters(){
-  if(!filters.disciplineId) return;
-  const res = await fetch(`http://localhost:3000/api/groups?disciplineId=${filters.disciplineId}`, { credentials:"include" });
+async function applyFilters() {
+  const params = new URLSearchParams();
+
+  if (filters.universityId) params.append("university_id", filters.universityId);
+  if (filters.facultyId) params.append("faculty_id", filters.facultyId);
+  if (filters.disciplineId) params.append("discipline_id", filters.disciplineId);
+
+  const res = await fetch(`http://localhost:3000/api/groups?${params.toString()}`, {
+    credentials: "include"
+  });
   groups.value = await res.json();
   searched.value = true;
 }
+
+async function applyToGroup(group) {
+  try {
+    const res = await fetch(`http://localhost:3000/api/groups/request-join`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ groupId: group.group_id })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert("Wysłano prośbę o dołączenie do grupy!");
+    } else {
+      alert(data.message || data.error || "Nie udało się aplikować do grupy.");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Błąd podczas aplikowania do grupy.");
+  }
+}
+
+
 
 function openGroupChat(group){
   activeChat.value = { id: group.group_id, name: group.group_name, type: "group" };

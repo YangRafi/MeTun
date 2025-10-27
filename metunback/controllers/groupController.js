@@ -1,9 +1,34 @@
-const Group = require('../models/Group');
+const { Op, Sequelize } = require("sequelize");
+const { Group, Discipline, Faculty } = require("../models");
 
-// GET all groups
 exports.getAllGroups = async (req, res) => {
   try {
-    const groups = await Group.findAll();
+    const { university_id, faculty_id, discipline_id } = req.query;
+
+    const where = {};
+    if (discipline_id) {
+      where.discipline_id = discipline_id;
+    } else if (faculty_id) {
+      // wszystkie grupy w dyscyplinach danego wydziału
+      const disciplines = await Discipline.findAll({ where: { faculty_id }, attributes: ['discipline_id'] });
+      where.discipline_id = { [Op.in]: disciplines.map(d => d.discipline_id) };
+    } else if (university_id) {
+      // wszystkie grupy w dyscyplinach wydziałów danej uczelni
+      const faculties = await Faculty.findAll({ where: { university_id }, attributes: ['faculty_id'] });
+      const disciplines = await Discipline.findAll({
+        where: { faculty_id: { [Op.in]: faculties.map(f => f.faculty_id) } },
+        attributes: ['discipline_id']
+      });
+      where.discipline_id = { [Op.in]: disciplines.map(d => d.discipline_id) };
+    }
+
+    const groups = await Group.findAll({
+      where,
+      include: [
+        { model: Discipline, as: 'discipline', attributes: ['name'] },
+      ]
+    });
+
     res.json(groups);
   } catch (err) {
     console.error("❌ Error fetching groups:", err);

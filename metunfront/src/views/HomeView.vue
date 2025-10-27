@@ -67,7 +67,7 @@
 import { ref } from 'vue'
 import AppHeader from '../components/Layout/AppHeader.vue'
 import AppFooter from '../components/Layout/AppFooter.vue'
-import AuthModal from '../components/Layout/AuthModal.vue'
+import AuthModal from '../components/Modal/AuthModal.vue'
 
 const showSignup = ref(false)
 const showLogin = ref(false)

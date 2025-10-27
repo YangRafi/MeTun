@@ -18,6 +18,7 @@ const matchRoutes = require('./routes/matchRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const adminRoutes = require('./routes/admin');
 const userUniversityRoutes = require('./routes/userUniversityRoutes');
+const groupRequestRoutes = require('./routes/groupRequestRoutes');
 
 // Sockety
 const { initSocket } = require('./util/socket');
@@ -47,6 +48,7 @@ app.use('/api/matches', matchRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/userUniversity', userUniversityRoutes);
+app.use('/api/groupRequests', groupRequestRoutes);
 
 
 // Obsługa 404
