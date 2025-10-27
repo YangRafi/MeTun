@@ -3,7 +3,10 @@
     <div class="flex items-center justify-between p-3 bg-gradient-to-r from-blue-500 via-cyan-400 to-teal-400 text-white">
       <div class="flex items-center gap-2">
         <img v-if="chat.profile_picture" :src="chat.profile_picture" class="w-10 h-10 rounded-full border-2 border-white"/>
-        <h3 class="font-semibold">{{ chat.name }}</h3>
+        <div>
+          <h3 class="font-semibold">{{ chat.name }}</h3>
+          <p v-if="chat.type === 'group'" class="text-xs opacity-80">Czat grupowy</p>
+        </div>
       </div>
       <button @click="closeChat" class="font-bold text-xl hover:text-gray-200">×</button>
     </div>
@@ -14,7 +17,11 @@
           {{ m.content }}
         </div>
       </div>
-      <div v-if="typing" class="ml-2">
+
+      <!-- tutaj pokazujemy kto pisze -->
+      <div v-if="typingUser" class="ml-2 text-sm text-gray-600 flex items-center gap-2">
+        <span class="font-medium">{{ typingUser }}</span>
+        <span class="text-xs italic">pisze...</span>
         <span class="typing-indicator"><span></span><span></span><span></span></span>
       </div>
     </div>
@@ -35,16 +42,26 @@ const emit = defineEmits(["close"]);
 const messages = ref([]);
 const newMessage = ref("");
 const messagesContainer = ref(null);
-const typing = ref(false);
+// typingUser: string (imie) lub falsy
+const typingUser = ref(false);
+
+// cache profili lokalnie (w komponencie) — można przenieść do shared util
+const profileCache = new Map();
+let typingTimer = null;
 
 onMounted(() => {
   socket.emit("register", props.userId);
   socket.on("receive_message", handleReceive);
   socket.on("message_sent", handleMessageSent);
-  socket.on("user_typing", ({ chatId, userId: senderId }) => {
-    if(chatId === props.chat?.id && senderId !== props.userId){
-      typing.value = true;
-      setTimeout(()=>typing.value=false,3000);
+  socket.on("user_typing", async ({ chatId, userId }) => {
+    // jeśli event dotyczy aktualnie otwartego chatu
+    if (chatId === props.chat?.id && userId !== props.userId) {
+      const name = await getUserName(userId);
+      typingUser.value = name || 'Ktoś';
+
+      // reset timer
+      if (typingTimer) clearTimeout(typingTimer);
+      typingTimer = setTimeout(()=> typingUser.value = false, 3000);
     }
   });
 });
@@ -53,10 +70,13 @@ onBeforeUnmount(() => {
   socket.off("receive_message", handleReceive);
   socket.off("message_sent", handleMessageSent);
   socket.off("user_typing");
+  if (typingTimer) clearTimeout(typingTimer);
 });
 
 const handleReceive = (msg) => {
-  if(msg.matchId===props.chat?.id && !messages.value.some(m=>m.message_id===msg.message_id)){
+  const isMatch = msg.matchId === props.chat?.id;
+  const isGroup = msg.groupId === props.chat?.id;
+  if((isMatch || isGroup) && !messages.value.some(m=>m.message_id===msg.message_id)){
     messages.value.push(msg);
     scrollToBottom();
     props.chat.unread = true;
@@ -64,7 +84,9 @@ const handleReceive = (msg) => {
 };
 
 const handleMessageSent = (msg) => {
-  if(msg.matchId===props.chat?.id && !messages.value.some(m=>m.message_id===msg.message_id)){
+  const isMatch = msg.matchId === props.chat?.id;
+  const isGroup = msg.groupId === props.chat?.id;
+  if((isMatch || isGroup) && !messages.value.some(m=>m.message_id===msg.message_id)){
     messages.value.push(msg);
     scrollToBottom();
   }
@@ -80,28 +102,66 @@ watch(() => props.chat, async newChat => {
 
 async function loadMessages(chatType, chatId){
   try{
-    const res = await fetch(`http://localhost:3000/api/chats/${chatType}/${chatId}`, { credentials:"include" });
+    // 🔹 dynamiczny endpoint
+    const endpoint = chatType === "group" 
+      ? `http://localhost:3000/api/chats/group/${chatId}`
+      : `http://localhost:3000/api/chats/private/${chatId}`;
+
+    const res = await fetch(endpoint, { credentials:"include" });
     if(!res.ok) throw new Error("Błąd pobierania wiadomości");
     messages.value = (await res.json()).sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
     await nextTick();
     scrollToBottom();
-  } catch(err){ console.error(err);}
+  } catch(err){ console.error(err); }
 }
 
 function sendMessage(){
   if(!newMessage.value.trim()) return;
-  socket.emit("send_message", { matchId: props.chat.id, senderId: props.userId, receiverId: props.chat.user_id, content: newMessage.value, timestamp: new Date().toISOString() });
+
+  const payload = {
+    senderId: props.userId,
+    content: newMessage.value,
+    timestamp: new Date().toISOString(),
+  };
+
+  // 🔹 jeśli czat prywatny
+  if(props.chat.type === "private"){
+    payload.matchId = props.chat.id;
+    payload.receiverId = props.chat.user_id;
+  }
+
+  // 🔹 jeśli czat grupowy
+  if(props.chat.type === "group"){
+    payload.groupId = props.chat.id;
+  }
+
+  socket.emit("send_message", payload);
   newMessage.value="";
 }
 
 function notifyTyping(){
   if(!props.chat) return;
-  socket.emit("user_typing", { chatId: props.chat.id, userId: props.userId, receiverId: props.chat.user_id });
+  console.log("📨 Wysyłam user_typing", { chatId: props.chat.id, userId: props.userId });
+  socket.emit("user_typing", { chatId: props.chat.id, userId: props.userId, receiverId: props.chat.user_id, groupId: props.chat.type === "group" ? props.chat.id : null });
 }
 
 function scrollToBottom(){ nextTick(()=>{ if(messagesContainer.value) messagesContainer.value.scrollTop=messagesContainer.value.scrollHeight; }); }
 function closeChat(){ emit("close"); }
 function formatTimestamp(ts){ if(!ts) return ''; return new Date(ts).toLocaleString(); }
+
+// helper: pobierz imie z cache lub z API
+async function getUserName(userId){
+  if(!userId) return null;
+  if(profileCache.has(userId)) return profileCache.get(userId);
+  try {
+    const res = await fetch(`http://localhost:3000/api/profiles/${userId}`, { credentials: "include" });
+    if(!res.ok) return null;
+    const data = await res.json();
+    const name = (data.name ? data.name : (data.username || null));
+    profileCache.set(userId, name);
+    return name;
+  } catch(e){ console.error("Błąd pobrania profilu:", e); return null; }
+}
 </script>
 
 <style scoped>

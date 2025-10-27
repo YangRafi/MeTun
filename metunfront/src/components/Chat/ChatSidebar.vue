@@ -16,7 +16,11 @@
             <div class="flex-1 truncate relative">
               <p class="font-semibold text-gray-800 truncate">{{ chat.name }}</p>
               <p class="text-sm truncate" :class="chat.unread ? 'font-bold text-gray-900' : 'text-gray-500'" :title="formatTimestamp(chat.lastMessageTimestamp)">
-                <span v-if="typingStatus[chat.id]" class="typing-indicator"><span></span><span></span><span></span></span>
+                <!-- jeśli ktoś pisze, pokaż imię + animacja kropki -->
+                <span v-if="typingStatus[chat.id]" class="flex items-center gap-2">
+                  <span class="text-xs italic">{{ typingStatus[chat.id] }} pisze</span>
+                  <span class="typing-indicator"><span></span><span></span><span></span></span>
+                </span>
                 <span v-else>{{ chat.lastMessage ? chat.lastMessage.slice(0,40)+(chat.lastMessage.length>40?'…':'') : 'Brak wiadomości' }}</span>
               </p>
               <span v-if="chat.unread" class="absolute top-0 right-0 w-3 h-3 bg-blue-500 rounded-full" title="Nowa wiadomość"></span>
@@ -42,7 +46,14 @@ const props = defineProps({
 const isOpen = ref(false);
 const chats = ref([]);
 const loading = ref(false);
+
+// typingStatus: { [chatId]: "Kasia" } lub undefined
 const typingStatus = ref({});
+// per-chat timers to clear typing state reliably
+const typingTimers = new Map();
+
+// cache profili: { userId: name }
+const profileCache = new Map();
 
 function toggleSidebar() {
   isOpen.value = !isOpen.value;
@@ -68,40 +79,100 @@ async function fetchChats() {
       fetchedChats = (privateRes.ok ? await privateRes.json():[]).concat(groupRes.ok ? await groupRes.json():[]);
     }
 
-    chats.value = fetchedChats.sort((a,b)=>new Date(b.lastMessageTimestamp||0)-new Date(a.lastMessageTimestamp||0));
+    // normalizuj: upewnij się, że każdy chat ma pole `id` i `name` (jeśli Twoje API używa group_id itp., zmapuj tutaj)
+    chats.value = fetchedChats.map(c => {
+      // jeśli nie ma id, spróbuj z group_id / match_id
+      const normalized = { ...c };
+      if(!normalized.id){
+        if(normalized.group_id) normalized.id = normalized.group_id;
+        else if(normalized.match_id) normalized.id = normalized.match_id;
+      }
+      // upewnij się, że name istnieje (API powinno to zwracać)
+      return normalized;
+    }).sort((a,b)=>new Date(b.lastMessageTimestamp||0)-new Date(a.lastMessageTimestamp||0));
   } catch(e){ console.error(e); } finally { loading.value=false; }
+}
+
+async function getUserName(userId){
+  if(!userId) return null;
+  if(profileCache.has(userId)) return profileCache.get(userId);
+  try {
+    const res = await fetch(`http://localhost:3000/api/profiles/${userId}`, { credentials: "include" });
+    if(!res.ok) return null;
+    const data = await res.json();
+    const name = (data.name ? data.name : (data.username || null));
+    profileCache.set(userId, name);
+    return name;
+  } catch (e) {
+    console.error("Błąd pobierania profilu:", e);
+    return null;
+  }
 }
 
 onMounted(()=>{
   socket.emit("register", props.userId);
+
   socket.on("match_created", (data) => {
     const exists = chats.value.find(c => c.id === data.matchId);
     if(!exists){
       chats.value.unshift({ id: data.matchId, name: data.userB === props.userId ? data.userAName : data.userBName, profile_picture: data.userB === props.userId ? data.userAPicture : data.userBPicture, lastMessage: null, lastMessageTimestamp: new Date(), unread: true });
     }
   });
+
+  // receive_message: obsługuje matchId i groupId
   socket.on("receive_message", msg=>{
-    const index = chats.value.findIndex(c=>c.id===msg.matchId);
+    const chatId = msg.matchId ?? msg.groupId;
+    if (!chatId) return;
+    const index = chats.value.findIndex(c=>c.id===chatId);
     if(index>-1){
       const [chat]=chats.value.splice(index,1);
       chat.lastMessage=msg.content;
       chat.lastMessageTimestamp=msg.timestamp;
       chat.unread=true;
       chats.value.unshift(chat);
+    } else {
+      // opcjonalnie można dopisać nowy chat jeśli go nie ma
+      // chats.value.unshift({ id: chatId, name: msg.senderName || 'Nowy czat', profile_picture: null, lastMessage: msg.content, lastMessageTimestamp: msg.timestamp, unread: true });
     }
   });
-  socket.on("user_typing", ({ chatId, userId })=>{
-    if(userId!==props.userId){
-      typingStatus.value[chatId]=true;
-      setTimeout(()=>typingStatus.value[chatId]=false,3000);
+
+  // user_typing: { chatId, userId } — ustaw imię dla danego chatId
+  socket.on("user_typing", async ({ chatId, userId })=>{
+    if(!chatId || !userId) return;
+    if(userId === props.userId) return; // nie pokazuj gdy to ja
+
+    // spróbuj znaleźć imię w istniejących chatach (dla prywatnych chatów często mamy name i user_id)
+    const chat = chats.value.find(c => c.id === chatId);
+    let name = null;
+    if(chat){
+      // jeśli to prywatny chat i mamy pola user_id/name
+      if(chat.user_id && chat.user_id === userId && chat.name) name = chat.name;
+      // jeśli chat ma members lub last typer name do dyspozycji, możesz spróbować odczytać stąd
+      if(!name && chat.lastTypistName) name = chat.lastTypistName;
     }
+    if(!name){
+      // pobierz profil i zapamiętaj
+      name = await getUserName(userId) || 'Ktoś';
+    }
+
+    // ustaw typingStatus i timer
+    typingStatus.value[chatId] = name;
+
+    // wyczyść poprzedni timer
+    if(typingTimers.has(chatId)) clearTimeout(typingTimers.get(chatId));
+
+    const t = setTimeout(()=>{
+      typingStatus.value[chatId] = false;
+      // można też delete typingStatus.value[chatId]
+      typingTimers.delete(chatId);
+    }, 3000);
+    typingTimers.set(chatId, t);
   });
 });
 
 function openChat(chat){ chat.unread=false; emit("open-chat", chat); closeSidebar(); }
 function formatTimestamp(ts){ if(!ts) return ''; return new Date(ts).toLocaleString(); }
 </script>
-
 
 <style scoped>
 .scrollbar-thin { scrollbar-width: thin; }
