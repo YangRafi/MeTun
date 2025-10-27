@@ -15,8 +15,13 @@ const { getNextExpiryDate } = require('../util/dateUtils');
 exports.getUserUniversities = async (req, res) => {
   try {
     const userId = req.user.userId;
+    const statusFilter = req.query.status; // np. ?status=approved
+
+    const whereClause = { user_id: userId };
+    if (statusFilter) whereClause.status = statusFilter;
+
     const records = await UserUniversity.findAll({
-      where: { user_id: userId },
+      where: whereClause,
       include: [University, Faculty, Discipline],
     });
 
@@ -25,20 +30,17 @@ exports.getUserUniversities = async (req, res) => {
     const mapped = await Promise.all(records.map(async (r) => {
       let status = r.status;
 
-      // 🔹 Sprawdź, czy trial lub approved wygasł
       if (r.trial && r.trial_end_date && now > r.trial_end_date) {
         status = 'expired';
         r.status = 'expired';
         await r.save();
         await GroupMember.destroy({ where: { user_id: userId } });
-        console.log(`🔴 Usunięto user_id=${userId} z grupy (trial wygasł).`);
       } 
       else if (!r.trial && r.expiry_date && now > r.expiry_date) {
         status = 'expired';
         r.status = 'expired';
         await r.save();
         await GroupMember.destroy({ where: { user_id: userId } });
-        console.log(`🔴 Usunięto user_id=${userId} z grupy (expiry wygasł).`);
       }
 
       return {
@@ -64,6 +66,7 @@ exports.getUserUniversities = async (req, res) => {
     res.status(500).json({ error: 'Błąd pobierania aplikacji.' });
   }
 };
+
 
 // 🔹 Dodaj wniosek
 exports.addUserUniversity = async (req, res) => {

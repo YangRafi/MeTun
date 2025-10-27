@@ -1,20 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const groupController = require('../controllers/groupController');
+const { authenticate } = require('../middleware/auth');
 
-// GET all
-router.get('/', groupController.getAllGroups);
+// GET all groups - public
+router.get('/', authenticate, groupController.getAllGroups);
 
-// GET by ID
-router.get('/:id', groupController.getGroupById);
+// GET group by ID - public
+router.get('/:id', authenticate, groupController.getGroupById);
 
-// CREATE
-router.post('/', groupController.createGroup);
+// CREATE group
+router.post('/', authenticate, groupController.createGroup);
 
-// UPDATE
-router.put('/:id', groupController.updateGroup);
+// UPDATE group
+router.put('/:id', authenticate, groupController.updateGroup);
 
-// DELETE
-router.delete('/:id', groupController.deleteGroup);
+// DELETE group
+router.delete('/:id', authenticate, groupController.deleteGroup);
 
 module.exports = router;
