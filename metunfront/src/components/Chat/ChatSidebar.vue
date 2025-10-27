@@ -33,7 +33,11 @@ import { ref, onMounted } from "vue";
 import socket from "../../socket.js";
 
 const emit = defineEmits(["open-chat"]);
-const props = defineProps({ onlyPrivate: { type: Boolean, default: false }, userId: Number });
+const props = defineProps({
+  onlyPrivate: { type: Boolean, default: false },
+  onlyGroups: { type: Boolean, default: false },
+  userId: Number
+});
 
 const isOpen = ref(false);
 const chats = ref([]);
@@ -49,16 +53,22 @@ function closeSidebar() { isOpen.value=false; }
 async function fetchChats() {
   loading.value = true;
   try {
-    let privateChats = [];
+    let fetchedChats = [];
+
     if(props.onlyPrivate){
       const res = await fetch("http://localhost:3000/api/chats/private",{ credentials:"include" });
-      privateChats = res.ok ? await res.json() : [];
+      fetchedChats = res.ok ? await res.json() : [];
+    } else if(props.onlyGroups){
+      const res = await fetch("http://localhost:3000/api/chats/group",{ credentials:"include" });
+      fetchedChats = res.ok ? await res.json() : [];
     } else {
+      // wszystkie czaty
       const privateRes = await fetch("http://localhost:3000/api/chats/private",{ credentials:"include" });
       const groupRes = await fetch("http://localhost:3000/api/chats/group",{ credentials:"include" });
-      privateChats = (privateRes.ok ? await privateRes.json():[]).concat(groupRes.ok ? await groupRes.json():[]);
+      fetchedChats = (privateRes.ok ? await privateRes.json():[]).concat(groupRes.ok ? await groupRes.json():[]);
     }
-    chats.value = privateChats.sort((a,b)=>new Date(b.lastMessageTimestamp||0)-new Date(a.lastMessageTimestamp||0));
+
+    chats.value = fetchedChats.sort((a,b)=>new Date(b.lastMessageTimestamp||0)-new Date(a.lastMessageTimestamp||0));
   } catch(e){ console.error(e); } finally { loading.value=false; }
 }
 
@@ -91,6 +101,7 @@ onMounted(()=>{
 function openChat(chat){ chat.unread=false; emit("open-chat", chat); closeSidebar(); }
 function formatTimestamp(ts){ if(!ts) return ''; return new Date(ts).toLocaleString(); }
 </script>
+
 
 <style scoped>
 .scrollbar-thin { scrollbar-width: thin; }

@@ -49,9 +49,10 @@ exports.getGroupChats = async (req,res) => {
     const groups = await Group.findAll({
       include: [{
         model: User,
-        as: 'members',
+        as: 'members',        // <-- tutaj alias zdefiniowany w relacjach
         where: { user_id: userId },
-        attributes: []
+        attributes: ['user_id', 'name', 'surname', 'email'],
+        through: { attributes: [] } // nie pobieramy kolumn z GroupMember
       }]
     });
 
@@ -64,8 +65,8 @@ exports.getGroupChats = async (req,res) => {
       return {
         id: g.group_id,
         type: 'group',
-        name: g.name,
-        profile_picture: g.profile_picture || null, // jeśli chcesz dodać ikonę grupy
+        name: g.group_name,
+        profile_picture: g.profile_picture || null,
         lastMessage: lastMessage?.content || '',
         lastMessageTimestamp: lastMessage?.timestamp || null
       };
@@ -116,7 +117,16 @@ exports.getMessages = async (req, res) => {
       });
 
     } else if (chatType === 'group') {
-      const membership = await GroupMember.findOne({ where: { group_id: chatId, user_id: userId } });
+      const membership = await Group.findOne({
+        where: { group_id: chatId },
+        include: [{
+          model: User,
+          as: 'members',
+          where: { user_id: userId },
+          attributes: ['user_id'],
+          through: { attributes: [] }
+        }]
+      });
       if (!membership) return res.status(403).json({ error: "Access denied" });
 
       messages = await Message.findAll({

@@ -1,7 +1,8 @@
 <template>
   <div class="relative min-h-screen bg-blue-50">
     <UserHeader :profile="profile" />
-    <ChatSidebar v-model:isOpen="isSidebarOpen" @open-chat="openChat" />
+    <ChatSidebar v-model:isOpen="isSidebarOpen" @open-chat="openChat" :onlyGroups="true" />
+
 
     <div class="max-w-3xl mx-auto p-6 relative" v-if="!activeChat">
       <div class="flex justify-between items-center mb-6">
