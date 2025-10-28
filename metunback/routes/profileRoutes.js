@@ -21,6 +21,8 @@ router.get('/check', authenticate, profileController.checkUserProfile);
 
 router.get('/:id', profileController.getProfileById);
 
+router.get('/user/:user_id', authenticate, profileController.getProfileByUserId);
+
 router.post('/', authenticate, upload.single('profile_picture'), profileController.createProfile);
 
 router.put('/:id', authenticate, upload.single('profile_picture'), profileController.updateProfile);

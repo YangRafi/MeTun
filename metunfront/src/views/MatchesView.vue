@@ -5,7 +5,9 @@
       class="absolute inset-0 bg-cover bg-center z-0"
       :style="{ backgroundImage: `url(${background})` }"
     >
-      <div class="absolute inset-0 bg-black/30"></div>
+      <div class="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+
+      
     </div>
 
     <!-- 🔹 Zawartość -->

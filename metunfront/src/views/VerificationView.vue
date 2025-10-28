@@ -1,13 +1,19 @@
 <template>
-  <div class="relative min-h-screen bg-blue-50">
+  <div
+    class="relative min-h-screen bg-cover bg-center bg-no-repeat flex flex-col items-center"
+    :style="{ backgroundImage: `url(${background})` }"
+  >
+  <div class="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
     <UserHeader :profile="profile" />
 
-    <div class="max-w-3xl mx-auto p-6">
-      <h1 class="text-3xl font-bold text-center mb-8 text-blue-800">Weryfikacja studenta</h1>
+    <div class="w-full max-w-3xl mx-auto p-6 bg-white/80 backdrop-blur-md rounded-3xl shadow-xl mt-10 border border-blue-200">
+      <h1 class="text-3xl font-bold text-center mb-8 text-blue-800 drop-shadow-lg">
+        Weryfikacja studenta
+      </h1>
 
       <!-- 🔹 Formularz weryfikacji -->
-      <div class="bg-white shadow-xl rounded-3xl p-6 mb-8 border border-blue-200">
-        <h2 class="text-xl font-semibold mb-4 text-gray-800">Złóż wniosek o weryfikację</h2>
+      <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 mb-8 shadow-md border border-blue-100">
+        <h2 class="text-xl font-semibold mb-4 text-blue-800">Złóż wniosek o weryfikację</h2>
 
         <!-- 🔹 Uczelnia -->
         <div class="mb-4 relative">
@@ -86,8 +92,8 @@
       </div>
 
       <!-- 🔹 Lista wniosków -->
-      <div>
-        <h2 class="text-xl font-semibold mb-4 text-gray-800">Twoje wnioski</h2>
+      <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-md border border-blue-100">
+        <h2 class="text-xl font-semibold mb-4 text-blue-800">Twoje wnioski</h2>
 
         <div v-if="applications.length" class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div
@@ -110,7 +116,6 @@
               Złożono: {{ a.join_date ? new Date(a.join_date).toLocaleDateString() : '-' }}
             </p>
 
-            <!-- 🔹 Trial z licznikiem dni -->
             <div v-if="a.trial" class="mt-2 text-sm text-green-700">
               Trial: {{ a.trial_start_date ? new Date(a.trial_start_date).toLocaleDateString() : '-' }}
               – {{ a.trial_end_date ? new Date(a.trial_end_date).toLocaleDateString() : '-' }}
@@ -119,7 +124,6 @@
               </span>
             </div>
 
-            <!-- 🔹 Dokument -->
             <div class="mt-3">
               <template v-if="a.document_url">
                 <a :href="a.document_url" target="_blank" class="text-blue-600 hover:underline text-sm">📄 Zobacz dokument</a>
@@ -145,7 +149,6 @@
               </template>
             </div>
 
-            <!-- 🔹 Aktywacja triala -->
             <div v-if="a.status === 'pending' && !a.trial && !profile.hasTrial" class="mt-3">
               <button
                 @click="activateTrialForApplication(a.id)"
@@ -170,26 +173,27 @@
   </div>
 </template>
 
+
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted } from "vue";
 import UserHeader from "../components/Layout/UserHeader.vue";
+import background from '@/assets/background.jpg'
 
 const profile = reactive({});
-const universityQuery = ref('');
+const universityQuery = ref("");
 const universitySuggestions = ref([]);
 const selectedUniversity = ref(null);
 const faculties = ref([]);
-const selectedFaculty = ref('');
+const selectedFaculty = ref("");
 const disciplines = ref([]);
-const selectedDiscipline = ref('');
+const selectedDiscipline = ref("");
 const file = ref(null);
 const applications = ref([]);
 
-// 🔹 Fetch profilu użytkownika
+// Fetch user info
 async function fetchUser() {
-  const res = await fetch('http://localhost:3000/api/auth/me', { credentials: 'include' });
-  if (!res.ok) return;
-  Object.assign(profile, await res.json());
+  const res = await fetch("http://localhost:3000/api/auth/me", { credentials: "include" });
+  if (res.ok) Object.assign(profile, await res.json());
 }
 onMounted(fetchUser);
 
@@ -198,7 +202,10 @@ async function fetchUniversities() {
     universitySuggestions.value = [];
     return;
   }
-  const res = await fetch(`http://localhost:3000/api/universities?query=${encodeURIComponent(universityQuery.value)}`, { credentials: 'include' });
+  const res = await fetch(
+    `http://localhost:3000/api/universities?query=${encodeURIComponent(universityQuery.value)}`,
+    { credentials: "include" }
+  );
   universitySuggestions.value = (await res.json()).slice(0, 10);
 }
 
@@ -210,16 +217,22 @@ function selectUniversity(u) {
 }
 
 async function fetchFaculties(universityId) {
-  const res = await fetch(`http://localhost:3000/api/faculties?universityId=${universityId}`, { credentials: 'include' });
+  const res = await fetch(
+    `http://localhost:3000/api/faculties?universityId=${universityId}`,
+    { credentials: "include" }
+  );
   faculties.value = await res.json();
   disciplines.value = [];
-  selectedFaculty.value = '';
-  selectedDiscipline.value = '';
+  selectedFaculty.value = "";
+  selectedDiscipline.value = "";
 }
 
 async function fetchDisciplines() {
   if (!selectedFaculty.value) return;
-  const res = await fetch(`http://localhost:3000/api/disciplines?facultyId=${selectedFaculty.value}`, { credentials: 'include' });
+  const res = await fetch(
+    `http://localhost:3000/api/disciplines?facultyId=${selectedFaculty.value}`,
+    { credentials: "include" }
+  );
   disciplines.value = await res.json();
 }
 
@@ -229,65 +242,64 @@ function onFileChange(e) {
 
 async function submitVerification() {
   if (!selectedUniversity.value || !selectedFaculty.value || !selectedDiscipline.value) {
-    alert('Uzupełnij wszystkie pola przed wysłaniem wniosku.');
+    alert("Uzupełnij wszystkie pola przed wysłaniem wniosku.");
     return;
   }
 
   if (applications.value.length >= 2) {
-    alert('Nie możesz mieć więcej niż 2 wnioski.');
+    alert("Nie możesz mieć więcej niż 2 wnioski.");
     return;
   }
 
   const exists = applications.value.some(
-    a => a.university_name === selectedUniversity.value.university_name &&
-         a.faculty_id === selectedFaculty.value &&
-         a.discipline_id === selectedDiscipline.value
+    (a) =>
+      a.university_name === selectedUniversity.value.university_name &&
+      a.faculty_id === selectedFaculty.value &&
+      a.discipline_id === selectedDiscipline.value
   );
   if (exists) {
-    alert('Masz już złożony wniosek lub jesteś studentem tej uczelni/kierunku.');
+    alert("Masz już złożony wniosek lub jesteś studentem tej uczelni/kierunku.");
     return;
   }
 
   const formData = new FormData();
-  formData.append('universityId', selectedUniversity.value.university_id);
-  formData.append('facultyId', selectedFaculty.value);
-  formData.append('disciplineId', selectedDiscipline.value);
-  if (file.value) formData.append('document', file.value);
+  formData.append("universityId", selectedUniversity.value.university_id);
+  formData.append("facultyId", selectedFaculty.value);
+  formData.append("disciplineId", selectedDiscipline.value);
+  if (file.value) formData.append("document", file.value);
 
-  const res = await fetch('http://localhost:3000/api/userUniversity', { method: 'POST', credentials: 'include', body: formData });
+  const res = await fetch("http://localhost:3000/api/userUniversity", {
+    method: "POST",
+    credentials: "include",
+    body: formData,
+  });
 
   if (res.ok) {
-    alert('Wniosek wysłany!');
+    alert("Wniosek wysłany!");
     fetchApplications();
     file.value = null;
   } else {
     const err = await res.json();
-    alert('Błąd podczas wysyłania wniosku: ' + (err.error || res.statusText));
+    alert("Błąd podczas wysyłania wniosku: " + (err.error || res.statusText));
   }
 }
 
 async function fetchApplications() {
-  try {
-    const res = await fetch('http://localhost:3000/api/userUniversity/my', { credentials: 'include' });
-    if (res.ok) {
-      const data = await res.json();
-
-      // oznacz trial
-      applications.value = data.map(a => {
-        if (a.trial) {
-          return { ...a, status: 'trial' };
-        }
-        return a;
-      });
-    }
-  } catch (err) {
-    console.error('Błąd pobierania aplikacji:', err);
+  const res = await fetch("http://localhost:3000/api/userUniversity/my", {
+    credentials: "include",
+  });
+  if (res.ok) {
+    const data = await res.json();
+    applications.value = data.map((a) => (a.trial ? { ...a, status: "trial" } : a));
   }
 }
 
 async function deleteApplication(id) {
-  if (!confirm('Na pewno usunąć wniosek?')) return;
-  await fetch(`http://localhost:3000/api/userUniversity/${id}`, { method: 'DELETE', credentials: 'include' });
+  if (!confirm("Na pewno usunąć wniosek?")) return;
+  await fetch(`http://localhost:3000/api/userUniversity/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
   fetchApplications();
 }
 
@@ -296,46 +308,53 @@ async function uploadDocument(applicationId, event) {
   if (!fileToUpload) return;
 
   const formData = new FormData();
-  formData.append('document', fileToUpload);
+  formData.append("document", fileToUpload);
 
-  try {
-    const res = await fetch(`http://localhost:3000/api/userUniversity/${applicationId}`, { method: 'PUT', credentials: 'include', body: formData });
-    if (res.ok) {
-      alert('Dokument zaktualizowany!');
-      fetchApplications();
-    } else {
-      const err = await res.json();
-      alert('Błąd podczas aktualizacji dokumentu: ' + (err.error || res.statusText));
-    }
-  } catch (err) {
-    console.error('Błąd uploadu dokumentu:', err);
+  const res = await fetch(`http://localhost:3000/api/userUniversity/${applicationId}`, {
+    method: "PUT",
+    credentials: "include",
+    body: formData,
+  });
+
+  if (res.ok) {
+    alert("Dokument zaktualizowany!");
+    fetchApplications();
+  } else {
+    const err = await res.json();
+    alert("Błąd podczas aktualizacji dokumentu: " + (err.error || res.statusText));
   }
 }
 
-// 🔹 Aktywacja triala na konkretnym wniosku
 async function activateTrialForApplication(applicationId) {
-  if (!confirm('Aktywować darmowy trial (14 dni) dla tego wniosku?')) return;
-  try {
-    const res = await fetch(`http://localhost:3000/api/userUniversity/${applicationId}/activateTrial`, { method: 'POST', credentials: 'include' });
-    const data = await res.json();
-    if (res.ok) {
-      alert('Trial aktywowany! 🎉');
-      fetchApplications();
-      fetchUser();
-    } else {
-      alert(data.error || 'Nie udało się aktywować triala.');
-    }
-  } catch (err) {
-    console.error('Błąd przy aktywowaniu triala:', err);
+  if (!confirm("Aktywować darmowy trial (14 dni) dla tego wniosku?")) return;
+  const res = await fetch(
+    `http://localhost:3000/api/userUniversity/${applicationId}/activateTrial`,
+    { method: "POST", credentials: "include" }
+  );
+  const data = await res.json();
+  if (res.ok) {
+    alert("Trial aktywowany! 🎉");
+    fetchApplications();
+    fetchUser();
+  } else {
+    alert(data.error || "Nie udało się aktywować triala.");
   }
+}
+
+function formatDate(date) {
+  return date ? new Date(date).toLocaleDateString() : "-";
 }
 
 function statusColor(status) {
   switch (status) {
-    case 'approved': return 'bg-green-100 text-green-700';
-    case 'rejected': return 'bg-red-100 text-red-700';
-    case 'trial': return 'bg-purple-100 text-purple-700';
-    default: return 'bg-yellow-100 text-yellow-700';
+    case "approved":
+      return "bg-green-100 text-green-700";
+    case "rejected":
+      return "bg-red-100 text-red-700";
+    case "trial":
+      return "bg-purple-100 text-purple-700";
+    default:
+      return "bg-yellow-100 text-yellow-700";
   }
 }
 
@@ -343,8 +362,7 @@ function remainingTrialDays(endDate) {
   const now = new Date();
   const end = new Date(endDate);
   const diff = end - now;
-  if (diff <= 0) return 0;
-  return Math.ceil(diff / (1000*60*60*24));
+  return diff <= 0 ? 0 : Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
 onMounted(fetchApplications);

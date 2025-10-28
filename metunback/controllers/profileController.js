@@ -43,6 +43,22 @@ exports.getProfileById = async (req, res) => {
   }
 };
 
+// GET profile by user_id
+exports.getProfileByUserId = async (req, res) => {
+  try {
+    const userId = req.params.user_id;
+    if (!userId) return res.status(400).json({ error: 'User ID is required' });
+
+    const profile = await Profile.findOne({ where: { user_id: userId } });
+    if (!profile) return res.status(404).json({ error: 'Profile not found' });
+
+    res.json(profile);
+  } catch (err) {
+    console.error('Error fetching profile by user_id:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 // CREATE profile
 exports.createProfile = async (req, res) => {
   try {
