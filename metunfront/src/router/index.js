@@ -9,6 +9,7 @@ import MatchesView from '../views/MatchesView.vue'
 import SettingsView from '../views/SettingsView.vue'
 import VerificationView from '../views/VerificationView.vue'
 import AdminDashboard from '../views/Admin/AdminDashboard.vue'
+import MoreView from '../views/MoreView.vue'
 
 import UsersView from '../views/Admin/UsersView.vue'
 import UniversitiesView from '../views/Admin/UniversitiesView.vue'
@@ -16,6 +17,7 @@ import RequestsView from '../views/Admin/RequestsView.vue'
 
 const routes = [
   { path: '/', name: 'home', component: HomeView, meta: { requiresAuth: false } },
+  { path: '/more', name: 'more', component: MoreView, meta: { requiresAuth: false } },
   { path: '/dashboard', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true } },
   { path: '/create-profile', name: 'create-profile', component: CreateProfileView, meta: { requiresAuth: true } },
   { path: '/groups', name: 'groups', component: GroupsView, meta: { requiresAuth: true, requiresVerified: true } },

@@ -6,9 +6,8 @@
     </div>
 
     <nav class="flex gap-4">
-      <router-link to="/" class="px-4 py-2 text-white hover:text-blue-300">Strona główna</router-link>
-      <router-link to="/more" class="px-4 py-2 text-white hover:text-blue-300">Więcej</router-link>
-      <!-- 🔹 przycisk logowania -->
+      <router-link to="/" class="px-4 py-2 text-white hover:text-blue-300 transition">Strona główna</router-link>
+      <router-link to="/more" class="px-4 py-2 text-white hover:text-blue-300 transition">Więcej</router-link>
       <button @click="$emit('show-login')" class="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 transition">
         Zaloguj się
       </button>
