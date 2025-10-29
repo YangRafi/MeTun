@@ -1,5 +1,5 @@
 <template>
-  <section class="animate-fade-in">
+  <section class="animate-fade-in p-15">
     <div class="flex justify-between mb-6">
       <h2 class="text-2xl font-semibold">👥 Zarządzanie użytkownikami</h2>
       <button @click="$emit('back')" class="bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded">

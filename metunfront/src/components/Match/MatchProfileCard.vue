@@ -1,47 +1,60 @@
 <template>
-  <div class="max-w-md mx-auto relative select-none">
+  <div class="relative w-full max-w-4xl mx-auto select-none mt-10">
     <!-- 🖼️ Karta -->
     <div
       ref="card"
-      class="bg-white rounded-2xl shadow-xl overflow-hidden relative cursor-grab active:cursor-grabbing transition-transform duration-200"
-      :style="cardStyle"
+      class="relative rounded-3xl overflow-hidden backdrop-blur-md bg-white/70 border border-blue-200 shadow-xl cursor-grab active:cursor-grabbing"
+      :style="[cardStyle, { height: '650px' }]"
       @pointerdown="onPointerDown"
     >
-      <!-- 🔹 Overlay w prawym górnym rogu: verified / trial -->
-      <div class="absolute top-4 right-4 flex flex-col items-end gap-1 z-10">
+      <!-- 🔹 Overlay: verified / trial -->
+      <div class="absolute top-4 right-4 flex flex-col items-end gap-2 z-20">
         <span
           v-if="profile.isVerified"
-          class="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow"
+          class="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-md"
         >
-          ✔ Verified
+          ✔ Zweryfikowany
         </span>
         <span
           v-else-if="profile.isTrial"
-          class="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow"
+          class="bg-gradient-to-r from-green-600 to-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-md"
         >
-          🎁 Free Trial
+          🎁 Trial
         </span>
       </div>
 
       <!-- 🔹 Zdjęcie -->
-      <div class="relative">
+      <div class="relative w-full h-full">
         <img
           v-if="currentImage"
           :src="currentImage"
           alt="Profile Picture"
-          class="w-full h-[500px] object-cover"
+          class="w-full h-full object-cover"
         />
         <div
           v-else
-          class="w-full h-[500px] bg-gray-200 flex items-center justify-center text-gray-500 text-lg"
+          class="w-full h-full bg-blue-100 flex items-center justify-center text-blue-600 text-lg"
         >
           Brak zdjęcia
         </div>
 
-        <!-- Gradient i overlay z podstawowymi info -->
-        <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/80 to-transparent"></div>
-        <div class="absolute bottom-4 left-4 text-white z-10">
-          <h2 class="text-2xl font-bold drop-shadow-md">
+        <!-- ❤️ Po bokach zdjęcia -->
+        <button
+          @click="$emit('swipe-left')"
+          class="absolute left-4 top-1/2 -translate-y-1/2 bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-lg transition active:scale-90 z-30"
+        >
+          ✖
+        </button>
+        <button
+          @click="$emit('swipe-right')"
+          class="absolute right-4 top-1/2 -translate-y-1/2 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-lg transition active:scale-90 z-30"
+        >
+          ❤
+        </button>
+
+        <!-- 🔹 Gradient na dole i opis -->
+        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
+          <h2 class="text-3xl font-bold text-white drop-shadow-md">
             {{ profile.name }}, {{ profile.age }} lat
           </h2>
           <p class="text-sm text-gray-200 mt-1 leading-tight">
@@ -49,34 +62,24 @@
             {{ profile.faculty_name }}<br />
             {{ profile.discipline_name }}
           </p>
+          <div class="mt-3 bg-white/30 backdrop-blur-md p-4 rounded-2xl shadow-inner">
+            <p v-if="profile.bio" class="text-gray-800 leading-relaxed text-sm md:text-base">
+              {{ profile.bio }}
+            </p>
+            <p v-else class="text-gray-500 italic text-center text-sm md:text-base">
+              Użytkownik nie dodał jeszcze opisu.
+            </p>
+          </div>
+        </div>
+
+        <!-- 🔹 Serce i online status w rogach -->
+        <div class="absolute -top-4 -right-4 bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-lg z-40">
+          <i class="fas fa-heart text-pink-500 text-2xl"></i>
+        </div>
+        <div class="absolute -bottom-3 -right-3 bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-lg z-40">
+          <div class="w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
         </div>
       </div>
-
-      <!-- 🔹 Opis -->
-      <div class="p-5">
-        <p v-if="profile.bio" class="text-gray-700 leading-relaxed">
-          {{ profile.bio }}
-        </p>
-        <p v-else class="text-gray-400 italic text-center">
-          Użytkownik nie dodał jeszcze opisu.
-        </p>
-      </div>
-    </div>
-
-    <!-- 🔹 Przyciski (alternatywa dla swipe) -->
-    <div class="flex justify-center gap-6 mt-6">
-      <button
-        @click="$emit('swipe-left')"
-        class="bg-red-500 hover:bg-red-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-md transition transform active:scale-90"
-      >
-        ✖
-      </button>
-      <button
-        @click="$emit('swipe-right')"
-        class="bg-green-500 hover:bg-green-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-md transition transform active:scale-90"
-      >
-        ❤
-      </button>
     </div>
   </div>
 </template>
@@ -147,7 +150,7 @@ function animateOffScreen(direction) {
 </script>
 
 <style scoped>
-div.max-w-md {
+div.max-w-4xl {
   transition: transform 0.3s ease;
 }
 </style>

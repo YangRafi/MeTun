@@ -1,22 +1,39 @@
 <template>
-  <section class="animate-fade-in">
-    <div class="flex justify-between mb-6">
+  <section class="animate-fade-in p-15">
+    <!-- Nagłówek -->
+    <div class="flex justify-between mb-6 items-center">
       <h2 class="text-2xl font-semibold">🏫 Zarządzanie uczelniami</h2>
-      <button @click="$emit('back')" class="bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded">
+      <button
+        @click="$router.push('/admin')"
+        class="bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded relative z-10"
+      >
         ⬅ Wróć
       </button>
     </div>
 
     <!-- Dodawanie uczelni -->
     <div class="flex gap-2 mb-4">
-      <input v-model="newUniversity.name" placeholder="Nazwa uczelni" class="px-4 py-2 rounded w-1/3 bg-gray-700 text-white" />
-      <input v-model="newUniversity.location" placeholder="Miasto" class="px-4 py-2 rounded w-1/4 bg-gray-700 text-white" />
-      <select v-model="newUniversity.type" class="px-4 py-2 rounded w-1/4 bg-gray-700 text-white">
+      <input
+        v-model="newUniversity.name"
+        placeholder="Nazwa uczelni"
+        class="px-4 py-2 rounded w-1/3 bg-gray-700 text-white"
+      />
+      <input
+        v-model="newUniversity.location"
+        placeholder="Miasto"
+        class="px-4 py-2 rounded w-1/4 bg-gray-700 text-white"
+      />
+      <select
+        v-model="newUniversity.type"
+        class="px-4 py-2 rounded w-1/4 bg-gray-700 text-white"
+      >
         <option disabled value="">Typ</option>
         <option>Publiczna</option>
         <option>Prywatna</option>
       </select>
-      <button @click="addUniversity" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded">Dodaj</button>
+      <button @click="addUniversity" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded">
+        Dodaj
+      </button>
     </div>
 
     <!-- Wyszukiwanie -->
@@ -29,10 +46,21 @@
       />
     </div>
 
+    <!-- Lista uczelni -->
     <div class="space-y-4">
-      <div v-for="uni in universities" :key="uni.university_id" class="bg-gray-800 p-4 rounded-lg shadow-lg">
-        <div class="flex justify-between items-center cursor-pointer" @click="toggleUniversity(uni.university_id)">
-          <span class="font-semibold">{{ uni.university_name }} ({{ uni.type || '-' }}, {{ uni.location || '-' }})</span>
+      <div
+        v-for="uni in universities"
+        :key="uni.university_id"
+        class="bg-gray-800 p-4 rounded-lg shadow-lg"
+      >
+        <!-- Wiersz uczelni (bez cursor-pointer) -->
+        <div class="flex justify-between items-center">
+          <span
+            class="font-semibold cursor-pointer"
+            @click="toggleUniversity(uni.university_id)"
+          >
+            {{ uni.university_name }} ({{ uni.type || '-' }}, {{ uni.location || '-' }})
+          </span>
           <div class="space-x-2">
             <button @click.stop="editUniversity(uni)" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded">Edytuj</button>
             <button @click.stop="deleteUniversity(uni.university_id)" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Usuń</button>
@@ -41,9 +69,15 @@
 
         <!-- Wydziały -->
         <div v-if="uni.show" class="mt-2 pl-4 space-y-2">
-          <div v-for="fac in uni.faculties" :key="fac.faculty_id" class="bg-gray-700 p-2 rounded">
-            <div class="flex justify-between items-center cursor-pointer" @click="toggleFaculty(fac.faculty_id)">
-              <span>{{ fac.faculty_name || '-' }}</span>
+          <div
+            v-for="fac in uni.faculties"
+            :key="fac.faculty_id"
+            class="bg-gray-700 p-2 rounded"
+          >
+            <div class="flex justify-between items-center">
+              <span class="cursor-pointer" @click="toggleFaculty(fac.faculty_id)">
+                {{ fac.faculty_name || '-' }}
+              </span>
               <div class="space-x-2">
                 <button @click.stop="editFaculty(fac)" class="bg-blue-500 hover:bg-blue-600 px-2 py-0.5 rounded text-sm">Edytuj</button>
                 <button @click.stop="deleteFaculty(fac.faculty_id)" class="bg-red-500 hover:bg-red-600 px-2 py-0.5 rounded text-sm">Usuń</button>
@@ -52,7 +86,11 @@
 
             <!-- Kierunki -->
             <div v-if="fac.show" class="mt-1 pl-4 space-y-1">
-              <div v-for="disc in fac.disciplines" :key="disc.discipline_id" class="flex justify-between items-center bg-gray-600 p-1 rounded">
+              <div
+                v-for="disc in fac.disciplines"
+                :key="disc.discipline_id"
+                class="flex justify-between items-center bg-gray-600 p-1 rounded"
+              >
                 <span>{{ disc.name || '-' }}</span>
                 <div class="space-x-1">
                   <button @click.stop="editDiscipline(disc)" class="bg-blue-400 hover:bg-blue-500 px-2 py-0.5 rounded text-sm">Edytuj</button>

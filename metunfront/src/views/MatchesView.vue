@@ -61,7 +61,7 @@
           :chat="activeChat"
           :userId="profile.user_id"
           @close="closeChat"
-          class="z-50 fixed bottom-10 right-10 w-[400px]"
+          class="z-50 bottom-10 right-10 w-[400px]"
         />
       </div>
 
@@ -87,16 +87,58 @@
     <transition name="fade">
       <div
         v-if="showMatch"
-        class="fixed inset-0 bg-black/50 flex flex-col justify-center items-center z-50"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex flex-col justify-center items-center z-50 p-4"
       >
-        <div class="bg-white p-6 rounded-3xl shadow-2xl text-center max-w-xs">
-          <h2 class="text-2xl font-bold text-pink-500 mb-2">It's a Match!</h2>
+        <div
+          class="bg-white rounded-3xl shadow-2xl text-center max-w-xs w-full p-6 relative overflow-hidden"
+        >
+          <!-- Efekt serca w tle -->
+          <div
+            class="absolute inset-0 bg-pink-200/20 animate-pulse rounded-3xl -z-10"
+          ></div>
+
+          <!-- Tytuł -->
+          <h2 class="text-3xl font-bold text-pink-500 mb-4 drop-shadow-lg">
+            It's a Match!
+          </h2>
+
+          <!-- 🔹 Animacja Lottie -->
+          <Vue3Lottie
+            v-if="matchAnimation"
+            :animationData="matchAnimation"
+            :width="220"
+            :height="220"
+            :loop="true"
+            :autoplay="true"
+            class="mx-auto mb-4"
+          />
+
+          <!-- 🔹 Zdjęcie profilu -->
           <img
             v-if="matchProfile.profile_picture"
             :src="matchProfile.profile_picture"
-            class="w-24 h-24 rounded-full mx-auto mb-2"
+            class="w-28 h-28 rounded-full mx-auto mb-3 border-4 border-pink-400 shadow-lg"
           />
-          <p class="font-semibold text-indigo-700">{{ matchProfile.name }}</p>
+
+          <!-- 🔹 Nazwa -->
+          <p class="font-semibold text-indigo-700 text-lg drop-shadow-md">
+            {{ matchProfile.name }}
+          </p>
+
+          <!-- 🔹 Konfetti -->
+          <div class="absolute inset-0 pointer-events-none">
+            <div
+              v-for="n in 8"
+              :key="n"
+              class="absolute w-3 h-3 bg-pink-400 rounded-full animate-fall"
+              :style="{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 1}s`,
+                animationDuration: `${1 + Math.random() * 1.5}s`
+              }"
+            ></div>
+          </div>
         </div>
       </div>
     </transition>
@@ -122,7 +164,10 @@ import MatchProfileCard from "../components/Match/MatchProfileCard.vue";
 import MatchFilterModal from "../components/Modal/MatchFilterModal.vue";
 import socket from "../socket";
 import background from "@/assets/background.jpg";
+import { Vue3Lottie } from 'vue3-lottie'
+import handshakeAnimation from '@/assets/animations/handshake.json'
 
+const matchAnimation = ref(handshakeAnimation)
 const profile = reactive({});
 const filters = reactive({
   gender: "",
@@ -278,4 +323,30 @@ async function fetchFaculties() {
     transform: translateY(0);
   }
 }
+
+/* Animacja konfetti */
+@keyframes fall {
+  0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(80px) rotate(360deg); opacity: 0; }
+}
+.animate-fall {
+  animation-name: fall;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in;
+}
+
+/* 🔹 Animacja wysuwania panelu filtrów */
+.slide-enter-active, .slide-leave-active {
+  transition: transform 0.3s ease;
+}
+.slide-enter-from, .slide-leave-to {
+  transform: translateX(100%);
+}
+.slide-enter-to, .slide-leave-from {
+  transform: translateX(0);
+}
+
+/* 🔹 Obrót strzałki */
+.rotate-0 { transform: rotate(0deg); }
+.rotate-180 { transform: rotate(180deg); }
 </style>

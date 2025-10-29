@@ -1,6 +1,5 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-white">
-    <!-- Wspólny header -->
     <UserHeader :profile="profile" />
 
     <main class="max-w-6xl mx-auto py-10 px-6">
@@ -29,8 +28,10 @@
         </div>
       </section>
 
-      <!-- Dynamiczne widoki podsekcji -->
-      <router-view @back="router.push('/admin')" />
+      <!-- Dynamiczne podstrony admina -->
+      <router-view v-slot="{ Component }">
+        <component :is="Component" @back="router.push('/admin')" />
+      </router-view>
     </main>
   </div>
 </template>
@@ -40,10 +41,10 @@ import { reactive, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Users, CheckCircle, School, UsersRound, ClipboardList } from 'lucide-vue-next'
 import StatCard from '../../components/Admin/StatCard.vue'
-import UserHeader from '../../components/Layout/UserHeader.vue' // nowy wspólny header
+import UserHeader from '../../components/Layout/UserHeader.vue'
 
 const router = useRouter()
-const profile = ref(null) // dane profilu użytkownika, możesz pobrać z /api/auth/me
+const profile = ref(null)
 
 const stats = reactive({ users: 0, verified: 0, universities: 0, groups: 0 })
 
@@ -55,13 +56,11 @@ const sections = [
 
 const fetchAdminData = async () => {
   try {
-    // Pobranie statystyk
     const res = await fetch('http://localhost:3000/api/admin/dashboard', { credentials: 'include' })
     if (!res.ok) throw new Error('Brak uprawnień')
     const data = await res.json()
     Object.assign(stats, data.stats)
 
-    // Pobranie danych profilu do headera
     const profileRes = await fetch('http://localhost:3000/api/auth/me', { credentials: 'include' })
     if (profileRes.ok) profile.value = await profileRes.json()
   } catch {

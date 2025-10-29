@@ -1,11 +1,20 @@
 <template>
-  <div class="space-y-6">
-    <button @click="$emit('back')" class="text-blue-400 hover:text-blue-600 text-sm mb-4">
-      ← Powrót do dashboardu
-    </button>
+  <section class="animate-fade-in p-15">
+    <!-- Nagłówek z ikoną i przyciskiem powrotu -->
+    <div class="flex justify-between items-center mb-6">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">📝</span>
+        <h2 class="text-2xl font-semibold">Wnioski do weryfikacji</h2>
+      </div>
+      <button
+        @click="$emit('back')"
+        class="bg-gray-600 hover:bg-gray-500 text-white font-semibold px-3 py-1 rounded relative z-10 transition"
+      >
+        ⬅ Powrót
+      </button>
+    </div>
 
-    <h2 class="text-2xl font-semibold mb-4">Wnioski do weryfikacji</h2>
-
+    <!-- Zakładki -->
     <div class="flex gap-4 mb-6">
       <button
         v-for="tab in tabs"
@@ -18,6 +27,7 @@
       </button>
     </div>
 
+    <!-- Lista wniosków -->
     <div v-if="requests[activeTab]?.length" class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div
         v-for="r in requests[activeTab]"
@@ -38,7 +48,6 @@
           </template>
         </div>
 
-        <!-- 🔹 Przyciski zmiany statusu -->
         <div class="flex gap-2 mt-4">
           <button
             v-if="r.status !== 'approved'"
@@ -47,7 +56,6 @@
           >
             ✅ Zaakceptuj
           </button>
-
           <button
             v-if="r.status !== 'rejected'"
             @click="updateStatus(r.id, 'rejected')"
@@ -55,7 +63,6 @@
           >
             ❌ Odrzuć
           </button>
-
           <button
             v-if="r.status === 'rejected'"
             @click="updateStatus(r.id, 'pending')"
@@ -65,7 +72,6 @@
           </button>
         </div>
 
-        <!-- 🔹 Status i trial -->
         <span
           :class="r.trial ? 'bg-purple-100 text-purple-700' : statusColor(r.status)"
           class="absolute top-4 right-4 px-3 py-1 rounded-xl text-xs font-semibold"
@@ -80,7 +86,7 @@
     </div>
 
     <p v-else class="text-gray-400 text-center mt-6">Brak wniosków w tej kategorii.</p>
-  </div>
+  </section>
 </template>
 
 <script setup>
@@ -101,13 +107,11 @@ const fetchRequests = async () => {
     const res = await fetch('http://localhost:3000/api/userUniversity/requests/status', { credentials: 'include' })
     if (res.ok) {
       const data = await res.json()
-
-      // 🔹 Wprost przypisujemy wartości zwracane z backendu
       requests.value.pending = data.pending || []
       requests.value.approved = data.approved || []
       requests.value.rejected = data.rejected || []
       requests.value.expired = data.expired || []
-      requests.value.trial = data.trial || [] // wszystkie trial niezależnie od statusu
+      requests.value.trial = data.trial || []
     }
   } catch (err) {
     console.error('Błąd pobierania wniosków:', err)
