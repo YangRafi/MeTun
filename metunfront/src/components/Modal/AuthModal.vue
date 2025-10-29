@@ -3,17 +3,17 @@
     <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center">
       <!-- Overlay -->
       <div
-        class="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        class="absolute inset-0 bg-black/40 backdrop-blur-sm"
         @click="close"
       ></div>
 
       <!-- Modal -->
       <transition name="scale-up">
         <div
-          class="relative bg-gradient-to-br from-red-900 via-orange-800 to-yellow-700 rounded-2xl shadow-2xl p-8 w-full max-w-md z-10 text-white"
+          class="relative bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl p-8 w-full max-w-md z-10 text-gray-900"
           @click.stop
         >
-          <h2 class="text-3xl font-bold mb-6 text-center drop-shadow-lg">
+          <h2 class="text-3xl font-bold mb-6 text-center text-blue-800 drop-shadow-lg">
             {{ type === 'signup' ? 'Rejestracja' : 'Logowanie' }}
           </h2>
 
@@ -21,70 +21,70 @@
             <!-- Signup -->
             <template v-if="type === 'signup'">
               <div class="mb-4">
-                <label class="block mb-1 font-medium">Imię</label>
+                <label class="block mb-1 font-medium text-blue-800">Imię</label>
                 <InputText
                   v-model="form.firstName"
-                  class="w-full rounded-md px-3 py-2 text-gray-900 bg-white/90 border border-orange-300 shadow-inner"
+                  class="w-full rounded-xl px-3 py-2 border border-blue-300 shadow-inner focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
                 />
-                <span class="text-red-200 text-sm">{{ errors.firstName }}</span>
+                <span class="text-red-600 text-sm">{{ errors.firstName }}</span>
               </div>
 
               <div class="mb-4">
-                <label class="block mb-1 font-medium">Nazwisko</label>
+                <label class="block mb-1 font-medium text-blue-800">Nazwisko</label>
                 <InputText
                   v-model="form.lastName"
-                  class="w-full rounded-md px-3 py-2 text-gray-900 bg-white/90 border border-orange-300 shadow-inner"
+                  class="w-full rounded-xl px-3 py-2 border border-blue-300 shadow-inner focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
                 />
-                <span class="text-red-200 text-sm">{{ errors.lastName }}</span>
+                <span class="text-red-600 text-sm">{{ errors.lastName }}</span>
               </div>
             </template>
 
             <!-- Email -->
             <div class="mb-4">
-              <label class="block mb-1 font-medium">Email</label>
+              <label class="block mb-1 font-medium text-blue-800">Email</label>
               <InputText
                 v-model="form.email"
-                class="w-full rounded-md px-3 py-2 text-gray-900 bg-white/90 border border-orange-300 shadow-inner"
                 placeholder="Podaj email"
+                class="w-full rounded-xl px-3 py-2 border border-blue-300 shadow-inner focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
               />
-              <span class="text-red-200 text-sm">{{ errors.email }}</span>
+              <span class="text-red-600 text-sm">{{ errors.email }}</span>
             </div>
 
             <!-- Hasło -->
             <div class="mb-4">
-              <label class="block mb-1 font-medium">Hasło</label>
+              <label class="block mb-1 font-medium text-blue-800">Hasło</label>
               <Password
                 v-model="form.password"
                 :feedback="false"
                 toggleMask
-                class="w-full rounded-md px-3 py-2 text-gray-900 bg-white/90 border border-orange-300 shadow-inner"
                 placeholder="Podaj hasło"
+                class="w-full rounded-xl px-3 py-2 border border-blue-300 shadow-inner focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
               />
-              <span class="text-red-200 text-sm">{{ errors.password }}</span>
+              <span class="text-red-600 text-sm">{{ errors.password }}</span>
             </div>
 
             <!-- Confirm password (signup only) -->
             <div v-if="type === 'signup'" class="mb-4">
-              <label class="block mb-1 font-medium">Powtórz hasło</label>
+              <label class="block mb-1 font-medium text-blue-800">Powtórz hasło</label>
               <Password
                 v-model="form.confirmPassword"
                 :feedback="false"
                 toggleMask
-                class="w-full rounded-md px-3 py-2 text-gray-900 bg-white/90 border border-orange-300 shadow-inner"
+                class="w-full rounded-xl px-3 py-2 border border-blue-300 shadow-inner focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
               />
-              <span class="text-red-200 text-sm">{{ errors.confirmPassword }}</span>
+              <span class="text-red-600 text-sm">{{ errors.confirmPassword }}</span>
             </div>
 
             <Button
               type="submit"
               :label="type === 'signup' ? 'Zarejestruj się' : 'Zaloguj się'"
-              class="w-full mt-4 bg-gradient-to-r from-orange-600 via-red-700 to-yellow-600 hover:from-yellow-600 hover:to-red-700 text-white font-semibold rounded-lg shadow-lg"
+              class="w-full mt-4 bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 text-white py-3 rounded-2xl hover:from-blue-700 hover:via-blue-600 hover:to-blue-500 shadow-lg font-semibold transition"
             />
           </form>
 
           <!-- Zamknij -->
           <button
-            class="absolute top-3 right-3 text-white hover:text-gray-200 text-xl font-bold"
+            class="absolute top-3 right-3 text-gray-700 hover:text-gray-900 text-xl font-bold"
             @click="close"
           >✕</button>
         </div>
@@ -96,10 +96,13 @@
 <script setup>
 import { reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/store/userStore'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
 import { z } from 'zod'
+
+const userStore = useUserStore()
 
 const props = defineProps({
   type: { type: String, default: 'signup' },
@@ -150,22 +153,14 @@ const onSubmit = async () => {
       : 'http://localhost:3000/api/auth/login'
 
     const body = props.type === 'signup'
-      ? {
-          name: form.firstName,
-          surname: form.lastName,
-          email: form.email,
-          password: form.password
-        }
-      : {
-          email: form.email,
-          password: form.password
-        }
+      ? { name: form.firstName, surname: form.lastName, email: form.email, password: form.password }
+      : { email: form.email, password: form.password }
 
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-      credentials: 'include' // ważne, żeby cookie JWT były przesyłane
+      credentials: 'include'
     })
 
     const data = await res.json()
@@ -176,21 +171,17 @@ const onSubmit = async () => {
       close()
       emit('open-login')
     } else {
-      // Logowanie – sprawdzamy, czy użytkownik ma profil
-      const checkProfileRes = await fetch('http://localhost:3000/api/profiles/check', {
-        credentials: 'include'
-      })
+      const checkProfileRes = await fetch('http://localhost:3000/api/profiles/check', { credentials: 'include' })
       const checkData = await checkProfileRes.json()
       
       if (checkProfileRes.ok) {
         if (checkData.hasProfile) {
+          await userStore.fetchUserAndProfile()
           router.push('/dashboard')
         } else {
           router.push('/create-profile')
         }
-      } else {
-        throw new Error(checkData.error || 'Nie udało się sprawdzić profilu użytkownika')
-      }
+      } else throw new Error(checkData.error || 'Nie udało się sprawdzić profilu użytkownika')
 
       close()
     }
@@ -198,8 +189,6 @@ const onSubmit = async () => {
     alert(err.message)
   }
 }
-
-
 
 const close = () => emit('update:visible', false)
 </script>

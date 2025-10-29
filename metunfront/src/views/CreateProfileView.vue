@@ -91,8 +91,10 @@
 <script setup>
 import { ref } from 'vue'
 import Button from 'primevue/button'
+import { useUserStore } from '@/store/userStore'
 import { useRouter } from 'vue-router'
 
+const userStore = useUserStore()
 const router = useRouter()
 
 // Dane formularza
@@ -147,6 +149,7 @@ const onSubmit = async () => {
     if (!res.ok) throw new Error(data.error || 'Nie udało się zapisać profilu.')
 
     alert('Profil został pomyślnie utworzony! 🎉')
+    await userStore.fetchUserAndProfile()
     router.push('/dashboard')
   } catch (err) {
     alert(err.message)

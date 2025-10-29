@@ -6,8 +6,6 @@
       :style="{ backgroundImage: `url(${background})` }"
     >
       <div class="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-
-      
     </div>
 
     <!-- 🔹 Zawartość -->
@@ -21,35 +19,49 @@
           :onlyPrivate="true"
         />
 
-        <!-- Widok dopasowań -->
-        <div v-if="!activeChat">
-          <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold flex-1 text-center text-white">
-              Znajdź dopasowania
-            </h1>
-          </div>
-
+        <!-- 🔹 Widok dopasowań -->
+        <div class="relative">
+          <!-- 🔹 Karta dopasowania -->
           <MatchProfileCard
             v-if="matches.length && currentIndex < matches.length"
             :profile="currentProfile"
             @swipe-left="swipeLeft"
             @swipe-right="swipeRight"
-            class="rounded-3xl shadow-2xl match-card"
+            class="rounded-3xl shadow-2xl match-card mt-8"
           />
-          <p
-            v-else-if="searched"
-            class="text-center mt-6 text-white/80"
+
+          <!-- 🔹 Brak wyników po wyszukiwaniu -->
+          <div
+            v-else-if="searched && matches.length === 0"
+            class="flex justify-center items-center h-96"
           >
-            Brak dostępnych profili.
-          </p>
+            <div class="bg-white/20 backdrop-blur-md px-12 py-10 rounded-3xl shadow-lg text-center">
+              <h2 class="text-3xl font-semibold mb-3">To koniec poszukiwań na dziś 💫</h2>
+              <p class="text-white/80 text-lg">Wróć później, by zobaczyć nowe dopasowania!</p>
+            </div>
+          </div>
+
+          <!-- 🔹 Jeszcze nie wybrano filtrów -->
+          <div
+            v-else-if="!searched"
+            class="flex justify-center items-center h-96"
+          >
+            <div class="bg-white/20 backdrop-blur-md px-12 py-10 rounded-3xl shadow-lg text-center animate-fade-in">
+              <h2 class="text-4xl font-bold mb-4">Wybierz filtry 🎯</h2>
+              <p class="text-white/80 text-lg max-w-md mx-auto">
+                Skorzystaj z panelu po prawej stronie, aby zobaczyć swoje potencjalne dopasowania.
+              </p>
+            </div>
+          </div>
         </div>
 
-        <!-- ChatBox -->
-        <ChatBox class="z-50"
+        <!-- 🔹 ChatBox -->
+        <ChatBox
           v-if="activeChat"
           :chat="activeChat"
           :userId="profile.user_id"
           @close="closeChat"
+          class="z-50 fixed bottom-10 right-10 w-[400px]"
         />
       </div>
 
@@ -139,45 +151,23 @@ const disciplines = ref([]);
 
 const showMatch = ref(false);
 const matchProfile = ref({});
-const currentProfile = computed(
-  () => matches.value[currentIndex.value] || {}
-);
+const currentProfile = computed(() => matches.value[currentIndex.value] || {});
 
 const showApplied = ref(false);
 
-const header = ref(null);
-const headerHeight = ref(0);
-
-function updateSidebarHeight() {
-  if (header.value) {
-    headerHeight.value =
-      header.value.$el?.offsetHeight || header.value.offsetHeight || 60;
-  }
-}
-
 onMounted(() => {
   fetchUser();
-  nextTick(updateSidebarHeight);
-  window.addEventListener("resize", updateSidebarHeight);
-
-  socket.on("match_created", (data) =>
-    console.log("🔔 Nowy match!", data)
-  );
-  socket.on("match_deleted", (data) =>
-    console.log("❌ Match usunięty:", data)
-  );
+  socket.on("match_created", (data) => console.log("🔔 Nowy match!", data));
+  socket.on("match_deleted", (data) => console.log("❌ Match usunięty:", data));
 });
 
 onUnmounted(() => {
-  window.removeEventListener("resize", updateSidebarHeight);
   socket.off("match_created");
   socket.off("match_deleted");
 });
 
 async function fetchUser() {
-  const res = await fetch("http://localhost:3000/api/auth/me", {
-    credentials: "include",
-  });
+  const res = await fetch("http://localhost:3000/api/auth/me", { credentials: "include" });
   if (!res.ok) return;
   Object.assign(profile, await res.json());
 }
@@ -204,9 +194,7 @@ async function vote(like) {
     return;
   }
   const data = await res.json();
-  if (data.matchJustActivated) {
-    showItsAMatchAnimation(currentProfile.value);
-  }
+  if (data.matchJustActivated) showItsAMatchAnimation(currentProfile.value);
 }
 
 function showItsAMatchAnimation(profile) {
@@ -214,6 +202,7 @@ function showItsAMatchAnimation(profile) {
   showMatch.value = true;
   setTimeout(() => (showMatch.value = false), 3000);
 }
+
 function nextProfile() {
   if (currentIndex.value < matches.value.length - 1) currentIndex.value++;
   else matches.value = [];
@@ -222,10 +211,9 @@ function nextProfile() {
 async function applyFilters() {
   const params = new URLSearchParams();
   for (const k in filters) if (filters[k]) params.append(k, filters[k]);
-  const res = await fetch(
-    `http://localhost:3000/api/matches/potential?${params.toString()}`,
-    { credentials: "include" }
-  );
+  const res = await fetch(`http://localhost:3000/api/matches/potential?${params.toString()}`, {
+    credentials: "include",
+  });
   matches.value = await res.json();
   currentIndex.value = 0;
   searched.value = true;
@@ -239,10 +227,9 @@ function applyFiltersWithAlert() {
 
 async function onFacultyChange() {
   if (!filters.facultyId) return;
-  const res = await fetch(
-    `http://localhost:3000/api/disciplines?facultyId=${filters.facultyId}`,
-    { credentials: "include" }
-  );
+  const res = await fetch(`http://localhost:3000/api/disciplines?facultyId=${filters.facultyId}`, {
+    credentials: "include",
+  });
   disciplines.value = await res.json();
 }
 
@@ -253,10 +240,9 @@ async function selectUniversity(u) {
 
 async function fetchFaculties() {
   if (!filters.universityId) return;
-  const res = await fetch(
-    `http://localhost:3000/api/faculties?universityId=${filters.universityId}`,
-    { credentials: "include" }
-  );
+  const res = await fetch(`http://localhost:3000/api/faculties?universityId=${filters.universityId}`, {
+    credentials: "include",
+  });
   faculties.value = await res.json();
 }
 </script>
@@ -276,5 +262,20 @@ async function fetchFaculties() {
   color: white;
   border-radius: 1.5rem;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-in-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

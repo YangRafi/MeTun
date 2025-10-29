@@ -61,6 +61,17 @@ exports.getPotentialMatches = async (req, res) => {
     const votedIds = votes.map(v => (v.user_id_1 === userId ? v.user_id_2 : v.user_id_1));
     profiles = profiles.filter(p => !votedIds.includes(p.user_id));
 
+    // 🔹 Wykluczenie aktywnych matchy
+    const activeMatches = await UserMatch.findAll({
+      where: {
+        [Op.or]: [{ user_id_1: userId }, { user_id_2: userId }],
+        match_active: true
+      }
+    });
+
+    const activeIds = activeMatches.map(m => (m.user_id_1 === userId ? m.user_id_2 : m.user_id_1));
+    profiles = profiles.filter(p => !activeIds.includes(p.user_id));
+
     // 🔹 Losowa kolejność
     profiles = profiles.sort(() => Math.random() - 0.5);
 
@@ -89,6 +100,7 @@ exports.getPotentialMatches = async (req, res) => {
     res.status(500).json({ error: 'Server error', details: err.message });
   }
 };
+
 
 // 🔹 Polubienie / odrzucenie profilu (swipe left/right)
 exports.voteUser = async (req, res) => {
