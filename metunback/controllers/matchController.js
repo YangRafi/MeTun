@@ -89,7 +89,7 @@ exports.getPotentialMatches = async (req, res) => {
         university_name: uni?.University?.university_name || '',
         faculty_name: uni?.Faculty?.faculty_name || '',
         discipline_name: uni?.Discipline?.name || '',
-        isVerified: uni?.status === 'approved',
+        isVerified: uni?.status === 'approved' || uni,
         isTrial: uni?.trial === true
       };
     });
