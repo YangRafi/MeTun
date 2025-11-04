@@ -1,4 +1,4 @@
-const User = require('../models/User');
+const { User, UserMatch, GroupMember, UserUniversity, Message } = require('../models');
 const bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
 const { getIo, userSockets } = require('../util/socket'); // ✅ import socketów
@@ -158,6 +158,79 @@ exports.deleteMe = async (req, res) => {
     res.json({ message: "Twoje konto zostało usunięte." });
   } catch (err) {
     console.error("Błąd przy usuwaniu konta:", err);
+    res.status(500).json({ error: "Błąd serwera" });
+  }
+};
+
+// GET profile stats for logged-in user
+exports.getStats = async (req, res) => {
+  try {
+    const userId = req.user.userId; // z tokenu sesji/auth
+
+    // Liczba aktywnych matchy
+    const matchesCount = await UserMatch.count({
+      where: {
+        match_active: true,
+        [Op.or]: [
+          { user_id_1: userId },
+          { user_id_2: userId },
+        ],
+      },
+    });
+
+    // Liczba grup
+    const groupsCount = await GroupMember.count({
+      where: { user_id: userId },
+    });
+
+    // Liczba zatwierdzonych uczelni
+    const universitiesCount = await UserUniversity.count({
+      where: { user_id: userId, status: 'approved' },
+    });
+
+    // Liczba wysłanych wiadomości
+    const messagesCount = await Message.count({
+      where: { sender_id: userId },
+    });
+
+    // Pobranie statusu trial
+    const user = await User.findByPk(userId);
+
+    res.json({
+      matchesCount,
+      groupsCount,
+      universitiesCount,
+      messagesCount,
+      hasTrial: user.has_trial, // true/false
+    });
+  } catch (err) {
+    console.error('Error fetching stats:', err);
+    res.status(500).json({ error: 'Nie udało się pobrać statystyk.' });
+  }
+};
+
+// CHANGE EMAIL for logged-in user
+exports.changeEmail = async (req, res) => {
+  try {
+    const userId = req.user.userId; // pobieramy z tokenu/autoryzacji
+    const { email } = req.body;
+
+    if (!email) return res.status(400).json({ error: "Nowy e-mail jest wymagany" });
+
+    // Sprawdzenie czy e-mail nie jest już zajęty
+    const existing = await User.findOne({ where: { email } });
+    if (existing) return res.status(400).json({ error: "E-mail jest już używany" });
+
+    const user = await User.findByPk(userId);
+    if (!user) return res.status(404).json({ error: "Użytkownik nie znaleziony" });
+
+    user.email = email;
+    await user.save();
+
+    const { password, ...safeUser } = user.toJSON();
+    res.json({ message: "E-mail zmieniony pomyślnie", user: safeUser });
+  } catch (err) {
+    console.error("Error changing email:", err);
     res.status(500).json({ error: "Błąd serwera" });
   }
 };

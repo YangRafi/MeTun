@@ -6,6 +6,12 @@ const { authenticate, isAdmin } = require('../middleware/auth');
 // 📋 tylko administrator może widzieć wszystkich
 router.get('/', authenticate, isAdmin, userController.getAllUsers);
 
+// Statystyki zalogowanego użytkownika
+router.get('/stats', authenticate, userController.getStats);
+
+// 🔄 zmiana e-maila zalogowanego użytkownika
+router.put('/change-email', authenticate, userController.changeEmail);
+
 // 📋 dostęp do danych konkretnego użytkownika
 router.get('/:id', authenticate, userController.getUserById);
 
