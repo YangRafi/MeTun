@@ -59,6 +59,29 @@ exports.createUser = async (req, res) => {
   }
 };
 
+// CHANGE PASSWORD
+exports.changePassword = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { currentPassword, newPassword } = req.body;
+
+    const user = await User.findByPk(id);
+    if (!user) return res.status(404).json({ message: 'Użytkownik nie znaleziony' });
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) return res.status(400).json({ message: 'Nieprawidłowe obecne hasło' });
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    user.password = hashed;
+    await user.save();
+
+    res.json({ message: 'Hasło zmienione pomyślnie' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Błąd serwera' });
+  }
+};
+
 // UPDATE user
 exports.updateUser = async (req, res) => {
   try {
@@ -114,6 +137,31 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+// DELETE own account
+exports.deleteMe = async (req, res) => {
+  try {
+    console.log("DELETE /me called");
+    const userId = req.user.userId; // ✅ poprawione
+    const user = await User.findByPk(userId);
+    if (!user) return res.status(404).json({ error: "Użytkownik nie znaleziony" });
+
+    await user.destroy();
+
+    // 🔥 powiadomienie socket
+    const io = getIo();
+    const userSocket = userSockets.get(Number(userId));
+    if (io && userSocket) {
+      io.to(userSocket).emit('account_deleted');
+    }
+
+    res.json({ message: "Twoje konto zostało usunięte." });
+  } catch (err) {
+    console.error("Błąd przy usuwaniu konta:", err);
+    res.status(500).json({ error: "Błąd serwera" });
+  }
+};
+
 
 // CHANGE user role
 exports.changeUserRole = async (req, res) => {

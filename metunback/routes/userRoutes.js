@@ -12,8 +12,14 @@ router.get('/:id', authenticate, userController.getUserById);
 // ➕ rejestracja (bez autoryzacji)
 router.post('/', userController.createUser);
 
+// 🔐 zmiana hasła
+router.patch('/:id/password', authenticate, userController.changePassword);
+
 // ✏️ edycja danych
 router.put('/:id', authenticate, userController.updateUser);
+
+// 🧍‍♂️ usunięcie własnego konta
+router.delete('/me', authenticate, userController.deleteMe);
 
 // ❌ usunięcie użytkownika
 router.delete('/:id', authenticate, isAdmin, userController.deleteUser);

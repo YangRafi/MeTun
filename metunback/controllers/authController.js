@@ -109,11 +109,18 @@ exports.check = (req, res) => {
 // ME
 exports.me = async (req, res) => {
   try {
-    const user = await User.findByPk(req.user.userId, {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const user = await User.findByPk(userId, {
       attributes: ['user_id', 'name', 'surname', 'email', 'role']
     });
+
     if (!user) return res.status(404).json({ error: "User not found" });
-     const response = {
+
+    const response = {
       user_id: user.user_id,
       name: user.name,
       surname: user.surname,
@@ -121,12 +128,14 @@ exports.me = async (req, res) => {
       role: user.role,
       isVerified: req.user.isVerified
     };
+
     res.json(response);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 };
+
 
 // LOGOUT
 exports.logout = (req, res) => {
