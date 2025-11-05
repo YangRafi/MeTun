@@ -11,6 +11,7 @@ const UserUniversity = require('./UserUniversity');
 const UserMatch = require('./UserMatch');
 const Message = require('./Message');
 const GroupJoinRequest = require('./GroupJoinRequest');
+const Report = require('./Report');
 
 // ----------------- Relacje -----------------
 
@@ -71,6 +72,12 @@ Group.belongsTo(Discipline, { foreignKey: 'discipline_id', as: 'discipline' });
 
 GroupMember.belongsTo(User, { foreignKey: 'user_id' });
 
+User.hasMany(Report, { foreignKey: 'senderId', as: 'sentReports', onDelete: 'CASCADE' });
+Report.belongsTo(User, { foreignKey: 'senderId', as: 'sender', onDelete: 'CASCADE' });
+
+User.hasMany(Report, { foreignKey: 'reportedUserId', as: 'receivedReports', onDelete: 'CASCADE' });
+Report.belongsTo(User, { foreignKey: 'reportedUserId', as: 'reportedUser', onDelete: 'CASCADE' });
+
 module.exports = {
   sequelize,
   User,
@@ -83,5 +90,6 @@ module.exports = {
   UserUniversity,
   UserMatch,
   Message,
-  GroupJoinRequest
+  GroupJoinRequest,
+  Report
 };

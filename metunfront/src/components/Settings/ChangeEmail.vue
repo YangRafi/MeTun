@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-lg w-full max-w-3xl border border-blue-200 mx-auto">
+  <div class="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-lg w-full max-w-3xl border border-blue-200 mx-auto">
     <h2 class="text-2xl font-bold text-blue-800 mb-6 text-center flex items-center justify-center gap-2">
       ✉️ Zmień e-mail
     </h2>

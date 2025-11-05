@@ -1,6 +1,6 @@
 <template>
   <div
-    class="bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-lg w-full max-w-3xl border border-blue-200 mx-auto"
+    class="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-lg w-full max-w-3xl border border-blue-200 mx-auto"
   >
     <h2 class="text-3xl font-bold text-blue-800 mb-8 text-center">
       🔒 Zmień hasło

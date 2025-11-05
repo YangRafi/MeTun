@@ -1,6 +1,6 @@
 <template>
   <div
-    class="bg-white/70 backdrop-blur-md p-8 rounded-3xl shadow-lg w-full max-w-3xl border border-blue-200 text-center mx-auto mt-8"
+    class="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-lg w-full max-w-3xl border border-blue-200 text-center mx-auto mt-8"
   >
     <h2 class="text-2xl font-bold text-blue-800 mb-4">⚠️ Usunięcie konta</h2>
     <p class="text-blue-800 mb-6 font-semibold">

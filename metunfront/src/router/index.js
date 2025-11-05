@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore } from '@/store/userStore'
 import { showVerifiedPopup } from '../store/popupStore.js'
 
 import HomeView from '../views/HomeView.vue'
@@ -42,30 +43,36 @@ const router = createRouter({
   routes
 })
 
+async function fetchWithRefresh(url, options = {}) {
+  let res = await fetch(url, { ...options, credentials: 'include' })
+  
+  if (res.status === 401) {
+    console.log("[ROUTER] Access token expired, trying refresh")
+    const refresh = await fetch("http://localhost:3000/api/auth/refresh-token", { credentials: 'include' })
+    if (!refresh.ok) throw new Error("Refresh token failed")
+    
+    res = await fetch(url, { ...options, credentials: 'include' })
+  }
+  
+  return res
+}
+
 router.beforeEach(async (to, from, next) => {
   console.log(`[ROUTER] Checking route: ${to.fullPath}`)
   
   if (to.meta.requiresAuth) {
     try {
-      let res = await fetch("http://localhost:3000/api/auth/me", { credentials: "include" })
+      const userStore = useUserStore()
+      if (!userStore.loaded) await userStore.fetchUserAndProfile()
 
-      if (res.status === 401) {
-        console.log("[ROUTER] Access token expired, trying refresh")
-        const refresh = await fetch("http://localhost:3000/api/auth/refresh-token", { credentials: "include" })
-        if (!refresh.ok) {
-          console.log("[ROUTER] Refresh token failed")
-          return next("/")
-        }
-        res = await fetch("http://localhost:3000/api/auth/me", { credentials: "include" })
-      }
-
-      if (!res.ok) {
-        console.log("[ROUTER] /me failed", res.status)
-        return next("/")
-      }
-
+      // Pobieramy /me z retry przy refresh token
+      const res = await fetchWithRefresh("http://localhost:3000/api/auth/me")
+      if (!res.ok) return next("/")
+      
       const user = await res.json()
       console.log("[ROUTER] User fetched:", user)
+
+      Object.assign(userStore.user, user)
 
       if (to.meta.requiresAdmin && user.role !== "admin") {
         console.log("[ROUTER] User is not admin")
@@ -78,7 +85,6 @@ router.beforeEach(async (to, from, next) => {
         return next("/dashboard")
       }
 
-      console.log("[ROUTER] User verified or route does not require verification")
       next()
     } catch (err) {
       console.error("[ROUTER] Auth check failed:", err)
