@@ -21,7 +21,6 @@
 
         <!-- 🔹 Widok dopasowań -->
         <div class="relative">
-          <!-- 🔹 Karta dopasowania -->
           <MatchProfileCard
             v-if="matches.length && currentIndex < matches.length"
             :profile="currentProfile"
@@ -30,7 +29,7 @@
             class="rounded-3xl shadow-2xl match-card mt-8"
           />
 
-          <!-- 🔹 Brak wyników po wyszukiwaniu -->
+          <!-- 🔹 Brak wyników -->
           <div
             v-else-if="searched && matches.length === 0"
             class="flex justify-center items-center h-96"
@@ -66,21 +65,14 @@
       </div>
 
       <!-- 🔹 Panel filtrów -->
-      <div
-        class="fixed right-6 w-80 bg-white/90 text-black rounded-l-3xl shadow-xl z-40 p-6 backdrop-blur-md"
-        :style="{ top: '6rem', bottom: '10rem' }"
-      >
-        <MatchFilterModal
-          :filters="filters"
-          :faculties="faculties"
-          :disciplines="disciplines"
-          @applyFilters="applyFiltersWithAlert"
-          @fetchDisciplines="onFacultyChange"
-          @selectUniversity="selectUniversity"
-          inline
-          class="h-full overflow-y-auto"
-        />
-      </div>
+      <MatchFilter
+        :filters="filters"
+        :faculties="faculties"
+        :disciplines="disciplines"
+        @applyFilters="applyFiltersWithAlert"
+        @fetchDisciplines="onFacultyChange"
+        @selectUniversity="selectUniversity"
+      />
     </div>
 
     <!-- 🔹 It's a Match -->
@@ -92,17 +84,8 @@
         <div
           class="bg-white rounded-3xl shadow-2xl text-center max-w-xs w-full p-6 relative overflow-hidden"
         >
-          <!-- Efekt serca w tle -->
-          <div
-            class="absolute inset-0 bg-pink-200/20 animate-pulse rounded-3xl -z-10"
-          ></div>
-
-          <!-- Tytuł -->
-          <h2 class="text-3xl font-bold text-pink-500 mb-4 drop-shadow-lg">
-            It's a Match!
-          </h2>
-
-          <!-- 🔹 Animacja Lottie -->
+          <div class="absolute inset-0 bg-pink-200/20 animate-pulse rounded-3xl -z-10"></div>
+          <h2 class="text-3xl font-bold text-pink-500 mb-4 drop-shadow-lg">It's a Match!</h2>
           <Vue3Lottie
             v-if="matchAnimation"
             :animationData="matchAnimation"
@@ -112,15 +95,11 @@
             :autoplay="true"
             class="mx-auto mb-4"
           />
-
-          <!-- 🔹 Zdjęcie profilu -->
           <img
             v-if="matchProfile.profile_picture"
             :src="matchProfile.profile_picture"
             class="w-28 h-28 rounded-full mx-auto mb-3 border-4 border-pink-400 shadow-lg"
           />
-
-          <!-- 🔹 Nazwa -->
           <p class="font-semibold text-indigo-700 text-lg drop-shadow-md">
             {{ matchProfile.name }}
           </p>
@@ -161,13 +140,12 @@ import UserHeader from "../components/Layout/UserHeader.vue";
 import ChatSidebar from "../components/Chat/ChatSidebar.vue";
 import ChatBox from "../components/Chat/ChatBox.vue";
 import MatchProfileCard from "../components/Match/MatchProfileCard.vue";
-import MatchFilterModal from "../components/Modal/MatchFilterModal.vue";
+import MatchFilter from "../components/Modal/MatchFilterModal.vue";
 import socket from "../socket";
 import background from "@/assets/background.jpg";
-import { Vue3Lottie } from 'vue3-lottie'
-import handshakeAnimation from '@/assets/animations/handshake.json'
+import { Vue3Lottie } from "vue3-lottie";
+import handshakeAnimation from "@/assets/animations/handshake.json";
 
-const matchAnimation = ref(handshakeAnimation)
 const profile = reactive({});
 const filters = reactive({
   gender: "",
@@ -177,27 +155,16 @@ const filters = reactive({
   facultyId: "",
   disciplineId: "",
 });
+const faculties = ref([]);
+const disciplines = ref([]);
 const matches = ref([]);
 const currentIndex = ref(0);
 const searched = ref(false);
-
-const isSidebarOpen = ref(false);
 const activeChat = ref(null);
-
-function openChat(chat) {
-  activeChat.value = chat;
-}
-function closeChat() {
-  activeChat.value = null;
-}
-
-const faculties = ref([]);
-const disciplines = ref([]);
-
+const isSidebarOpen = ref(false);
 const showMatch = ref(false);
 const matchProfile = ref({});
-const currentProfile = computed(() => matches.value[currentIndex.value] || {});
-
+const matchAnimation = ref(handshakeAnimation);
 const showApplied = ref(false);
 
 onMounted(() => {
@@ -205,7 +172,6 @@ onMounted(() => {
   socket.on("match_created", (data) => console.log("🔔 Nowy match!", data));
   socket.on("match_deleted", (data) => console.log("❌ Match usunięty:", data));
 });
-
 onUnmounted(() => {
   socket.off("match_created");
   socket.off("match_deleted");
@@ -213,8 +179,16 @@ onUnmounted(() => {
 
 async function fetchUser() {
   const res = await fetch("http://localhost:3000/api/auth/me", { credentials: "include" });
-  if (!res.ok) return;
-  Object.assign(profile, await res.json());
+  if (res.ok) Object.assign(profile, await res.json());
+}
+
+const currentProfile = computed(() => matches.value[currentIndex.value] || {});
+
+function openChat(chat) {
+  activeChat.value = chat;
+}
+function closeChat() {
+  activeChat.value = null;
 }
 
 async function swipeLeft() {
@@ -234,10 +208,7 @@ async function vote(like) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId: otherUserId, like }),
   });
-  if (!res.ok) {
-    console.error("❌ Błąd przy głosowaniu");
-    return;
-  }
+  if (!res.ok) return;
   const data = await res.json();
   if (data.matchJustActivated) showItsAMatchAnimation(currentProfile.value);
 }
@@ -282,7 +253,6 @@ async function selectUniversity(u) {
   filters.universityId = u.university_id;
   await fetchFaculties();
 }
-
 async function fetchFaculties() {
   if (!filters.universityId) return;
   const res = await fetch(`http://localhost:3000/api/faculties?universityId=${filters.universityId}`, {
@@ -326,27 +296,18 @@ async function fetchFaculties() {
 
 /* Animacja konfetti */
 @keyframes fall {
-  0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(80px) rotate(360deg); opacity: 0; }
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(80px) rotate(360deg);
+    opacity: 0;
+  }
 }
 .animate-fall {
   animation-name: fall;
   animation-iteration-count: infinite;
   animation-timing-function: ease-in;
 }
-
-/* 🔹 Animacja wysuwania panelu filtrów */
-.slide-enter-active, .slide-leave-active {
-  transition: transform 0.3s ease;
-}
-.slide-enter-from, .slide-leave-to {
-  transform: translateX(100%);
-}
-.slide-enter-to, .slide-leave-from {
-  transform: translateX(0);
-}
-
-/* 🔹 Obrót strzałki */
-.rotate-0 { transform: rotate(0deg); }
-.rotate-180 { transform: rotate(180deg); }
 </style>
