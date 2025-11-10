@@ -1,4 +1,4 @@
-const { GroupJoinRequest, GroupMember, Group, Profile } = require('../models');
+const { User, GroupJoinRequest, GroupMember, Group, Profile } = require('../models');
 
 // 🔹 Wysłanie prośby o dołączenie
 exports.requestJoin = async (req, res) => {
@@ -23,23 +23,36 @@ exports.requestJoin = async (req, res) => {
 // 🔹 Pobierz prośby o dołączenie (dla admina)
 exports.getJoinRequests = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.userId; // <-- małe 'u'
 
-    const adminGroups = await Group.findAll({ where: { creator_user_id: userId } });
-    const adminGroupIds = adminGroups.map(g => g.group_id);
-
+    // Pobieramy grupy, które stworzył użytkownik
     const requests = await GroupJoinRequest.findAll({
-      where: { group_id: adminGroupIds, status: 'pending' },
       include: [
-        { model: Group, as: 'group', attributes: ['group_name'] },
-        { model: Profile, as: 'user', attributes: ['name', 'surname', 'profile_picture'] }
+        {
+          model: User,
+          as: 'user',
+          attributes: ['user_id', 'name', 'surname', 'email'],
+          include: [
+            {
+              model: Profile,
+              as: 'userProfile', // <-- zgodnie z aliasem w modelach
+              attributes: ['profile_id', 'name', 'bio', 'profile_picture']
+            }
+          ]
+        },
+        {
+          model: Group,
+          as: 'group',
+          where: { creator_user_id: userId }, // <-- tu userId jest już poprawnie przekazane
+          attributes: ['group_id', 'group_name']
+        }
       ]
     });
 
-    res.json(requests);
+    res.json({ requests });
   } catch (err) {
-    console.error("❌ Błąd pobierania próśb:", err);
-    res.status(500).json({ error: "Nie udało się pobrać próśb" });
+    console.error('❌ Error fetching join requests:', err);
+    res.status(500).json({ message: 'Failed to fetch join requests', error: err.message });
   }
 };
 

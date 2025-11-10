@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full max-w-4xl mx-auto select-none mt-10">
+  <div class="relative w-full max-w-4xl mx-auto select-none mt-30">
     <!-- 🖼️ Karta -->
     <div
       ref="card"

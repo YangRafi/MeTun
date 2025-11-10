@@ -32,22 +32,22 @@
           <!-- 🔹 Brak wyników -->
           <div
             v-else-if="searched && matches.length === 0"
-            class="flex justify-center items-center h-96"
+            class="flex justify-center items-center min-h-[45rem]"
           >
             <div class="bg-white/20 backdrop-blur-md px-12 py-10 rounded-3xl shadow-lg text-center">
-              <h2 class="text-3xl font-semibold mb-3">To koniec poszukiwań na dziś 💫</h2>
-              <p class="text-white/80 text-lg">Wróć później, by zobaczyć nowe dopasowania!</p>
+              <h2 class="text-3xl font-semibold mb-3 text-white">To koniec poszukiwań na dziś 💫</h2>
+              <p class="text-white text-lg">Wróć później, by zobaczyć nowe dopasowania!</p>
             </div>
           </div>
 
           <!-- 🔹 Jeszcze nie wybrano filtrów -->
           <div
             v-else-if="!searched"
-            class="flex justify-center items-center h-96"
+            class="flex justify-center items-center min-h-[45rem]"
           >
             <div class="bg-white/20 backdrop-blur-md px-12 py-10 rounded-3xl shadow-lg text-center animate-fade-in">
-              <h2 class="text-4xl font-bold mb-4">Wybierz filtry 🎯</h2>
-              <p class="text-white/80 text-lg max-w-md mx-auto">
+              <h2 class="text-4xl font-bold mb-4 text-white">Wybierz filtry 🎯</h2>
+              <p class="text-white text-lg max-w-md mx-auto">
                 Skorzystaj z panelu po prawej stronie, aby zobaczyć swoje potencjalne dopasowania.
               </p>
             </div>
@@ -100,7 +100,7 @@
             :src="matchProfile.profile_picture"
             class="w-28 h-28 rounded-full mx-auto mb-3 border-4 border-pink-400 shadow-lg"
           />
-          <p class="font-semibold text-indigo-700 text-lg drop-shadow-md">
+          <p class="font-semibold text-blue-800 text-lg drop-shadow-md">
             {{ matchProfile.name }}
           </p>
 
@@ -126,7 +126,7 @@
     <transition name="fade">
       <div
         v-if="showApplied"
-        class="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-6 py-3 rounded-2xl shadow-lg z-50"
+        class="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-2xl shadow-lg z-50"
       >
         Filtry zastosowane ✅
       </div>

@@ -19,6 +19,11 @@ const GroupJoinRequest = sequelize.define('GroupJoinRequest', {
     type: Sequelize.ENUM('pending', 'accepted', 'rejected'),
     defaultValue: 'pending'
   },
+  type: {
+    type: Sequelize.ENUM('request', 'invite'),
+    allowNull: false,
+    defaultValue: 'request'
+  },
   created_at: {
     type: Sequelize.DATE,
     defaultValue: Sequelize.NOW

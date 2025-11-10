@@ -1,5 +1,5 @@
 const { Op } = require("sequelize");
-const { Group, Discipline, Faculty, UserUniversity, GroupMember } = require("../models");
+const { Group, User, Discipline, Faculty, UserUniversity, GroupMember } = require("../models");
 
 // GET all groups with optional filters
 exports.getAllGroups = async (req, res) => {
@@ -38,6 +38,65 @@ exports.getAllGroups = async (req, res) => {
   } catch (err) {
     console.error("❌ Error fetching groups:", err);
     res.status(500).json({ error: "Server error while fetching groups" });
+  }
+};
+
+// GET groups created by current user
+exports.getGroupsByCreator = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const groups = await Group.findAll({
+      where: { creator_user_id: userId },
+      include: [
+        { model: Discipline, as: 'discipline', attributes: ['name'] }
+      ]
+    });
+
+    res.json(groups);
+  } catch (err) {
+    console.error("❌ Error fetching user's created groups:", err);
+    res.status(500).json({ error: "Server error while fetching created groups" });
+  }
+};
+
+// GET groups where current user is a member
+exports.getMyGroups = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const groupMembers = await GroupMember.findAll({
+      where: { user_id: userId },
+      include: [
+        {
+          model: Group,
+          as: 'group',
+          include: [
+            { model: User, as: 'creator', attributes: ['user_id', 'name', 'surname', 'email'] },
+            { model: Discipline, as: 'discipline', attributes: ['discipline_id', 'name'] },
+            {
+              model: GroupMember,
+              as: 'groupMembers',
+              include: [{ model: User, as: 'user', attributes: ['user_id', 'name', 'surname', 'email'] }]
+            }
+          ]
+        }
+      ]
+    });
+
+    // Wyrzucamy same grupy (nie GroupMember)
+    const myGroups = groupMembers.map(gm => {
+      const group = gm.group.toJSON();
+      // Opcjonalnie dodajemy rolę aktualnego użytkownika
+      const memberData = gm.toJSON();
+      group.role = memberData.role || 'member';
+      return group;
+    });
+
+    res.json(myGroups); // ← zwracamy od razu tablicę
+  } catch (err) {
+    console.error("❌ Error fetching user's groups:", err);
+    res.status(500).json({ message: "Failed to fetch user groups", error: err.message });
   }
 };
 
@@ -111,13 +170,22 @@ exports.updateGroup = async (req, res) => {
 // DELETE group
 exports.deleteGroup = async (req, res) => {
   try {
-    const group = await Group.findByPk(req.params.id);
-    if (!group) return res.status(404).json({ error: "Group not found" });
+    const userId = req.user.userId;
+    const groupId = req.params.id; // <-- zmienione z req.params.groupId
 
-    await group.destroy();
-    res.json({ message: "Group deleted successfully" });
+    const group = await Group.findByPk(groupId);
+    if (!group) {
+      return res.status(404).json({ error: "Grupa nie istnieje." });
+    }
+
+    if (group.creator_user_id !== userId) {
+      return res.status(403).json({ error: "Nie masz uprawnień do usunięcia tej grupy." });
+    }
+
+    await Group.destroy({ where: { group_id: groupId } });
+    res.json({ message: "Grupa została usunięta." });
   } catch (err) {
-    console.error("❌ Error deleting group:", err);
-    res.status(500).json({ error: "Server error while deleting group" });
+    console.error("❌ Błąd przy usuwaniu grupy:", err);
+    res.status(500).json({ error: "Błąd serwera podczas usuwania grupy." });
   }
 };

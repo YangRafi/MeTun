@@ -23,7 +23,7 @@ Faculty.hasMany(Discipline, { foreignKey: "faculty_id", onDelete: 'CASCADE' });
 Discipline.belongsTo(Faculty, { foreignKey: "faculty_id", onDelete: 'CASCADE' });
 
 // User - Profile
-User.hasOne(Profile, { foreignKey: "user_id", onDelete: 'CASCADE' });
+User.hasOne(Profile, { foreignKey: "user_id", as: 'userProfile', onDelete: 'CASCADE' });
 Profile.belongsTo(User, { foreignKey: "user_id", onDelete: 'CASCADE' });
 
 // User - UserUniversity
@@ -42,11 +42,14 @@ UserUniversity.belongsTo(Discipline, { foreignKey: "discipline_id", onDelete: 'C
 
 // User - Group
 User.hasMany(Group, { foreignKey: "creator_user_id", onDelete: 'CASCADE' });
-Group.belongsTo(User, { foreignKey: "creator_user_id", onDelete: 'CASCADE' });
+Group.belongsTo(User, { foreignKey: "creator_user_id", onDelete: 'CASCADE', as: 'creator' });
 
-// User - GroupMember
+// User - GroupMember - Group
 User.belongsToMany(Group, { through: GroupMember, foreignKey: "user_id", onDelete: 'CASCADE' });
 Group.belongsToMany(User, { through: GroupMember, foreignKey: "group_id", as: 'members', onDelete: 'CASCADE' });
+Group.hasMany(GroupMember, { foreignKey: 'group_id', as: 'groupMembers' });
+GroupMember.belongsTo(Group, { foreignKey: 'group_id', as: 'group' });
+GroupMember.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
 // UserMatch - Profile (dla frontendu)
 UserMatch.belongsTo(Profile, { foreignKey: 'user_id_1', as: 'user1', onDelete: 'CASCADE' });
@@ -64,14 +67,20 @@ Message.belongsTo(UserMatch, { foreignKey: 'match_id', onDelete: 'CASCADE' });
 Group.hasMany(Message, { foreignKey: 'group_id', onDelete: 'CASCADE' });
 Message.belongsTo(Group, { foreignKey: 'group_id', onDelete: 'CASCADE' });
 
+// GroupJoinRequest - User - Profile
 GroupJoinRequest.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
-GroupJoinRequest.belongsTo(Group, { foreignKey: 'group_id', as: 'group' });
+User.hasMany(GroupJoinRequest, { foreignKey: 'user_id', as: 'joinRequests' });
+Profile.belongsTo(User, { foreignKey: 'user_id', as: 'userProfile' });
 
+// GroupJoinRequest - Group
+GroupJoinRequest.belongsTo(Group, { foreignKey: 'group_id', as: 'group' });
+Group.hasMany(GroupJoinRequest, { foreignKey: 'group_id', as: 'joinRequests' });
+
+// Discipline - Group
 Discipline.hasMany(Group, { foreignKey: 'discipline_id', as: 'groups' });
 Group.belongsTo(Discipline, { foreignKey: 'discipline_id', as: 'discipline' });
 
-GroupMember.belongsTo(User, { foreignKey: 'user_id' });
-
+// Reports
 User.hasMany(Report, { foreignKey: 'senderId', as: 'sentReports', onDelete: 'CASCADE' });
 Report.belongsTo(User, { foreignKey: 'senderId', as: 'sender', onDelete: 'CASCADE' });
 
