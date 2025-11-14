@@ -6,51 +6,93 @@
     <div class="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
 
     <UserHeader :profile="userStore.profile" />
-
-    <ChatSidebar
-      v-model:isOpen="isSidebarOpen"
-      @open-chat="openChat"
-      :onlyGroups="true"
-    />
+    <ChatSidebar v-model:isOpen="isSidebarOpen" @open-chat="openChat" :onlyGroups="true" />
 
     <div class="flex-1 flex flex-col px-6 pt-28 relative z-10" v-if="!activeChat">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-7xl mx-auto">
-        <!-- Grupy kierunkowe -->
-        <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-lg border border-blue-200 flex flex-col">
-          <div class="flex items-center justify-between sticky top-0 bg-white/90 backdrop-blur-sm p-2 rounded-xl mb-4 shadow-sm">
+
+        <!-- 🎓 Grupy kierunkowe -->
+        <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-lg border border-blue-200 flex flex-col h-[70vh]">
+          <div class="flex items-center justify-between sticky top-0 bg-white/90 backdrop-blur-sm p-2 rounded-xl mb-4 shadow-sm z-10">
             <h2 class="text-2xl font-bold text-blue-800">🎓 Grupy kierunkowe</h2>
-            <div class="flex gap-2">
-              <button @click="showFilters = !showFilters" class="text-blue-700 hover:text-blue-900 text-2xl font-bold">
-                🔍
-              </button>
-              <button @click="showCreateModal = true" class="bg-green-600 text-white py-1 px-3 rounded-lg hover:bg-green-700 shadow-md">+ Grupa</button>
-            </div>
+            <button
+              @click="showFilters = !showFilters"
+              class="text-blue-700 hover:text-blue-900 text-2xl font-bold transition-transform"
+              :class="{ 'rotate-90': showFilters }"
+              title="Filtry"
+            >
+              🔍
+            </button>
           </div>
 
-          <div v-if="groups.length" class="space-y-3 overflow-y-auto max-h-[70vh] pr-1">
+          <!-- Filtry z animacją -->
+          <transition name="slide-filters">
+            <div v-show="showFilters" class="mb-4 space-y-3 p-3 bg-blue-50 border border-blue-200 rounded-xl shadow-inner">
+
+              <!-- Szukanie uczelni -->
+              <input
+                v-model="universityQuery"
+                @input="fetchUniversities"
+                placeholder="Szukaj uczelni..."
+                class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              />
+              <ul v-if="universitySuggestions.length" class="border rounded-lg max-h-40 overflow-y-auto bg-white">
+                <li
+                  v-for="u in universitySuggestions"
+                  :key="u.university_id"
+                  @click="selectUniversity(u)"
+                  class="p-2 hover:bg-blue-100 cursor-pointer"
+                >
+                  {{ u.university_name }}
+                </li>
+              </ul>
+
+              <!-- Wydział: pokazuje się dopiero po wybraniu uczelni -->
+              <select v-if="filters.universityId" v-model="filters.facultyId" @change="onFacultyChange"
+                      class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
+                <option value="">Wybierz wydział</option>
+                <option v-for="f in faculties" :key="f.faculty_id" :value="f.faculty_id">{{ f.faculty_name }}</option>
+              </select>
+
+              <!-- Kierunek: pokazuje się dopiero po wybraniu wydziału -->
+              <select v-if="filters.facultyId" v-model="filters.disciplineId"
+                      class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
+                <option value="">Wybierz kierunek</option>
+                <option v-for="d in disciplines" :key="d.discipline_id" :value="d.discipline_id">{{ d.discipline_name }}</option>
+              </select>
+
+              <div class="flex gap-2 mt-2">
+                <button @click="applyFilters" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">Szukaj</button>
+                <button @click="clearFilters" class="flex-1 bg-gray-300 text-black py-2 rounded-lg hover:bg-gray-400 transition-colors">Wyczyść</button>
+              </div>
+            </div>
+          </transition>
+
+          <!-- Lista grup -->
+          <div v-if="groups.length" class="space-y-3 overflow-y-auto pr-1 flex-1">
             <div
               v-for="g in groups"
               :key="g.group_id"
               class="p-4 bg-white rounded-2xl shadow hover:shadow-lg border border-blue-100 transition-all hover:scale-[1.02]"
             >
               <h3 class="text-lg font-semibold text-blue-800">{{ g.group_name }}</h3>
-              <button
-                @click="applyToGroup(g)"
-                class="mt-2 bg-blue-600 text-white py-1 px-3 rounded-lg hover:bg-blue-700"
-              >
+              <button @click="applyToGroup(g)" class="mt-2 bg-blue-600 text-white py-1 px-3 rounded-lg hover:bg-blue-700">
                 Dołącz / Aplikuj
               </button>
             </div>
           </div>
-          <p v-else-if="searched" class="text-center mt-4 text-gray-500">Brak grup dla wybranego kierunku.</p>
+          <p v-else-if="searched" class="text-center mt-4 text-gray-500 flex-1 flex items-center justify-center">
+            Brak grup dla wybranego kierunku.
+          </p>
         </div>
 
-        <!-- Moje grupy -->
-        <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-lg border border-blue-200 flex flex-col">
-          <div class="sticky top-0 bg-white/90 backdrop-blur-sm p-2 rounded-xl mb-4 shadow-sm">
+        <!-- 👥 Moje grupy -->
+        <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-lg border border-blue-200 flex flex-col h-[70vh]">
+          <div class="sticky top-0 bg-white/90 backdrop-blur-sm p-2 rounded-xl mb-4 shadow-sm z-10">
             <h2 class="text-2xl font-bold text-blue-800 text-center">👥 Moje grupy</h2>
           </div>
-          <div v-if="myGroups.length" class="space-y-3 overflow-y-auto max-h-[70vh] pr-1">
+
+          <div v-if="myGroups.length" class="space-y-3 overflow-y-auto pr-1 flex-1">
             <div
               v-for="g in myGroups"
               :key="g.group_id"
@@ -58,153 +100,85 @@
             >
               <h3 class="text-lg font-semibold text-blue-800">{{ g.group_name }}</h3>
               <p class="text-gray-500">Rola: {{ g.role || 'member' }}</p>
-
-              <button
-                v-if="g.role === 'admin'"
-                @click="openInviteModal(g)"
-                class="absolute top-2 right-16 text-green-600 hover:text-green-800"
-                title="Zaproś do grupy"
-              >
+              <button v-if="g.role === 'admin'" @click="openInviteModal(g)"
+                      class="absolute top-2 right-16 text-green-600 hover:text-green-800" title="Zaproś do grupy">
                 ➕
               </button>
-
-              <button
-                v-if="g.role !== 'creator'"
-                @click="leaveGroup(g)"
-                class="absolute top-2 right-10 text-red-600 hover:text-red-800" 
-                title="Opuść grupę"
-              >
+              <button v-if="g.role !== 'creator'" @click="leaveGroup(g)"
+                      class="absolute top-2 right-10 text-red-600 hover:text-red-800" title="Opuść grupę">
                 🚪
               </button>
-
-              <button
-                v-if="g.creator.user_id === userStore.profile.user_id"
-                @click="deleteGroup(g)"
-                class="absolute bottom-2 right-2 text-red-700 hover:text-red-900"
-                title="Usuń grupę"
-              >
+              <button @click="confirmDeleteGroup(g)"
+                      class="absolute bottom-2 right-2 text-red-700 hover:text-red-900" title="Usuń grupę">
                 🗑️
               </button>
-
-              <button
-                @click="openChat(g)"
-                class="mt-2 bg-blue-600 text-white py-1 px-3 rounded-lg hover:bg-blue-700"
-              >
+              <button @click="openChat(g)" class="mt-2 bg-blue-600 text-white py-1 px-3 rounded-lg hover:bg-blue-700">
                 Chat grupowy
               </button>
             </div>
           </div>
-          <p v-else class="text-center mt-4 text-gray-500">Nie należysz do żadnej grupy.</p>
+          <p v-else class="text-center mt-4 text-gray-500 flex-1 flex items-center justify-center">
+            Nie należysz do żadnej grupy.
+          </p>
         </div>
 
-        <!-- Prośby / Zaproszenia -->
-        <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-lg border border-blue-200 flex flex-col">
-          <div class="sticky top-0 bg-white/90 backdrop-blur-sm p-2 rounded-xl mb-4 shadow-sm">
+        <!-- 📩 Prośby / Zaproszenia -->
+        <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-lg border border-blue-200 flex flex-col h-[70vh]">
+          <div class="sticky top-0 bg-white/90 backdrop-blur-sm p-2 rounded-xl mb-4 shadow-sm z-10">
             <h2 class="text-2xl font-bold text-blue-800 text-center">📩 Prośby / Zaproszenia</h2>
           </div>
-          <div v-if="requests.length" class="space-y-3 overflow-y-auto max-h-[70vh] pr-1">
-            <div
-              v-for="r in requests"
-              :key="r.request_id"
-              class="p-4 bg-white rounded-2xl shadow hover:shadow-lg border border-blue-100 transition-all hover:scale-[1.02]"
-            >
+
+          <div v-if="requests.length" class="space-y-3 overflow-y-auto pr-1 flex-1">
+            <div v-for="r in requests" :key="r.request_id" class="p-4 bg-white rounded-2xl shadow hover:shadow-lg border border-blue-100 transition-all hover:scale-[1.02]">
               <p>
                 <strong>{{ r.type === 'request' ? 'Prośba o dołączenie' : 'Zaproszenie' }}</strong>
                 do grupy: {{ r.group.group_name }}
               </p>
               <p v-if="r.type === 'request'">Użytkownik: {{ r.user.name }} {{ r.user.surname }}</p>
               <div class="mt-2 flex gap-2">
-                <button
-                  @click="respondRequest(r, 'accept')"
-                  class="bg-green-600 text-white py-1 px-3 rounded-lg hover:bg-green-700"
-                >
-                  Akceptuj
+  <!-- Jeśli użytkownik jest ODBIORCĄ -->
+              <template v-if="r.user_id === userStore.profile.user_id">
+                <button @click="respondRequest(r, 'accept')" class="bg-green-600 text-white py-1 px-3 rounded-lg hover:bg-green-700">Akceptuj</button>
+                <button @click="respondRequest(r, 'reject')" class="bg-red-600 text-white py-1 px-3 rounded-lg hover:bg-red-700">Odrzuć</button>
+              </template>
+
+              <!-- Jeśli użytkownik jest NADAWCĄ ZAPROSZENIA -->
+              <template v-else-if="r.type === 'invite' && r.sender_id === userStore.profile.user_id">
+                <button @click="deleteInvite(r)" class="bg-red-600 text-white py-1 px-3 rounded-lg hover:bg-red-700">
+                  Usuń zaproszenie
                 </button>
-                <button
-                  @click="respondRequest(r, 'reject')"
-                  class="bg-red-600 text-white py-1 px-3 rounded-lg hover:bg-red-700"
-                >
-                  Odrzuć
-                </button>
-              </div>
+                <p class="text-gray-600">Zaproszono: {{ r.user.name }} {{ r.user.surname }}</p>
+              </template>
+
+              <!-- Jeśli użytkownik jest ADMINEM grupy i dotyczy to requestu -->
+              <template v-else-if="r.type === 'request'">
+                <button @click="respondRequest(r, 'accept')" class="bg-green-600 text-white py-1 px-3 rounded-lg hover:bg-green-700">Akceptuj</button>
+                <button @click="respondRequest(r, 'reject')" class="bg-red-600 text-white py-1 px-3 rounded-lg hover:bg-red-700">Odrzuć</button>
+              </template>
+            </div>
+
             </div>
           </div>
-          <p v-else class="text-center mt-4 text-gray-500">Brak próśb lub zaproszeń.</p>
+          <p v-else class="text-center mt-4 text-gray-500 flex-1 flex items-center justify-center">
+            Brak próśb lub zaproszeń.
+          </p>
         </div>
+      </div>
+
+      <!-- 🔹 DOLNY PASEK: PRZYCISK ZAJMUJĄCY CAŁĄ SZEROKOŚĆ -->
+      <div class="w-full max-w-7xl mx-auto mt-10 bg-blue-50 border border-blue-200 rounded-2xl shadow-lg p-4">
+        <button @click="showCreateModal = true"
+                class="w-full bg-blue-600 text-white text-lg font-semibold py-3 rounded-xl shadow-md hover:bg-blue-700 hover:scale-[1.03] transition-transform">
+          ➕ Utwórz nową grupę
+        </button>
       </div>
     </div>
 
-    <!-- Modale i create -->
-    <transition name="fade">
-      <div v-if="showFilters" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-start z-50">
-        <div class="bg-white w-full max-w-md mx-auto mt-24 p-6 rounded-3xl shadow-xl relative border border-blue-200">
-          <button
-            @click="showFilters = false"
-            class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl"
-          >✕</button>
-          <h2 class="text-xl font-semibold mb-4 text-center text-blue-800">Filtry grup</h2>
-          <div class="grid grid-cols-1 gap-4">
-            <div>
-              <label class="block mb-1 text-sm font-medium text-blue-800">Uczelnia</label>
-              <input
-                v-model="universityQuery"
-                @input="fetchUniversities"
-                type="text"
-                placeholder="Wpisz nazwę uczelni..."
-                class="w-full border rounded-lg p-2 focus:ring-blue-300 focus:border-blue-300"
-              />
-              <ul v-if="universitySuggestions.length > 0" class="border rounded-lg bg-white shadow mt-1 max-h-40 overflow-y-auto">
-                <li
-                  v-for="u in universitySuggestions"
-                  :key="u.university_id"
-                  @click="selectUniversity(u)"
-                  class="p-2 hover:bg-blue-50 cursor-pointer"
-                >
-                  {{ u.university_name }}
-                </li>
-              </ul>
-            </div>
-
-            <div v-if="filters.universityId">
-              <label class="block mb-1 text-sm font-medium text-blue-800">Wydział</label>
-              <select v-model="filters.facultyId" @change="onFacultyChange" class="w-full border rounded-lg p-2">
-                <option value="">Wybierz...</option>
-                <option v-for="f in faculties" :key="f.faculty_id" :value="f.faculty_id">{{ f.faculty_name }}</option>
-              </select>
-            </div>
-
-            <div v-if="filters.facultyId">
-              <label class="block mb-1 text-sm font-medium text-blue-800">Kierunek</label>
-              <select v-model="filters.disciplineId" class="w-full border rounded-lg p-2">
-                <option value="">Wybierz...</option>
-                <option v-for="d in disciplines" :key="d.discipline_id" :value="d.discipline_id">{{ d.name }}</option>
-              </select>
-            </div>
-
-            <div class="mt-4">
-              <button
-                @click="applyFilters(); showFilters = false"
-                class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 w-full shadow-md"
-              >
-                Pokaż grupy
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </transition>
-
-    <CreateGroupModal
-      :isOpen="showCreateModal"
-      :disciplines="userDisciplines"
-      @close="showCreateModal = false"
-      @created="groups.push($event)"
-    />
-
+    <!-- 🔹 Modale i Toast -->
+    <CreateGroupModal :isOpen="showCreateModal" :disciplines="userDisciplines" @close="showCreateModal = false" @created="onGroupCreated" />
     <ChatBox v-if="activeChat" :chat="activeChat" :userId="userStore.profile.user_id" @close="closeChat" />
-
-    <!-- PrimeVue Toast -->
-    <Toast />
+    <Toast ref="toastRef" />
+    <InviteModal :isOpen="showInviteModal" :group="inviteGroup" :matches="privateChats" @close="showInviteModal=false" />
   </div>
 </template>
 
@@ -218,11 +192,40 @@ import ChatBox from "../components/Chat/ChatBox.vue";
 import CreateGroupModal from "../components/modal/CreateGroupModal.vue";
 import background from "@/assets/background.jpg";
 
-import Toast from "primevue/toast"; // komponent
-import { useToast } from "primevue/usetoast"; // composable
+import Toast from "primevue/toast";
+import { useToast } from "primevue/usetoast";
 
 const toast = useToast();
 const userStore = useUserStore();
+
+import { useConfirm } from 'primevue/useconfirm';
+const confirm = useConfirm();
+
+import InviteModal from "../components/modal/InviteModal.vue";
+
+const showInviteModal = ref(false);
+const inviteGroup = ref(null);
+const privateChats = ref([]); // lista osób z prywatnych czatów
+
+async function openInviteModal(group) {
+  inviteGroup.value = group;
+
+  // fetch matches / prywatnych czatów
+  try {
+    const res = await fetch("http://localhost:3000/api/chats/private", { credentials: "include" });
+    if(res.ok) {
+      const allMatches = await res.json(); // wszystkie osoby z dopasowań / prywatnych czatów
+
+      // filtrujemy tylko tych, którzy **nie są jeszcze w grupie**
+      privateChats.value = allMatches.filter(u => 
+        !group.members?.some(m => m.user_id === u.user_id)
+      );
+    }
+  } catch(err) { console.error(err); }
+
+  showInviteModal.value = true;
+}
+
 const groups = ref([]);
 const myGroups = ref([]);
 const requests = ref([]);
@@ -239,15 +242,17 @@ const faculties = ref([]);
 const disciplines = ref([]);
 const userDisciplines = ref([]);
 
-// 🔹 Initialize
+// Initialize
 async function initialize() {
   await userStore.fetchUserAndProfile();
   await fetchMyGroups();
   await fetchRequests();
+  await fetchUserDisciplines();
+  await applyFilters();
 }
 onMounted(initialize);
 
-// 🔹 Fetch moje grupy
+// Fetch moje grupy
 async function fetchMyGroups() {
   try {
     const res = await fetch("http://localhost:3000/api/groups/mine", { credentials: "include" });
@@ -255,25 +260,35 @@ async function fetchMyGroups() {
   } catch (err) { console.error(err); }
 }
 
-// 🔹 Fetch requests
+// Fetch requests
 async function fetchRequests() {
   try {
-    const res = await fetch("http://localhost:3000/api/groupRequests/pending", { credentials: "include" });
-    if (res.ok) {
-      const data = await res.json();
-      requests.value = data.requests || [];
-    }
-  } catch (err) { console.error(err); }
+    // 🔹 Requesty dla admina (do Twoich grup)
+    const resMine = await fetch("http://localhost:3000/api/groupRequests/mine", { credentials: "include" });
+    const dataMine = resMine.ok ? await resMine.json() : { requests: [] };
+
+    // 🔹 Requesty i zaproszenia dla zalogowanego użytkownika
+    const resPending = await fetch("http://localhost:3000/api/groupRequests/pending", { credentials: "include" });
+    const dataPending = resPending.ok ? await resPending.json() : { requests: [] };
+
+    // 🔹 Scal wszystko w jedną listę
+    requests.value = [...dataMine.requests, ...dataPending.requests];
+  } catch (err) {
+    console.error(err);
+  }
 }
 
-// 🔹 Grupy kierunkowe
+
+// SEARCH helpers
 let fetchTimeout;
 async function fetchUniversities() {
   if (universityQuery.value.length < 1) return (universitySuggestions.value = []);
   clearTimeout(fetchTimeout);
   fetchTimeout = setTimeout(async () => {
-    const res = await fetch(`http://localhost:3000/api/universities?query=${encodeURIComponent(universityQuery.value)}`, { credentials: "include" });
-    universitySuggestions.value = await res.json();
+    try {
+      const res = await fetch(`http://localhost:3000/api/universities?query=${encodeURIComponent(universityQuery.value)}`, { credentials: "include" });
+      if (res.ok) universitySuggestions.value = await res.json();
+    } catch (err) { console.error(err); }
   }, 250);
 }
 async function selectUniversity(u) {
@@ -283,31 +298,55 @@ async function selectUniversity(u) {
   await fetchFaculties();
 }
 async function fetchFaculties() {
-  if (!filters.universityId) return;
-  const res = await fetch(`http://localhost:3000/api/faculties?universityId=${filters.universityId}`, { credentials: "include" });
-  faculties.value = await res.json();
+  if (!filters.universityId) return (faculties.value = []);
+  try {
+    const res = await fetch(`http://localhost:3000/api/faculties?universityId=${filters.universityId}`, { credentials: "include" });
+    if (res.ok) faculties.value = await res.json();
+  } catch (err) { console.error(err); }
 }
 async function onFacultyChange() {
-  const res = await fetch(`http://localhost:3000/api/disciplines?facultyId=${filters.facultyId}`, { credentials: "include" });
-  disciplines.value = await res.json();
+  if (!filters.facultyId) return (disciplines.value = []);
+  try {
+    const res = await fetch(`http://localhost:3000/api/disciplines?facultyId=${filters.facultyId}`, { credentials: "include" });
+    if (res.ok) disciplines.value = await res.json();
+  } catch (err) { console.error(err); }
 }
-async function applyFilters() {
+
+// APPLY FILTERS
+async function applyFilters(showToast = true) {
   const params = new URLSearchParams();
   if (filters.universityId) params.append("university_id", filters.universityId);
   if (filters.facultyId) params.append("faculty_id", filters.facultyId);
   if (filters.disciplineId) params.append("discipline_id", filters.disciplineId);
 
   try {
-    const res = await fetch(`http://localhost:3000/api/groups?${params.toString()}`, { credentials: "include" });
-    if (res.ok) {
-      groups.value = await res.json();
-      searched.value = true;
-      toast.add({ severity: 'success', summary: 'Filtry', detail: 'Grupy zostały zaktualizowane', life: 3000 });
+    const url = `http://localhost:3000/api/groups?${params.toString()}`;
+    const res = await fetch(url, { credentials: "include" });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(err || "Błąd pobierania grup");
     }
-  } catch (err) { console.error(err); }
+    groups.value = await res.json();
+    searched.value = true;
+    if(showToast) toast.add({ severity: 'success', summary: 'Filtry', detail: 'Grupy zostały zaktualizowane', life: 3000 });
+  } catch (err) {
+    console.error(err);
+    toast.add({ severity: 'error', summary: 'Błąd', detail: 'Nie udało się pobrać grup', life: 3000 });
+  }
 }
 
-// 🔹 Join / respond
+function clearFilters() {
+  filters.universityId = "";
+  filters.facultyId = "";
+  filters.disciplineId = "";
+  universityQuery.value = "";
+  universitySuggestions.value = [];
+  faculties.value = [];
+  disciplines.value = [];
+  applyFilters();
+}
+
+// Dołącz / request
 async function applyToGroup(group) {
   try {
     const res = await fetch("http://localhost:3000/api/groupRequests/join", {
@@ -316,10 +355,13 @@ async function applyToGroup(group) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ groupId: group.group_id }),
     });
+    const data = await res.json().catch(() => ({}));
     if (res.ok) toast.add({ severity: 'success', summary: 'Dołączono', detail: 'Wysłano prośbę o dołączenie', life: 3000 });
-  } catch (err) { console.error(err); }
+    else toast.add({ severity: 'warn', summary: 'Błąd', detail: data.error || data.message || 'Nie udało się wysłać prośby', life: 3000 });
+  } catch (err) { console.error(err); toast.add({ severity: 'error', summary: 'Błąd', detail: 'Błąd podczas wysyłania prośby', life: 3000 }); }
 }
 
+// Respond request
 async function respondRequest(r, action) {
   try {
     const res = await fetch("http://localhost:3000/api/groupRequests/respond", {
@@ -333,64 +375,116 @@ async function respondRequest(r, action) {
       fetchMyGroups();
       toast.add({ severity: 'success', summary: 'Prośba', detail: `Prośba została ${action === 'accept' ? 'zaakceptowana' : 'odrzucona'}`, life: 3000 });
     }
-  } catch (err) { console.error(err); }
+  } catch (err) { console.error(err); toast.add({ severity: 'error', summary: 'Błąd', detail: 'Nie udało się przetworzyć prośby', life: 3000 }); }
 }
 
-// 🔹 Chat
+// Chat
 function openChat(chat) { activeChat.value = chat; }
 function closeChat() { activeChat.value = null; }
 
-// 🔹 Moje grupy: akcje admin/creator/member
-function openInviteModal(group) {
-  toast.add({ severity: 'info', summary: 'Zaproszenia', detail: `Otwieramy modal zaproszeń dla grupy: ${group.group_name}`, life: 3000 });
-}
+// Admin/creator actions
 async function leaveGroup(group) {
   try {
-    const res = await fetch(`http://localhost:3000/api/group-members/${group.group_id}/leave`, {
-      method: 'POST',
-      credentials: 'include'
-    });
+    const res = await fetch(`http://localhost:3000/api/group-members/${group.group_id}/leave`, { method: 'POST', credentials: 'include' });
     if (res.ok) {
       myGroups.value = myGroups.value.filter(g => g.group_id !== group.group_id);
       toast.add({ severity: 'success', summary: 'Opuszczono grupę', detail: '', life: 3000 });
     } else {
-      const errData = await res.json();
-      toast.add({ severity: 'error', summary: 'Błąd', detail: errData.error, life: 3000 });
+      const errData = await res.json().catch(()=>({}));
+      toast.add({ severity: 'error', summary: 'Błąd', detail: errData.error || 'Nie udało się opuścić grupy', life: 3000 });
     }
-  } catch (err) { console.error(err); }
+  } catch (err) { console.error(err); toast.add({ severity: 'error', summary: 'Błąd', detail: 'Błąd podczas opuszczania grupy', life: 3000 }); }
 }
 
 async function deleteGroup(group) {
-  if (!confirm(`Na pewno chcesz usunąć grupę "${group.group_name}"?`)) return;
   try {
-    const res = await fetch(`http://localhost:3000/api/groups/${group.group_id}`, {
-      method: 'DELETE',
-      credentials: 'include'
-    });
+    const res = await fetch(`http://localhost:3000/api/groups/${group.group_id}`, { method: 'DELETE', credentials: 'include' });
     if (res.ok) {
       myGroups.value = myGroups.value.filter(g => g.group_id !== group.group_id);
+      groups.value = groups.value.filter(g => g.group_id !== group.group_id);
       toast.add({ severity: 'success', summary: 'Usunięto grupę', detail: '', life: 3000 });
     }
+  } catch (err) { console.error(err); toast.add({ severity: 'error', summary: 'Błąd', detail: 'Nie udało się usunąć grupy', life: 3000 }); }
+}
+// Usuń zaproszenie (invite) — dla nadawcy
+async function deleteInvite(r) {
+  try {
+    const res = await fetch(`http://localhost:3000/api/groupRequests/invite/${r.request_id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    if (res.ok) {
+      // usuwamy z lokalnej listy
+      requests.value = requests.value.filter(req => req.request_id !== r.request_id);
+      toast.add({ severity: 'success', summary: 'Zaproszenie', detail: 'Zaproszenie zostało usunięte', life: 3000 });
+    } else {
+      const data = await res.json().catch(() => ({}));
+      toast.add({ severity: 'error', summary: 'Błąd', detail: data.error || 'Nie udało się usunąć zaproszenia', life: 3000 });
+    }
+  } catch (err) {
+    console.error(err);
+    toast.add({ severity: 'error', summary: 'Błąd', detail: 'Błąd podczas usuwania zaproszenia', life: 3000 });
+  }
+}
+
+function confirmDeleteGroup(group) {
+  confirm.require({
+    message: `Czy na pewno chcesz usunąć grupę "${group.group_name}"? Tej operacji nie można cofnąć.`,
+    header: 'Potwierdź usunięcie',
+    icon: 'pi pi-exclamation-triangle text-yellow-500',
+    acceptLabel: 'Tak, usuń',
+    rejectLabel: 'Anuluj',
+    acceptClass: 'bg-red-600 border-none hover:bg-red-700 font-semibold text-white rounded-xl px-4 py-2 transition',
+    rejectClass: 'bg-gray-300 border-none hover:bg-gray-400 font-semibold text-gray-800 rounded-xl px-4 py-2 transition',
+    accept: async () => {
+      try {
+        const res = await fetch(`http://localhost:3000/api/groups/${group.group_id}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        if (res.ok) {
+          myGroups.value = myGroups.value.filter(g => g.group_id !== group.group_id);
+          groups.value = groups.value.filter(g => g.group_id !== group.group_id);
+          toast.add({ severity: 'success', summary: 'Usunięto grupę', detail: '', life: 3000 });
+        }
+      } catch (err) {
+        console.error(err);
+        toast.add({ severity: 'error', summary: 'Błąd', detail: 'Nie udało się usunąć grupy', life: 3000 });
+      }
+    },
+    reject: () => {
+      // Nic nie robimy, dialog po prostu się zamyka
+    }
+  });
+}
+
+
+// User disciplines
+async function fetchUserDisciplines() {
+  try {
+    const res = await fetch("http://localhost:3000/api/userUniversity/my?status=approved", { credentials: "include" });
+    if (res.ok) userDisciplines.value = await res.json();
   } catch (err) { console.error(err); }
 }
 
-async function fetchUserDisciplines() {
-  const res = await fetch(
-    "http://localhost:3000/api/userUniversity/my?status=approved",
-    { credentials: "include" }
-  );
-  userDisciplines.value = await res.json();
+// On group created
+function onGroupCreated(newGroup) {
+  showCreateModal.value = false;
+  myGroups.value.unshift(newGroup);
+  applyFilters(false); // false aby nie powielać toastu
+  toast.add({ severity: 'success', summary: 'Sukces', detail: 'Grupa została utworzona', life: 3000 });
 }
-onMounted(fetchUserDisciplines);
 </script>
 
 <style scoped>
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+  transform: translateY(-6px);
 }
 </style>

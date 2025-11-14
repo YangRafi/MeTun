@@ -15,6 +15,10 @@ const GroupJoinRequest = sequelize.define('GroupJoinRequest', {
     type: Sequelize.INTEGER,
     allowNull: false
   },
+  sender_id: { 
+    type: Sequelize.INTEGER,
+    allowNull: false
+  },
   status: {
     type: Sequelize.ENUM('pending', 'accepted', 'rejected'),
     defaultValue: 'pending'

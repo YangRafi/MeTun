@@ -30,7 +30,6 @@ Profile.belongsTo(User, { foreignKey: "user_id", onDelete: 'CASCADE' });
 User.hasMany(UserUniversity, { foreignKey: "user_id", onDelete: 'CASCADE' });
 UserUniversity.belongsTo(User, { foreignKey: "user_id", onDelete: 'CASCADE' });
 
-// UserUniversity - University/Faculty/Discipline
 University.hasMany(UserUniversity, { foreignKey: "university_id", onDelete: 'CASCADE' });
 UserUniversity.belongsTo(University, { foreignKey: "university_id", onDelete: 'CASCADE' });
 
@@ -42,16 +41,17 @@ UserUniversity.belongsTo(Discipline, { foreignKey: "discipline_id", onDelete: 'C
 
 // User - Group
 User.hasMany(Group, { foreignKey: "creator_user_id", onDelete: 'CASCADE' });
-Group.belongsTo(User, { foreignKey: "creator_user_id", onDelete: 'CASCADE', as: 'creator' });
+Group.belongsTo(User, { foreignKey: "creator_user_id", as: 'creator', onDelete: 'CASCADE' });
 
 // User - GroupMember - Group
 User.belongsToMany(Group, { through: GroupMember, foreignKey: "user_id", onDelete: 'CASCADE' });
 Group.belongsToMany(User, { through: GroupMember, foreignKey: "group_id", as: 'members', onDelete: 'CASCADE' });
+
 Group.hasMany(GroupMember, { foreignKey: 'group_id', as: 'groupMembers' });
 GroupMember.belongsTo(Group, { foreignKey: 'group_id', as: 'group' });
 GroupMember.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
-// UserMatch - Profile (dla frontendu)
+// UserMatch - Profile
 UserMatch.belongsTo(Profile, { foreignKey: 'user_id_1', as: 'user1', onDelete: 'CASCADE' });
 UserMatch.belongsTo(Profile, { foreignKey: 'user_id_2', as: 'user2', onDelete: 'CASCADE' });
 
@@ -59,18 +59,25 @@ UserMatch.belongsTo(Profile, { foreignKey: 'user_id_2', as: 'user2', onDelete: '
 User.hasMany(UserMatch, { foreignKey: 'user_id_1', as: 'matchesAsUser1', onDelete: 'CASCADE' });
 User.hasMany(UserMatch, { foreignKey: 'user_id_2', as: 'matchesAsUser2', onDelete: 'CASCADE' });
 
-// UserMatch - Message (prywatne wiadomości)
+// UserMatch - Message
 UserMatch.hasMany(Message, { foreignKey: 'match_id', onDelete: 'CASCADE' });
 Message.belongsTo(UserMatch, { foreignKey: 'match_id', onDelete: 'CASCADE' });
 
-// Group - Message (grupowe wiadomości)
+// Group - Message
 Group.hasMany(Message, { foreignKey: 'group_id', onDelete: 'CASCADE' });
 Message.belongsTo(Group, { foreignKey: 'group_id', onDelete: 'CASCADE' });
 
-// GroupJoinRequest - User - Profile
+// ---------------------------
+//  Group Join Requests
+// ---------------------------
+
+// ✔️ user_id = osoba, której dotyczy request
 GroupJoinRequest.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 User.hasMany(GroupJoinRequest, { foreignKey: 'user_id', as: 'joinRequests' });
-Profile.belongsTo(User, { foreignKey: 'user_id', as: 'userProfile' });
+
+// ✔️ sender_id = osoba wysyłająca (zależnie od typu)
+GroupJoinRequest.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
+User.hasMany(GroupJoinRequest, { foreignKey: 'sender_id', as: 'sentGroupRequests' });
 
 // GroupJoinRequest - Group
 GroupJoinRequest.belongsTo(Group, { foreignKey: 'group_id', as: 'group' });
