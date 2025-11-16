@@ -4,15 +4,17 @@
   "description": "MeTun Back-End",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "start": "nodemon app.js",
     "start-server": "node app.js"
   },
   "author": "Rafał Świderski",
   "license": "",
   "devDependencies": {
+    "jest": "^30.2.0",
     "nodemon": "^3.1.10",
-    "sequelize-cli": "^6.6.3"
+    "sequelize-cli": "^6.6.3",
+    "supertest": "^7.1.4"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

@@ -1,83 +1,51 @@
-const Faculty = require('../models/Faculty');
+const facultyService = require('../services/facultyService');
 
-// GET all faculties
 exports.getAllFaculties = async (req, res) => {
   try {
-    const { universityId } = req.query;
-
-    const whereClause = {};
-    if (universityId) {
-      whereClause.university_id = universityId;
-    }
-
-    const faculties = await Faculty.findAll({
-      where: whereClause,
-      order: [['faculty_name', 'ASC']]
-    });
-
+    const faculties = await facultyService.getAllFaculties(req.query.universityId);
     res.json(faculties);
   } catch (err) {
     console.error("❌ Error fetching faculties:", err);
-    res.status(500).json({
-      error: "Server error while fetching faculties",
-      details: err.message
-    });
+    res.status(500).json({ error: err.message });
   }
 };
 
-// GET faculty by ID
 exports.getFacultyById = async (req, res) => {
   try {
-    const faculty = await Faculty.findByPk(req.params.id);
-    if (!faculty) {
-      return res.status(404).json({ error: "Faculty not found" });
-    }
+    const faculty = await facultyService.getFacultyById(req.params.id);
     res.json(faculty);
   } catch (err) {
     console.error("❌ Error fetching faculty:", err);
-    res.status(500).json({ error: "Server error while fetching faculty" });
+    res.status(404).json({ error: err.message });
   }
 };
 
-// CREATE new faculty
 exports.createFaculty = async (req, res) => {
   try {
-    const { faculty_name, university_id } = req.body;
-    const newFaculty = await Faculty.create({ faculty_name, university_id });
+    const newFaculty = await facultyService.createFaculty(req.body);
     res.status(201).json(newFaculty);
   } catch (err) {
     console.error("❌ Error creating faculty:", err);
-    res.status(500).json({ error: "Server error while creating faculty" });
+    res.status(500).json({ error: err.message });
   }
 };
 
-// UPDATE faculty
 exports.updateFaculty = async (req, res) => {
   try {
-    const faculty = await Faculty.findByPk(req.params.id);
-    if (!faculty) {
-      return res.status(404).json({ error: "Faculty not found" });
-    }
-    const { faculty_name, university_id } = req.body;
-    await faculty.update({ faculty_name, university_id });
+    const faculty = await facultyService.updateFaculty(req.params.id, req.body);
     res.json(faculty);
   } catch (err) {
     console.error("❌ Error updating faculty:", err);
-    res.status(500).json({ error: "Server error while updating faculty" });
+    res.status(404).json({ error: err.message });
   }
 };
 
-// DELETE faculty
 exports.deleteFaculty = async (req, res) => {
   try {
-    const faculty = await Faculty.findByPk(req.params.id);
-    if (!faculty) {
-      return res.status(404).json({ error: "Faculty not found" });
-    }
-    await faculty.destroy();
+    await facultyService.deleteFaculty(req.params.id);
     res.json({ message: "Faculty deleted successfully" });
   } catch (err) {
     console.error("❌ Error deleting faculty:", err);
-    res.status(500).json({ error: "Server error while deleting faculty" });
+    res.status(404).json({ error: err.message });
   }
 };

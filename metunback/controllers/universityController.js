@@ -1,39 +1,21 @@
-const University = require('../models/University');
-const { Op, Sequelize } = require('sequelize');
+const universityService = require('../services/universityService');
 
 // GET all universities
 exports.getAllUniversities = async (req, res) => {
   try {
     const { query } = req.query;
-    let universities;
-
-    if (query) {
-      universities = await University.findAll({
-        where: Sequelize.where(
-          Sequelize.fn('LOWER', Sequelize.col('university_name')),
-          {
-            [Op.like]: `${query.toLowerCase()}%`
-          }
-        ),
-        limit: 10
-      });
-    } else {
-      universities = await University.findAll();
-    }
-
+    const universities = await universityService.getAll(query);
     res.json(universities);
   } catch (err) {
-    console.error("❌ Błąd SQL:", err.message);
-    res.status(500).json({ error: 'Server error', details: err.message });
+    console.error("❌ Error fetching universities:", err);
+    res.status(500).json({ error: 'Server error' });
   }
 };
 
-
 // GET one university by ID
 exports.getUniversityById = async (req, res) => {
-  const id = req.params.id;
   try {
-    const uni = await University.findByPk(id);
+    const uni = await universityService.getById(req.params.id);
     if (!uni) return res.status(404).json({ error: 'University not found' });
     res.json(uni);
   } catch (err) {
@@ -42,11 +24,10 @@ exports.getUniversityById = async (req, res) => {
   }
 };
 
-// POST - create a new university
+// CREATE university
 exports.createUniversity = async (req, res) => {
-  const { university_name, location, type } = req.body;
   try {
-    const uni = await University.create({ university_name, location, type });
+    const uni = await universityService.create(req.body);
     res.status(201).json(uni);
   } catch (err) {
     console.error(err);
@@ -54,19 +35,11 @@ exports.createUniversity = async (req, res) => {
   }
 };
 
-// PUT - update an existing university
+// UPDATE university
 exports.updateUniversity = async (req, res) => {
-  const id = req.params.id;
-  const { university_name, location, type } = req.body;
   try {
-    const uni = await University.findByPk(id);
+    const uni = await universityService.update(req.params.id, req.body);
     if (!uni) return res.status(404).json({ error: 'University not found' });
-
-    uni.university_name = university_name;
-    uni.location = location;
-    uni.type = type;
-    await uni.save();
-
     res.json(uni);
   } catch (err) {
     console.error(err);
@@ -74,14 +47,11 @@ exports.updateUniversity = async (req, res) => {
   }
 };
 
-// DELETE - remove a university
+// DELETE university
 exports.deleteUniversity = async (req, res) => {
-  const id = req.params.id;
   try {
-    const uni = await University.findByPk(id);
-    if (!uni) return res.status(404).json({ error: 'University not found' });
-
-    await uni.destroy();
+    const ok = await universityService.remove(req.params.id);
+    if (!ok) return res.status(404).json({ error: 'University not found' });
     res.json({ message: 'University deleted' });
   } catch (err) {
     console.error(err);
