@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const disciplineController = require('../controllers/disciplineController');
 
-router.get('/', disciplineController.getDisciplinesByFaculty);
+router.get('/byFaculty/:facultyId', disciplineController.getDisciplinesByFaculty);
 
 router.get('/', disciplineController.getAllDisciplines);
 

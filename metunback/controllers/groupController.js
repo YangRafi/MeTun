@@ -118,9 +118,18 @@ exports.getGroupById = async (req, res) => {
 exports.createGroup = async (req, res) => {
   try {
     const { group_name, discipline_id } = req.body;
-    const creator_user_id = req.user.userId; // zakładamy auth middleware
+    const creator_user_id = req.user.userId;
 
-    // Sprawdź, czy user ma approved UserUniversity dla wybranego discipline
+    // 🔹 Sprawdź, ile grup już stworzył ten użytkownik
+    const existingGroupsCount = await Group.count({
+      where: { creator_user_id }
+    });
+
+    if (existingGroupsCount >= 2) {
+      return res.status(403).json({ error: "Możesz utworzyć maksymalnie 2 grupy" });
+    }
+
+    // 🔹 Sprawdź, czy user ma approved UserUniversity dla wybranego discipline
     const approved = await UserUniversity.findOne({
       where: {
         user_id: creator_user_id,
@@ -133,10 +142,10 @@ exports.createGroup = async (req, res) => {
       return res.status(403).json({ error: "Nie możesz tworzyć grupy dla tego kierunku" });
     }
 
-    // Utwórz grupę
+    // 🔹 Utwórz grupę
     const newGroup = await Group.create({ group_name, creator_user_id, discipline_id });
 
-    // Dodaj twórcę grupy jako GroupMember z rolą admin
+    // 🔹 Dodaj twórcę grupy jako GroupMember z rolą admin
     await GroupMember.create({
       group_id: newGroup.group_id,
       user_id: creator_user_id,
@@ -149,6 +158,7 @@ exports.createGroup = async (req, res) => {
     res.status(500).json({ error: "Server error while creating group" });
   }
 };
+
 
 // UPDATE group
 exports.updateGroup = async (req, res) => {

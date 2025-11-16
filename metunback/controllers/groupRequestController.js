@@ -67,6 +67,7 @@ exports.getJoinRequests = async (req, res) => {
     const userId = req.user.userId;
 
     const requests = await GroupJoinRequest.findAll({
+      where: { status: 'pending' }, // ⬅️ to filtruje tylko pending
       include: [
         {
           model: User,

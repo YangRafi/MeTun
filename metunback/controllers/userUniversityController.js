@@ -106,7 +106,6 @@ exports.addUserUniversity = async (req, res) => {
 };
 
 // 🔹 Aktywacja triala
-// 🔹 Aktywacja triala
 exports.activateTrial = async (req, res) => {
   try {
     const userId = req.user.userId;

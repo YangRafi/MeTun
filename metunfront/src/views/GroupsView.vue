@@ -56,10 +56,12 @@
 
               <!-- Kierunek: pokazuje się dopiero po wybraniu wydziału -->
               <select v-if="filters.facultyId" v-model="filters.disciplineId"
-                      class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
-                <option value="">Wybierz kierunek</option>
-                <option v-for="d in disciplines" :key="d.discipline_id" :value="d.discipline_id">{{ d.discipline_name }}</option>
-              </select>
+                    class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
+              <option value="">Wybierz kierunek</option>
+              <option v-for="d in disciplines" :key="d.discipline_id" :value="d.discipline_id">{{ d.discipline_name }}</option>
+            </select>
+
+
 
               <div class="flex gap-2 mt-2">
                 <button @click="applyFilters" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">Szukaj</button>
@@ -123,46 +125,67 @@
         </div>
 
         <!-- 📩 Prośby / Zaproszenia -->
-        <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-lg border border-blue-200 flex flex-col h-[70vh]">
-          <div class="sticky top-0 bg-white/90 backdrop-blur-sm p-2 rounded-xl mb-4 shadow-sm z-10">
-            <h2 class="text-2xl font-bold text-blue-800 text-center">📩 Prośby / Zaproszenia</h2>
-          </div>
+        <!-- 📩 Prośby / Zaproszenia -->
+<div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-lg border border-blue-200 flex flex-col h-[70vh]">
+  <div class="sticky top-0 bg-white/90 backdrop-blur-sm p-2 rounded-xl mb-4 shadow-sm z-10">
+    <h2 class="text-2xl font-bold text-blue-800 text-center">📩 Prośby / Zaproszenia</h2>
+  </div>
 
-          <div v-if="requests.length" class="space-y-3 overflow-y-auto pr-1 flex-1">
-            <div v-for="r in requests" :key="r.request_id" class="p-4 bg-white rounded-2xl shadow hover:shadow-lg border border-blue-100 transition-all hover:scale-[1.02]">
-              <p>
-                <strong>{{ r.type === 'request' ? 'Prośba o dołączenie' : 'Zaproszenie' }}</strong>
-                do grupy: {{ r.group.group_name }}
-              </p>
-              <p v-if="r.type === 'request'">Użytkownik: {{ r.user.name }} {{ r.user.surname }}</p>
-              <div class="mt-2 flex gap-2">
-  <!-- Jeśli użytkownik jest ODBIORCĄ -->
-              <template v-if="r.user_id === userStore.profile.user_id">
-                <button @click="respondRequest(r, 'accept')" class="bg-green-600 text-white py-1 px-3 rounded-lg hover:bg-green-700">Akceptuj</button>
-                <button @click="respondRequest(r, 'reject')" class="bg-red-600 text-white py-1 px-3 rounded-lg hover:bg-red-700">Odrzuć</button>
-              </template>
+  <div v-if="requests.length" class="space-y-3 overflow-y-auto pr-1 flex-1">
+    <div
+      v-for="r in requests"
+      :key="r.request_id"
+      class="p-4 bg-white rounded-2xl shadow hover:shadow-lg border border-blue-100 transition-all hover:scale-[1.02]"
+    >
+      <p>
+        <strong>{{ r.type === 'request' ? 'Prośba o dołączenie' : 'Zaproszenie' }}</strong>
+        do grupy: {{ r.group.group_name }}
+      </p>
 
-              <!-- Jeśli użytkownik jest NADAWCĄ ZAPROSZENIA -->
-              <template v-else-if="r.type === 'invite' && r.sender_id === userStore.profile.user_id">
-                <button @click="deleteInvite(r)" class="bg-red-600 text-white py-1 px-3 rounded-lg hover:bg-red-700">
-                  Usuń zaproszenie
-                </button>
-                <p class="text-gray-600">Zaproszono: {{ r.user.name }} {{ r.user.surname }}</p>
-              </template>
+      <p v-if="r.type === 'request'">
+        Użytkownik: {{ r.user.name }} {{ r.user.surname }}
+      </p>
 
-              <!-- Jeśli użytkownik jest ADMINEM grupy i dotyczy to requestu -->
-              <template v-else-if="r.type === 'request'">
-                <button @click="respondRequest(r, 'accept')" class="bg-green-600 text-white py-1 px-3 rounded-lg hover:bg-green-700">Akceptuj</button>
-                <button @click="respondRequest(r, 'reject')" class="bg-red-600 text-white py-1 px-3 rounded-lg hover:bg-red-700">Odrzuć</button>
-              </template>
-            </div>
+      <div class="mt-2 flex gap-2">
 
-            </div>
-          </div>
-          <p v-else class="text-center mt-4 text-gray-500 flex-1 flex items-center justify-center">
-            Brak próśb lub zaproszeń.
-          </p>
-        </div>
+        <!-- 🟦 1. Użytkownik ODBIORCA zaproszenia -->
+        <template v-if="r.type === 'invite' && r.user_id === userStore.profile.user_id">
+          <button @click="respondRequest(r, 'accept')" class="bg-green-600 text-white py-1 px-3 rounded-lg hover:bg-green-700">Akceptuj</button>
+          <button @click="respondRequest(r, 'reject')" class="bg-red-600 text-white py-1 px-3 rounded-lg hover:bg-red-700">Odrzuć</button>
+        </template>
+
+        <!-- 🟦 2. Użytkownik NADAWCA zaproszenia -->
+        <template v-else-if="r.type === 'invite' && r.sender_id === userStore.profile.user_id">
+          <p class="text-gray-600">Zaproszono: {{ r.user.name }} {{ r.user.surname }}</p>
+          <button @click="deleteInvite(r)" class="bg-red-600 text-white py-1 px-3 rounded-lg hover:bg-red-700">Usuń zaproszenie</button>
+        </template>
+
+        <!-- 🟦 3. Użytkownik wysłał request i czeka -->
+        <template v-else-if="r.type === 'request' && r.user_id === userStore.profile.user_id">
+          <p class="text-gray-600 text-sm italic">Oczekuje na akceptację administratora.</p>
+          <button @click="deleteInvite(r)" class="bg-red-600 text-white py-1 px-3 rounded-lg hover:bg-red-700">
+            Usuń prośbę
+          </button>
+        </template>
+
+        <!-- 🟦 4. ADMIN grupy widzi request innej osoby -->
+        <template
+  v-else-if="r.type === 'request' &&
+             myGroups.some(g => g.group_id === r.group.group_id && (g.role === 'admin' || g.role === 'creator'))"
+>
+          <button @click="respondRequest(r, 'accept')" class="bg-green-600 text-white py-1 px-3 rounded-lg hover:bg-green-700">Akceptuj</button>
+          <button @click="respondRequest(r, 'reject')" class="bg-red-600 text-white py-1 px-3 rounded-lg hover:bg-red-700">Odrzuć</button>
+        </template>
+
+      </div>
+    </div>
+  </div>
+
+  <p v-else class="text-center mt-4 text-gray-500 flex-1 flex items-center justify-center">
+    Brak próśb lub zaproszeń.
+  </p>
+</div>
+
       </div>
 
       <!-- 🔹 DOLNY PASEK: PRZYCISK ZAJMUJĄCY CAŁĄ SZEROKOŚĆ -->
@@ -304,12 +327,26 @@ async function fetchFaculties() {
     if (res.ok) faculties.value = await res.json();
   } catch (err) { console.error(err); }
 }
+
 async function onFacultyChange() {
-  if (!filters.facultyId) return (disciplines.value = []);
+  filters.disciplineId = "";
+  disciplines.value = [];
+
+  if (!filters.facultyId) return;
+
   try {
     const res = await fetch(`http://localhost:3000/api/disciplines?facultyId=${filters.facultyId}`, { credentials: "include" });
-    if (res.ok) disciplines.value = await res.json();
-  } catch (err) { console.error(err); }
+    if (res.ok) {
+      const data = await res.json();
+      disciplines.value = Array.isArray(data) ? data : []; // upewnij się, że to tablica
+    } else {
+      disciplines.value = [];
+      console.error('Błąd fetch disciplines:', res.statusText);
+    }
+  } catch (err) {
+    disciplines.value = [];
+    console.error(err);
+  }
 }
 
 // APPLY FILTERS

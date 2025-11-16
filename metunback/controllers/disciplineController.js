@@ -12,10 +12,10 @@ exports.getAllDisciplines = async (req, res) => {
 
 exports.getDisciplinesByFaculty = async (req, res) => {
   try {
-    const { facultyId } = req.query;
+    const { facultyId } = req.params;
 
     if (!facultyId) {
-      return res.status(400).json({ error: "facultyId query parameter is required" });
+      return res.status(400).json({ error: "facultyId path parameter is required" });
     }
 
     const disciplines = await Discipline.findAll({
