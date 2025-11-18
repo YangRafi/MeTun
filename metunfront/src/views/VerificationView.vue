@@ -230,7 +230,7 @@ async function fetchFaculties(universityId) {
 async function fetchDisciplines() {
   if (!selectedFaculty.value) return;
   const res = await fetch(
-    `http://localhost:3000/api/disciplines?facultyId=${selectedFaculty.value}`,
+    `http://localhost:3000/api/disciplines/byFaculty/${selectedFaculty.value}`,
     { credentials: "include" }
   );
   disciplines.value = await res.json();

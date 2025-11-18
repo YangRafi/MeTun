@@ -29,9 +29,9 @@ exports.login = async (req, res) => {
 // ✅ REFRESH TOKEN
 exports.refreshToken = async (req, res) => {
   try {
-    const { accessToken } = await authService.refreshAccessToken(req.cookies.refresh_token);
+    const { user, isVerified, accessToken } = await authService.refreshAccessToken(req.cookies.refresh_token);
     res.cookie('access_token', accessToken, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 15 * 60 * 1000 });
-    res.json({ message: "Access token refreshed", accessToken });
+    res.json({ message: "Access token refreshed", accessToken, isVerified, user: { userId: user.user_id, email: user.email, role: user.role } });
   } catch (err) {
     console.error(err);
     res.status(401).json({ error: err.message });

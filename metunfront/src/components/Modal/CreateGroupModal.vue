@@ -25,9 +25,9 @@
         <div class="grid grid-cols-1 gap-4">
           <!-- Nazwa grupy -->
           <div>
-            <label class="block mb-1 text-sm font-semibold text-blue-800"
-              >Nazwa grupy</label
-            >
+            <label class="block mb-1 text-sm font-semibold text-blue-800">
+              Nazwa grupy
+            </label>
             <input
               v-model="groupName"
               type="text"
@@ -38,26 +38,31 @@
 
           <!-- Uczelnia / Kierunek -->
           <div v-if="disciplines.length">
-            <label class="block mb-1 text-sm font-semibold text-blue-800"
-              >Uczelnia / Kierunek</label
-            >
+            <label class="block mb-1 text-sm font-semibold text-blue-800">
+              Uczelnia / Wydział / Kierunek
+            </label>
             <select
               v-model="selectedDiscipline"
               class="w-full border border-blue-200 rounded-lg p-2 focus:ring-2 focus:ring-blue-300 focus:border-blue-300 outline-none"
             >
-              <option value="">Wybierz...</option>
+              <option :value="null">Wybierz...</option>
               <option
                 v-for="d in disciplines"
                 :key="d.id"
-                :value="d.discipline_id"
+                :value="d"
               >
-                {{ d.university_name }} - {{ d.name }}
+                {{ d.university_name }} - {{ d.faculty_name || '' }} - {{ d.discipline_name }}
               </option>
             </select>
           </div>
           <div v-else class="text-gray-500 text-sm">
             Brak zatwierdzonych uczelni/kierunków.
           </div>
+
+          <!-- Podgląd wybranej opcji -->
+          <p v-if="selectedDiscipline" class="text-gray-700 text-sm mt-1">
+            Wybrano: {{ selectedDiscipline.university_name }} - {{ selectedDiscipline.faculty_name }} - {{ selectedDiscipline.discipline_name }}
+          </p>
 
           <!-- Przycisk -->
           <div class="mt-6">
@@ -83,12 +88,12 @@ const toast = useToast();
 
 const props = defineProps({
   isOpen: Boolean,
-  disciplines: Array, // [{ id, discipline_id, name, university_name }]
+  disciplines: Array, // [{ id, discipline_id, name, faculty_name, university_name }]
 });
 const emit = defineEmits(["close", "created"]);
 
 const groupName = ref("");
-const selectedDiscipline = ref("");
+const selectedDiscipline = ref(null);
 
 async function submit() {
   if (!groupName.value || !selectedDiscipline.value) {
@@ -108,7 +113,7 @@ async function submit() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         group_name: groupName.value,
-        discipline_id: selectedDiscipline.value,
+        discipline_id: selectedDiscipline.value.discipline_id,
       }),
     });
 
@@ -116,7 +121,7 @@ async function submit() {
     if (res.ok) {
       emit("created", data);
       groupName.value = "";
-      selectedDiscipline.value = "";
+      selectedDiscipline.value = null;
       emit("close");
       toast.add({
         severity: "success",

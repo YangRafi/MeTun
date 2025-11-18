@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { reactive, ref } from 'vue';
+import { fetchWithRefresh } from '@/utils/api.js';
 
 export const useUserStore = defineStore('user', () => {
   const user = reactive({});
@@ -10,11 +11,12 @@ export const useUserStore = defineStore('user', () => {
     if (loaded.value) return; // ✅ Nie pobieraj ponownie, jeśli już załadowano
 
     try {
-      const resUser = await fetch('http://localhost:3000/api/auth/me', { credentials: 'include' });
+      const resUser = await fetchWithRefresh('http://localhost:3000/api/auth/me');
       if (!resUser.ok) throw new Error('Nie zalogowany');
-      Object.assign(user, await resUser.json());
+      const userData = await resUser.json();
+      Object.assign(user, userData);
 
-      const resProfile = await fetch(`http://localhost:3000/api/profiles/user/${user.user_id}`, { credentials: 'include' });
+      const resProfile = await fetchWithRefresh(`http://localhost:3000/api/profiles/user/${user.user_id}`);
       if (resProfile.ok) {
         Object.assign(profile, await resProfile.json());
       } else {
@@ -29,14 +31,12 @@ export const useUserStore = defineStore('user', () => {
 
   async function logout(router = null) {
     try {
-      await fetch('http://localhost:3000/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
+      await fetchWithRefresh('http://localhost:3000/api/auth/logout', {
+        method: 'POST'
       });
     } catch (err) {
       console.error('❌ Błąd podczas wylogowania:', err);
     } finally {
-      // Wyczyść lokalne dane
       Object.keys(user).forEach(k => delete user[k]);
       Object.keys(profile).forEach(k => delete profile[k]);
       loaded.value = false;

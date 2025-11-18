@@ -1,5 +1,5 @@
 <template>
-  <Dialog :visible="isOpen" :modal="true" :closable="true" :style="{ width: '400px' }" @hide="$emit('close')">
+  <Dialog v-model:visible="localVisible" :modal="true" :closable="true" :style="{ width: '400px' }">
     <template #header>
       <h3 class="text-lg font-semibold text-blue-800">Zaproszenia do {{ group?.group_name }}</h3>
     </template>
@@ -19,12 +19,11 @@
         <div v-else class="flex items-center gap-1 text-green-700 font-semibold">
           ✅ Zaproszona
         </div>
-
       </div>
     </div>
 
     <template #footer>
-      <button @click="$emit('close')" 
+      <button @click="localVisible = false" 
               class="bg-gray-300 text-black px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors">
         Zamknij
       </button>
@@ -48,8 +47,18 @@ const users = ref([]);
 const loading = ref(false);
 const toast = useToast();
 
+// lokalny stan widoczności
+const localVisible = ref(props.isOpen);
+
+// synchronizacja z props.isOpen
 watch(() => props.isOpen, (val) => {
+  localVisible.value = val;
   if (val) loadUsers();
+});
+
+// powiadamianie rodzica przy zamknięciu
+watch(localVisible, (val) => {
+  if (!val) emit('close');
 });
 
 async function loadUsers() {
@@ -83,8 +92,6 @@ async function loadUsers() {
   loading.value = false;
 }
 
-
-
 async function inviteUser(user) {
   try {
     const res = await fetch("http://localhost:3000/api/groupRequests/invite", {
@@ -95,7 +102,7 @@ async function inviteUser(user) {
     });
 
     if (res.ok) {
-      user.invited = true; // oznaczamy jako zaproszoną
+      user.invited = true;
       toast.add({ severity: 'success', summary: 'Sukces', detail: `Zaproszono ${user.name}`, life: 3000 });
     } else {
       const data = await res.json();

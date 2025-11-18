@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/store/userStore'
 import { showVerifiedPopup } from '../store/popupStore.js'
+import { fetchWithRefresh } from '@/utils/api.js';
 
 import HomeView from '../views/HomeView.vue'
 import DashboardView from '../views/DashboardView.vue'
@@ -15,6 +16,7 @@ import MoreView from '../views/MoreView.vue'
 import UsersView from '../views/Admin/UsersView.vue'
 import UniversitiesView from '../views/Admin/UniversitiesView.vue'
 import RequestsView from '../views/Admin/RequestsView.vue'
+
 
 const routes = [
   { path: '/', name: 'home', component: HomeView, meta: { requiresAuth: false } },
@@ -43,19 +45,6 @@ const router = createRouter({
   routes
 })
 
-async function fetchWithRefresh(url, options = {}) {
-  let res = await fetch(url, { ...options, credentials: 'include' })
-  
-  if (res.status === 401) {
-    console.log("[ROUTER] Access token expired, trying refresh")
-    const refresh = await fetch("http://localhost:3000/api/auth/refresh-token", { credentials: 'include' })
-    if (!refresh.ok) throw new Error("Refresh token failed")
-    
-    res = await fetch(url, { ...options, credentials: 'include' })
-  }
-  
-  return res
-}
 
 router.beforeEach(async (to, from, next) => {
   console.log(`[ROUTER] Checking route: ${to.fullPath}`)

@@ -58,7 +58,7 @@
               <select v-if="filters.facultyId" v-model="filters.disciplineId"
                     class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
               <option value="">Wybierz kierunek</option>
-              <option v-for="d in disciplines" :key="d.discipline_id" :value="d.discipline_id">{{ d.discipline_name }}</option>
+              <option v-for="d in disciplines" :key="d.discipline_id" :value="d.discipline_id">{{ d.name }}</option>
             </select>
 
 
@@ -124,7 +124,6 @@
           </p>
         </div>
 
-        <!-- 📩 Prośby / Zaproszenia -->
         <!-- 📩 Prośby / Zaproszenia -->
 <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-lg border border-blue-200 flex flex-col h-[70vh]">
   <div class="sticky top-0 bg-white/90 backdrop-blur-sm p-2 rounded-xl mb-4 shadow-sm z-10">
@@ -335,10 +334,10 @@ async function onFacultyChange() {
   if (!filters.facultyId) return;
 
   try {
-    const res = await fetch(`http://localhost:3000/api/disciplines?facultyId=${filters.facultyId}`, { credentials: "include" });
+    const res = await fetch(`http://localhost:3000/api/disciplines/byFaculty/${filters.facultyId}`, { credentials: "include" });
     if (res.ok) {
       const data = await res.json();
-      disciplines.value = Array.isArray(data) ? data : []; // upewnij się, że to tablica
+      disciplines.value = Array.isArray(data) ? data : [];
     } else {
       disciplines.value = [];
       console.error('Błąd fetch disciplines:', res.statusText);
@@ -509,7 +508,7 @@ async function fetchUserDisciplines() {
 function onGroupCreated(newGroup) {
   showCreateModal.value = false;
   myGroups.value.unshift(newGroup);
-  applyFilters(false); // false aby nie powielać toastu
+  applyFilters(false);
   toast.add({ severity: 'success', summary: 'Sukces', detail: 'Grupa została utworzona', life: 3000 });
 }
 </script>

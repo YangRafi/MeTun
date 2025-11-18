@@ -157,7 +157,7 @@ const buildUniversityTree = async (universityList) => {
     const facRes = await fetch(`http://localhost:3000/api/faculties?universityId=${uni.university_id}`, { credentials: 'include' })
     const faculties = await facRes.json()
     const facultiesWithDisc = await Promise.all(faculties.map(async f => {
-      const discRes = await fetch(`http://localhost:3000/api/disciplines?facultyId=${f.faculty_id}`, { credentials: 'include' })
+      const discRes = await fetch(`http://localhost:3000/api/disciplines/byFaculty/${f.faculty_id}`, { credentials: 'include' })
       const disciplines = await discRes.json()
       return { ...f, show: false, disciplines }
     }))

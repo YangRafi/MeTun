@@ -243,7 +243,7 @@ function applyFiltersWithAlert() {
 
 async function onFacultyChange() {
   if (!filters.facultyId) return;
-  const res = await fetch(`http://localhost:3000/api/disciplines?facultyId=${filters.facultyId}`, {
+  const res = await fetch(`http://localhost:3000/api/disciplines/byFaculty/${filters.facultyId}`, {
     credentials: "include",
   });
   disciplines.value = await res.json();
