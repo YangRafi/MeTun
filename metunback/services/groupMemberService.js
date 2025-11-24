@@ -3,22 +3,24 @@ const { GroupMember, User, Profile, Group } = require('../models');
 class GroupMemberService {
   // GET all members of a group with profile info
   async getMembersByGroup(groupId) {
-    return GroupMember.findAll({
-      where: { group_id: groupId },
-      include: [
-        {
-          model: User,
-          attributes: ['user_id', 'name', 'surname', 'email'],
-          include: [
-            {
-              model: Profile,
-              attributes: ['profile_id', 'name', 'profile_picture']
-            }
-          ]
-        }
-      ]
-    });
-  }
+      return GroupMember.findAll({
+        where: { group_id: groupId },
+        include: [
+          {
+            model: User,
+            as: 'user', // <- alias zdefiniowany w GroupMember.belongsTo(User)
+            attributes: ['user_id', 'name', 'surname', 'email'],
+            include: [
+              {
+                model: Profile,
+                as: 'userProfile', // <- alias zdefiniowany w User.hasOne(Profile)
+                attributes: ['profile_id', 'name', 'profile_picture']
+              }
+            ]
+          }
+        ]
+      });
+    }
 
   // ADD member to group
   async addMember(groupId, { user_id, role, join_date }) {

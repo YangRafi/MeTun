@@ -1,5 +1,9 @@
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-100 via-blue-100 to-purple-100">
+    
+    <!-- 🔥 Toast -->
+    <Toast />
+
     <div class="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
       <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
         Uzupełnij swój profil 💫
@@ -91,8 +95,21 @@
 <script setup>
 import { ref } from 'vue'
 import Button from 'primevue/button'
+import Toast from 'primevue/toast'
+import { useToast } from 'primevue/usetoast'
 import { useUserStore } from '@/store/userStore'
 import { useRouter } from 'vue-router'
+
+const toast = useToast()
+
+const showToast = (severity, summary, detail) => {
+  toast.add({
+    severity,
+    summary,
+    detail,
+    life: 3500
+  })
+}
 
 const userStore = useUserStore()
 const router = useRouter()
@@ -124,9 +141,12 @@ const onSubmit = async () => {
     const userData = await resUser.json()
     const user_id = userData?.user_id
 
-    if (!user_id) throw new Error('Nie udało się pobrać danych użytkownika — zaloguj się ponownie.')
+    if (!user_id) {
+      showToast("error", "Błąd", "Nie udało się pobrać danych użytkownika — zaloguj się ponownie.")
+      return
+    }
 
-    // Tworzymy FormData, by móc wysłać plik
+    // FormData
     const formData = new FormData()
     formData.append('user_id', user_id)
     formData.append('name', userData.name || userData.email.split('@')[0])
@@ -138,7 +158,7 @@ const onSubmit = async () => {
       formData.append('profile_picture', profile_picture.value)
     }
 
-    // Wysyłamy dane do backendu
+    // Wysyłka do backendu
     const res = await fetch('http://localhost:3000/api/profiles', {
       method: 'POST',
       credentials: 'include',
@@ -146,13 +166,17 @@ const onSubmit = async () => {
     })
 
     const data = await res.json()
-    if (!res.ok) throw new Error(data.error || 'Nie udało się zapisać profilu.')
+    if (!res.ok) {
+      showToast("error", "Błąd", data.error || "Nie udało się zapisać profilu.")
+      return
+    }
 
-    alert('Profil został pomyślnie utworzony! 🎉')
+    showToast("success", "Profil utworzony 🎉", "Twój profil został zapisany.")
     await userStore.fetchUserAndProfile()
     router.push('/dashboard')
+
   } catch (err) {
-    alert(err.message)
+    showToast("error", "Błąd", err.message || "Wystąpił nieoczekiwany problem.")
   }
 }
 </script>

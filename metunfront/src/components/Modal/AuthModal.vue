@@ -89,6 +89,9 @@
           >✕</button>
         </div>
       </transition>
+
+      <!-- Toast -->
+      <Toast position="top-right" />
     </div>
   </transition>
 </template>
@@ -100,18 +103,21 @@ import { useUserStore } from '@/store/userStore'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
+import Toast from 'primevue/toast'
+import { useToast } from 'primevue/usetoast'
 import { z } from 'zod'
 
 const userStore = useUserStore()
+const toast = useToast()
 
 const props = defineProps({
   type: { type: String, default: 'signup' },
   visible: { type: Boolean, default: false }
 })
 
-const emit = defineEmits(['update:visible'])
-
+const emit = defineEmits(['update:visible', 'open-login'])
 const router = useRouter()
+
 const form = reactive({
   firstName: '',
   lastName: '',
@@ -167,7 +173,7 @@ const onSubmit = async () => {
     if (!res.ok) throw new Error(data.error || 'Błąd')
 
     if (props.type === 'signup') {
-      alert('Rejestracja zakończona sukcesem!')
+      toast.add({ severity: 'success', summary: 'Sukces', detail: 'Rejestracja zakończona pomyślnie!', life: 5000 })
       close()
       emit('open-login')
     } else {
@@ -186,7 +192,7 @@ const onSubmit = async () => {
       close()
     }
   } catch (err) {
-    alert(err.message)
+    toast.add({ severity: 'error', summary: 'Błąd', detail: err.message, life: 5000 })
   }
 }
 

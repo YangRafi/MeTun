@@ -16,10 +16,21 @@ const checkIsVerified = async (userId) => {
 // helper: sprawdzenie bana
 const handleBan = async (user) => {
   if (!user.is_banned) return;
+
   const now = new Date();
+
   if (user.banned_until && user.banned_until > now) {
-    throw new Error(`Twoje konto jest zbanowane do ${user.banned_until.toISOString()}`);
+    // Formatujemy datę w formie: 25 listopada 2025, 10:34
+    const bannedDate = new Date(user.banned_until);
+    const options = { 
+      day: 'numeric', month: 'long', year: 'numeric', 
+      hour: '2-digit', minute: '2-digit' 
+    };
+    const formattedDate = bannedDate.toLocaleString('pl-PL', options);
+    
+    throw new Error(`Twoje konto jest zbanowane do ${formattedDate}`);
   } else {
+    // Jeśli ban już wygasł, resetujemy flagi
     user.is_banned = false;
     user.banned_until = null;
     await user.save();

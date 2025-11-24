@@ -80,6 +80,10 @@ class GroupService {
 
   // CREATE group with checks
   async createGroup({ group_name, discipline_id, creator_user_id }) {
+
+    const user = await User.findByPk(creator_user_id);
+
+    if (user.role !== 'admin'){
     const existingGroupsCount = await Group.count({ where: { creator_user_id } });
     if (existingGroupsCount >= 2) throw new Error("Możesz utworzyć maksymalnie 2 grupy");
 
@@ -87,8 +91,8 @@ class GroupService {
       where: { user_id: creator_user_id, discipline_id, status: 'approved' }
     });
     if (!approved) throw new Error("Nie możesz tworzyć grupy dla tego kierunku");
-
-    const newGroup = await Group.create({ group_name, discipline_id, creator_user_id });
+}
+const newGroup = await Group.create({ group_name, discipline_id, creator_user_id });
 
     await GroupMember.create({
       group_id: newGroup.group_id,

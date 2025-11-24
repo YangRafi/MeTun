@@ -117,6 +117,21 @@ class GroupRequestService {
     await invite.destroy();
     return true;
   }
+
+  // 🔹 Usuwanie prośby o dołączenie (request)
+  async deleteRequest(requestId, userId) {
+    const req = await GroupJoinRequest.findOne({
+      where: { request_id: requestId, type: 'request', status: 'pending' }
+    });
+
+    if (!req) throw new Error("Nie znaleziono prośby");
+
+    // tylko autor może usunąć swoją prośbę
+    if (req.user_id !== userId) throw new Error("Brak uprawnień");
+
+    await req.destroy();
+    return true;
+  }
 }
 
 module.exports = new GroupRequestService();

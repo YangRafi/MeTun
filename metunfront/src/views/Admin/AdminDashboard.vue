@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-white">
+  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-white relative">
     <UserHeader :profile="profile" />
 
     <main class="max-w-6xl mx-auto py-10 px-6">
@@ -33,26 +33,46 @@
         <component :is="Component" @back="router.push('/admin')" />
       </router-view>
     </main>
+
+    <!-- 🔔 Toasty -->
+    <div class="fixed top-5 right-5 space-y-2 z-50">
+      <div
+        v-for="(toast, i) in toasts"
+        :key="i"
+        :class="['px-4 py-2 rounded shadow text-white', toast.type==='success' ? 'bg-green-500' : 'bg-red-500']"
+      >
+        {{ toast.message }}
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { reactive, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Users, CheckCircle, School, UsersRound, ClipboardList } from 'lucide-vue-next'
+import { User, Users, School, ClipboardList } from 'lucide-vue-next'
 import StatCard from '../../components/Admin/StatCard.vue'
 import UserHeader from '../../components/Layout/UserHeader.vue'
 
 const router = useRouter()
 const profile = ref(null)
-
 const stats = reactive({ users: 0, verified: 0, universities: 0, groups: 0 })
 
 const sections = [
-  { key: 'users', name: 'Zarządzanie użytkownikami', icon: Users },
+  { key: 'users', name: 'Zarządzanie użytkownikami', icon: User },
   { key: 'universities', name: 'Zarządzanie uczelniami', icon: School },
-  { key: 'requests', name: 'Wnioski do weryfikacji', icon: ClipboardList }
+  { key: 'requests', name: 'Wnioski do weryfikacji', icon: ClipboardList },
+  { key: 'groups', name: 'Zarządzanie grupami', icon: Users }
 ]
+
+// 🌟 Toasty
+const toasts = ref([])
+const showToast = (message, type='success', duration=3000) => {
+  toasts.value.push({ message, type })
+  setTimeout(() => {
+    toasts.value.shift()
+  }, duration)
+}
 
 const fetchAdminData = async () => {
   try {
@@ -60,10 +80,13 @@ const fetchAdminData = async () => {
     if (!res.ok) throw new Error('Brak uprawnień')
     const data = await res.json()
     Object.assign(stats, data.stats)
+    showToast('Dane admina załadowane', 'success')
 
     const profileRes = await fetch('http://localhost:3000/api/auth/me', { credentials: 'include' })
     if (profileRes.ok) profile.value = await profileRes.json()
-  } catch {
+  } catch (err) {
+    console.error(err)
+    showToast('Błąd ładowania danych admina', 'error')
     router.push('/dashboard')
   }
 }

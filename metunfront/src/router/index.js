@@ -16,6 +16,7 @@ import MoreView from '../views/MoreView.vue'
 import UsersView from '../views/Admin/UsersView.vue'
 import UniversitiesView from '../views/Admin/UniversitiesView.vue'
 import RequestsView from '../views/Admin/RequestsView.vue'
+import AdminGroups from '../views/Admin/AdminGroups.vue'
 
 
 const routes = [
@@ -35,7 +36,8 @@ const routes = [
     children: [
       { path: 'users', name: 'AdminUsers', component: UsersView },
       { path: 'universities', name: 'AdminUniversities', component: UniversitiesView },
-      { path: 'requests', name: 'AdminRequests', component: RequestsView }
+      { path: 'requests', name: 'AdminRequests', component: RequestsView },
+      { path: 'groups', name: 'AdminGroups', component: AdminGroups }
     ]
   }
 ]

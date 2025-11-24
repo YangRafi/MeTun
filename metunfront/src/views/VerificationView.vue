@@ -178,6 +178,18 @@
 import { ref, reactive, onMounted } from "vue";
 import UserHeader from "../components/Layout/UserHeader.vue";
 import background from '@/assets/background.jpg'
+import { useToast } from "primevue/usetoast";
+
+const toast = useToast();
+
+function showToast(severity, summary, detail) {
+  toast.add({
+    severity,
+    summary,
+    detail,
+    life: 4000,
+  });
+}
 
 const profile = reactive({});
 const universityQuery = ref("");
@@ -242,12 +254,12 @@ function onFileChange(e) {
 
 async function submitVerification() {
   if (!selectedUniversity.value || !selectedFaculty.value || !selectedDiscipline.value) {
-    alert("Uzupełnij wszystkie pola przed wysłaniem wniosku.");
+    showToast("warn", "Brak danych", "Uzupełnij wszystkie pola przed wysłaniem wniosku.");
     return;
   }
 
   if (applications.value.length >= 2) {
-    alert("Nie możesz mieć więcej niż 2 wnioski.");
+    showToast("error", "Limit", "Nie możesz mieć więcej niż 2 wnioski.");
     return;
   }
 
@@ -275,12 +287,12 @@ async function submitVerification() {
   });
 
   if (res.ok) {
-    alert("Wniosek wysłany!");
+    showToast("success", "Sukces", "Wniosek wysłany!");
     fetchApplications();
     file.value = null;
   } else {
     const err = await res.json();
-    alert("Błąd podczas wysyłania wniosku: " + (err.error || res.statusText));
+    showToast("error", "Błąd", err.error || res.statusText);
   }
 }
 
@@ -317,12 +329,12 @@ async function uploadDocument(applicationId, event) {
   });
 
   if (res.ok) {
-    alert("Dokument zaktualizowany!");
-    fetchApplications();
-  } else {
-    const err = await res.json();
-    alert("Błąd podczas aktualizacji dokumentu: " + (err.error || res.statusText));
-  }
+      showToast("success", "Zaktualizowano", "Dokument został pomyślnie zaktualizowany.");
+      fetchApplications();
+    } else {
+      const err = await res.json();
+      showToast("error", "Błąd", err.error || res.statusText);
+    }
 }
 
 async function activateTrialForApplication(applicationId) {
@@ -333,12 +345,12 @@ async function activateTrialForApplication(applicationId) {
   );
   const data = await res.json();
   if (res.ok) {
-    alert("Trial aktywowany! 🎉");
-    fetchApplications();
-    fetchUser();
-  } else {
-    alert(data.error || "Nie udało się aktywować triala.");
-  }
+      showToast("success", "Trial aktywowany 🎉", "Darmowy okres próbny został uruchomiony.");
+      fetchApplications();
+      fetchUser();
+    } else {
+      showToast("error", "Błąd", data.error || "Nie udało się aktywować triala.");
+    }
 }
 
 function formatDate(date) {

@@ -1,5 +1,5 @@
 <template>
-  <section class="animate-fade-in p-15">
+  <section class="animate-fade-in p-15 relative">
     <!-- Nagłówek z ikoną i przyciskiem powrotu -->
     <div class="flex justify-between items-center mb-6">
       <div class="flex items-center gap-2">
@@ -10,7 +10,7 @@
         @click="$emit('back')"
         class="bg-gray-600 hover:bg-gray-500 text-white font-semibold px-3 py-1 rounded relative z-10 transition"
       >
-        ⬅ Powrót
+        ⬅ Wróć
       </button>
     </div>
 
@@ -86,6 +86,17 @@
     </div>
 
     <p v-else class="text-gray-400 text-center mt-6">Brak wniosków w tej kategorii.</p>
+
+    <!-- 🔔 Toasty -->
+    <div class="fixed top-5 right-5 space-y-2 z-50">
+      <div
+        v-for="(toast, i) in toasts"
+        :key="i"
+        :class="['px-4 py-2 rounded shadow text-white', toast.type==='success' ? 'bg-green-500' : 'bg-red-500']"
+      >
+        {{ toast.message }}
+      </div>
+    </div>
   </section>
 </template>
 
@@ -102,6 +113,15 @@ const tabs = [
   { key: 'trial', name: 'Aktywny Trial' }
 ]
 
+// 🌟 Toasty
+const toasts = ref([])
+const showToast = (message, type='success', duration=3000) => {
+  toasts.value.push({ message, type })
+  setTimeout(() => {
+    toasts.value.shift()
+  }, duration)
+}
+
 const fetchRequests = async () => {
   try {
     const res = await fetch('http://localhost:3000/api/userUniversity/requests/status', { credentials: 'include' })
@@ -115,6 +135,7 @@ const fetchRequests = async () => {
     }
   } catch (err) {
     console.error('Błąd pobierania wniosków:', err)
+    showToast('Błąd pobierania wniosków', 'error')
   }
 }
 
@@ -126,9 +147,15 @@ const updateStatus = async (id, status) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status })
     })
-    if (res.ok) fetchRequests()
+    if (res.ok) {
+      fetchRequests()
+      showToast(`Status wniosku zaktualizowany na "${status}"`)
+    } else {
+      showToast('Błąd aktualizacji statusu', 'error')
+    }
   } catch (err) {
     console.error('Błąd aktualizacji statusu:', err)
+    showToast('Błąd aktualizacji statusu', 'error')
   }
 }
 

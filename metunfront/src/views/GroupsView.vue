@@ -442,25 +442,45 @@ async function deleteGroup(group) {
     }
   } catch (err) { console.error(err); toast.add({ severity: 'error', summary: 'Błąd', detail: 'Nie udało się usunąć grupy', life: 3000 }); }
 }
-// Usuń zaproszenie (invite) — dla nadawcy
 async function deleteInvite(r) {
   try {
-    const res = await fetch(`http://localhost:3000/api/groupRequests/invite/${r.request_id}`, {
+    // wybór endpointu zależnie od typu
+    const endpoint =
+      r.type === "invite"
+        ? `invite/${r.request_id}`
+        : `request/${r.request_id}`;
+
+    const res = await fetch(`http://localhost:3000/api/groupRequests/${endpoint}`, {
       method: "DELETE",
       credentials: "include",
     });
 
     if (res.ok) {
-      // usuwamy z lokalnej listy
       requests.value = requests.value.filter(req => req.request_id !== r.request_id);
-      toast.add({ severity: 'success', summary: 'Zaproszenie', detail: 'Zaproszenie zostało usunięte', life: 3000 });
+
+      toast.add({
+        severity: 'success',
+        summary: r.type === "invite" ? 'Zaproszenie' : 'Prośba',
+        detail: `${r.type === "invite" ? "Zaproszenie" : "Prośba"} zostało usunięte`,
+        life: 3000
+      });
     } else {
       const data = await res.json().catch(() => ({}));
-      toast.add({ severity: 'error', summary: 'Błąd', detail: data.error || 'Nie udało się usunąć zaproszenia', life: 3000 });
+      toast.add({
+        severity: 'error',
+        summary: 'Błąd',
+        detail: data.error || 'Nie udało się usunąć',
+        life: 3000
+      });
     }
   } catch (err) {
     console.error(err);
-    toast.add({ severity: 'error', summary: 'Błąd', detail: 'Błąd podczas usuwania zaproszenia', life: 3000 });
+    toast.add({
+      severity: 'error',
+      summary: 'Błąd',
+      detail: 'Błąd podczas usuwania',
+      life: 3000
+    });
   }
 }
 

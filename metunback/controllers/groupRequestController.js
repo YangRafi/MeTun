@@ -62,3 +62,12 @@ exports.deleteInvite = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
+exports.deleteRequest = async (req, res) => {
+  try {
+    await groupRequestService.deleteRequest(req.params.requestId, req.user.userId);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};

@@ -53,7 +53,6 @@
         :key="uni.university_id"
         class="bg-gray-800 p-4 rounded-lg shadow-lg"
       >
-        <!-- Wiersz uczelni (bez cursor-pointer) -->
         <div class="flex justify-between items-center">
           <span
             class="font-semibold cursor-pointer"
@@ -62,8 +61,8 @@
             {{ uni.university_name }} ({{ uni.type || '-' }}, {{ uni.location || '-' }})
           </span>
           <div class="space-x-2">
-            <button @click.stop="editUniversity(uni)" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded">Edytuj</button>
-            <button @click.stop="deleteUniversity(uni.university_id)" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Usuń</button>
+            <button @click.stop="openEditUniversityModal(uni)" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded">Edytuj</button>
+            <button @click.stop="confirmDeleteUniversity(uni)" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Usuń</button>
           </div>
         </div>
 
@@ -79,8 +78,8 @@
                 {{ fac.faculty_name || '-' }}
               </span>
               <div class="space-x-2">
-                <button @click.stop="editFaculty(fac)" class="bg-blue-500 hover:bg-blue-600 px-2 py-0.5 rounded text-sm">Edytuj</button>
-                <button @click.stop="deleteFaculty(fac.faculty_id)" class="bg-red-500 hover:bg-red-600 px-2 py-0.5 rounded text-sm">Usuń</button>
+                <button @click.stop="openEditFacultyModal(fac)" class="bg-blue-500 hover:bg-blue-600 px-2 py-0.5 rounded text-sm">Edytuj</button>
+                <button @click.stop="confirmDeleteFaculty(fac)" class="bg-red-500 hover:bg-red-600 px-2 py-0.5 rounded text-sm">Usuń</button>
               </div>
             </div>
 
@@ -93,8 +92,8 @@
               >
                 <span>{{ disc.name || '-' }}</span>
                 <div class="space-x-1">
-                  <button @click.stop="editDiscipline(disc)" class="bg-blue-400 hover:bg-blue-500 px-2 py-0.5 rounded text-sm">Edytuj</button>
-                  <button @click.stop="deleteDiscipline(disc.discipline_id)" class="bg-red-400 hover:bg-red-500 px-2 py-0.5 rounded text-sm">Usuń</button>
+                  <button @click.stop="openEditDisciplineModal(disc)" class="bg-blue-400 hover:bg-blue-500 px-2 py-0.5 rounded text-sm">Edytuj</button>
+                  <button @click.stop="confirmDeleteDiscipline(disc)" class="bg-red-400 hover:bg-red-500 px-2 py-0.5 rounded text-sm">Usuń</button>
                 </div>
               </div>
 
@@ -114,11 +113,55 @@
         </div>
       </div>
     </div>
+
+    <!-- Dialogi edycji -->
+    <Dialog v-model:visible="showEditUniversity" header="Edytuj uczelnię" modal>
+      <div class="flex flex-col gap-3">
+        <input v-model="editUniversityData.name" placeholder="Nazwa uczelni" class="px-3 py-2 rounded w-full bg-gray-200"/>
+        <input v-model="editUniversityData.location" placeholder="Miasto" class="px-3 py-2 rounded w-full bg-gray-200"/>
+        <select v-model="editUniversityData.type" class="px-3 py-2 rounded w-full bg-gray-200">
+          <option>Publiczna</option>
+          <option>Prywatna</option>
+        </select>
+        <div class="flex justify-end gap-2 mt-2">
+          <button @click="showEditUniversity = false" class="px-4 py-2 rounded bg-gray-400 hover:bg-gray-500">Anuluj</button>
+          <button @click="saveUniversityEdit" class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">Zapisz</button>
+        </div>
+      </div>
+    </Dialog>
+
+    <Dialog v-model:visible="showEditFaculty" header="Edytuj wydział" modal>
+      <div class="flex flex-col gap-3">
+        <input v-model="editFacultyData.name" placeholder="Nazwa wydziału" class="px-3 py-2 rounded w-full bg-gray-200"/>
+        <div class="flex justify-end gap-2 mt-2">
+          <button @click="showEditFaculty = false" class="px-4 py-2 rounded bg-gray-400 hover:bg-gray-500">Anuluj</button>
+          <button @click="saveFacultyEdit" class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">Zapisz</button>
+        </div>
+      </div>
+    </Dialog>
+
+    <Dialog v-model:visible="showEditDiscipline" header="Edytuj kierunek" modal>
+      <div class="flex flex-col gap-3">
+        <input v-model="editDisciplineData.name" placeholder="Nazwa kierunku" class="px-3 py-2 rounded w-full bg-gray-200"/>
+        <div class="flex justify-end gap-2 mt-2">
+          <button @click="showEditDiscipline = false" class="px-4 py-2 rounded bg-gray-400 hover:bg-gray-500">Anuluj</button>
+          <button @click="saveDisciplineEdit" class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">Zapisz</button>
+        </div>
+      </div>
+    </Dialog>
+
+    <!-- PrimeVue Toast -->
+    <Toast ref="toast" position="top-right" />
+    <ConfirmDialog />
   </section>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useToast, useConfirm } from 'primevue'
+import Toast from 'primevue/toast'
+import Dialog from 'primevue/dialog'
+import ConfirmDialog from 'primevue/confirmdialog'
 
 const universities = ref([])
 const originalUniversities = ref([])
@@ -127,22 +170,40 @@ const newUniversity = ref({ name: '', location: '', type: '' })
 const newFaculty = ref({})
 const newDiscipline = ref({})
 
-// 🧠 Pobranie uczelni z backendu
+// Modale edycji
+const showEditUniversity = ref(false)
+const editUniversityData = ref({})
+const showEditFaculty = ref(false)
+const editFacultyData = ref({})
+const showEditDiscipline = ref(false)
+const editDisciplineData = ref({})
+
+const toast = useToast()
+const confirm = useConfirm()
+
+const toggleUniversity = (id) => {
+  const uni = universities.value.find(u => u.university_id === id)
+  if (uni) uni.show = !uni.show
+}
+
+const toggleFaculty = (id) => {
+  universities.value.forEach(u => u.faculties.forEach(f => {
+    if (f.faculty_id === id) f.show = !f.show
+  }))
+}
+
 const fetchUniversities = async () => {
   try {
     const res = await fetch('http://localhost:3000/api/universities', { credentials: 'include' })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
-    if (!Array.isArray(data)) return console.error('Nieprawidłowa odpowiedź:', data)
-
     originalUniversities.value = data
     universities.value = await buildUniversityTree(data.slice(0, 10))
   } catch (err) {
-    console.error('❌ Błąd pobierania uczelni:', err)
+    toast.add({ severity: 'error', summary: 'Błąd', detail: err.message, life: 3000 })
   }
 }
 
-// 🔍 Filtrowanie po prefiksie + limit 10
 const applyFilters = async () => {
   const query = searchQuery.value.trim().toLowerCase()
   const filtered = originalUniversities.value.filter(u =>
@@ -151,7 +212,6 @@ const applyFilters = async () => {
   universities.value = await buildUniversityTree(filtered.slice(0, 10))
 }
 
-// 📦 Pomocnicza funkcja budująca strukturę (uczelnia → wydziały → kierunki)
 const buildUniversityTree = async (universityList) => {
   return await Promise.all(universityList.map(async uni => {
     const facRes = await fetch(`http://localhost:3000/api/faculties?universityId=${uni.university_id}`, { credentials: 'include' })
@@ -165,19 +225,7 @@ const buildUniversityTree = async (universityList) => {
   }))
 }
 
-// 🔄 Toggle’y
-const toggleUniversity = (id) => {
-  const uni = universities.value.find(u => u.university_id === id)
-  if (uni) uni.show = !uni.show
-}
-
-const toggleFaculty = (id) => {
-  universities.value.forEach(u => u.faculties.forEach(f => {
-    if (f.faculty_id === id) f.show = !f.show
-  }))
-}
-
-// 🏫 CRUD — Uczelnie
+// CRUD i metody modali
 const addUniversity = async () => {
   if (!newUniversity.value.name || !newUniversity.value.type) return
   try {
@@ -197,103 +245,84 @@ const addUniversity = async () => {
     universities.value.push(uni)
     originalUniversities.value.push(uni)
     newUniversity.value = { name: '', location: '', type: '' }
+    toast.add({ severity: 'success', summary: 'Sukces', detail: 'Uczelnia dodana', life: 3000 })
   } catch (err) {
-    console.error('❌ Błąd dodawania uczelni:', err)
+    toast.add({ severity: 'error', summary: 'Błąd', detail: err.message, life: 3000 })
   }
 }
 
-const editUniversity = async (uni) => {
-  const name = prompt('Nazwa uczelni:', uni.university_name)
-  if (!name) return
-  const location = prompt('Miasto:', uni.location)
-  const type = prompt('Typ (Publiczna/Prywatna):', uni.type)
-  await fetch(`http://localhost:3000/api/universities/${uni.university_id}`, {
+const openEditUniversityModal = (uni) => {
+  editUniversityData.value = { ...uni }
+  showEditUniversity.value = true
+}
+
+const saveUniversityEdit = async () => {
+  const uni = universities.value.find(u => u.university_id === editUniversityData.value.university_id)
+  await fetch(`http://localhost:3000/api/universities/${editUniversityData.value.university_id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ university_name: name, location, type })
+    body: JSON.stringify({
+      university_name: editUniversityData.value.university_name,
+      location: editUniversityData.value.location,
+      type: editUniversityData.value.type
+    })
   })
-  uni.university_name = name
-  uni.location = location
-  uni.type = type
+  uni.university_name = editUniversityData.value.university_name
+  uni.location = editUniversityData.value.location
+  uni.type = editUniversityData.value.type
+  showEditUniversity.value = false
+  toast.add({ severity: 'success', summary: 'Sukces', detail: 'Uczelnia zaktualizowana', life: 3000 })
 }
 
-const deleteUniversity = async (id) => {
-  if (!confirm('Na pewno usunąć uczelnię?')) return
-  await fetch(`http://localhost:3000/api/universities/${id}`, { method: 'DELETE', credentials: 'include' })
-  universities.value = universities.value.filter(u => u.university_id !== id)
-  originalUniversities.value = originalUniversities.value.filter(u => u.university_id !== id)
+const openEditFacultyModal = (fac) => {
+  editFacultyData.value = { ...fac }
+  showEditFaculty.value = true
 }
 
-// 🧩 CRUD — Wydziały
-const addFaculty = async (uniId) => {
-  const name = newFaculty.value[uniId]
-  if (!name) return
-  const res = await fetch('http://localhost:3000/api/faculties', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify({ faculty_name: name, university_id: uniId })
-  })
-  const f = await res.json()
-  f.show = false
-  f.disciplines = []
-  universities.value.find(u => u.university_id === uniId).faculties.push(f)
-  newFaculty.value[uniId] = ''
-}
-
-const editFaculty = async (fac) => {
-  const name = prompt('Nazwa wydziału:', fac.faculty_name)
-  if (!name) return
-  await fetch(`http://localhost:3000/api/faculties/${fac.faculty_id}`, {
+const saveFacultyEdit = async () => {
+  const fac = universities.value.flatMap(u => u.faculties).find(f => f.faculty_id === editFacultyData.value.faculty_id)
+  await fetch(`http://localhost:3000/api/faculties/${editFacultyData.value.faculty_id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ faculty_name: name, university_id: fac.university_id })
+    body: JSON.stringify({ faculty_name: editFacultyData.value.faculty_name, university_id: editFacultyData.value.university_id })
   })
-  fac.faculty_name = name
+  fac.faculty_name = editFacultyData.value.faculty_name
+  showEditFaculty.value = false
+  toast.add({ severity: 'success', summary: 'Sukces', detail: 'Wydział zaktualizowany', life: 3000 })
 }
 
-const deleteFaculty = async (id) => {
-  if (!confirm('Na pewno usunąć wydział?')) return
-  await fetch(`http://localhost:3000/api/faculties/${id}`, { method: 'DELETE', credentials: 'include' })
-  universities.value.forEach(u => { u.faculties = u.faculties.filter(f => f.faculty_id !== id) })
+const openEditDisciplineModal = (disc) => {
+  editDisciplineData.value = { ...disc }
+  showEditDiscipline.value = true
 }
 
-// 🎓 CRUD — Kierunki
-const addDiscipline = async (facId) => {
-  const name = newDiscipline.value[facId]
-  if (!name) return
-  const res = await fetch('http://localhost:3000/api/disciplines', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify({ name, faculty_id: facId })
-  })
-  const disc = await res.json()
-  const fac = universities.value.flatMap(u => u.faculties).find(f => f.faculty_id === facId)
-  fac.disciplines.push(disc)
-  newDiscipline.value[facId] = ''
-}
-
-const editDiscipline = async (disc) => {
-  const name = prompt('Nazwa kierunku:', disc.name)
-  if (!name) return
-  await fetch(`http://localhost:3000/api/disciplines/${disc.discipline_id}`, {
+const saveDisciplineEdit = async () => {
+  const disc = universities.value.flatMap(u => u.faculties).flatMap(f => f.disciplines).find(d => d.discipline_id === editDisciplineData.value.discipline_id)
+  await fetch(`http://localhost:3000/api/disciplines/${editDisciplineData.value.discipline_id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ name, faculty_id: disc.faculty_id })
+    body: JSON.stringify({ name: editDisciplineData.value.name, faculty_id: editDisciplineData.value.faculty_id })
   })
-  disc.name = name
+  disc.name = editDisciplineData.value.name
+  showEditDiscipline.value = false
+  toast.add({ severity: 'success', summary: 'Sukces', detail: 'Kierunek zaktualizowany', life: 3000 })
 }
 
-const deleteDiscipline = async (id) => {
-  if (!confirm('Na pewno usunąć kierunek?')) return
-  await fetch(`http://localhost:3000/api/disciplines/${id}`, { method: 'DELETE', credentials: 'include' })
-  universities.value.forEach(u => u.faculties.forEach(f => {
-    f.disciplines = f.disciplines.filter(d => d.discipline_id !== id)
-  }))
+const confirmDeleteUniversity = (uni) => {
+  confirm.require({
+    message: `Na pewno usunąć uczelnię "${uni.university_name}"?`,
+    header: 'Potwierdzenie',
+    icon: 'pi pi-exclamation-triangle',
+    accept: async () => {
+      await fetch(`http://localhost:3000/api/universities/${uni.university_id}`, { method: 'DELETE', credentials: 'include' })
+      universities.value = universities.value.filter(u => u.university_id !== uni.university_id)
+      originalUniversities.value = originalUniversities.value.filter(u => u.university_id !== uni.university_id)
+      toast.add({ severity: 'success', summary: 'Sukces', detail: 'Uczelnia usunięta', life: 3000 })
+    }
+  })
 }
 
 onMounted(fetchUniversities)

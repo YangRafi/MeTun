@@ -21,6 +21,9 @@ router.get('/:groupId/invites', authenticate, groupRequestController.getGroupInv
 // Pobierz wszystkie prośby / zaproszenia dotyczące zalogowanego użytkownika
 router.get('/mine', authenticate, groupRequestController.getPendingRequestsForUser);
 
+// Usuń prośbę (request)
+router.delete('/request/:requestId', authenticate, groupRequestController.deleteRequest);
+
 // Usuń zaproszenie (invite)
 router.delete('/invite/:requestId', authenticate, groupRequestController.deleteInvite);
 
