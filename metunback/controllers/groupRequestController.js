@@ -1,5 +1,13 @@
 const groupRequestService = require('../services/groupRequestService');
 
+exports.getAllRequests = async (req, res) => {
+  try {
+    const requests = await groupRequestService.getAllRequests();
+    res.json({ requests });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 exports.requestJoin = async (req, res) => {
   try {
     const result = await groupRequestService.requestJoin(req.user.userId, req.body.groupId);
@@ -65,7 +73,8 @@ exports.deleteInvite = async (req, res) => {
 
 exports.deleteRequest = async (req, res) => {
   try {
-    await groupRequestService.deleteRequest(req.params.requestId, req.user.userId);
+    const isAdmin = req.user.role === 'admin';
+    await groupRequestService.deleteRequest(req.params.requestId, req.user.userId, isAdmin);
     res.json({ success: true });
   } catch (err) {
     res.status(400).json({ error: err.message });

@@ -45,20 +45,45 @@
             <tr v-if="group.showMembers" class="bg-gray-700">
               <td colspan="5" class="px-4 py-2">
                 <ul>
-                  <li v-for="member in group.groupMembers" :key="member.user.user_id" class="flex justify-between items-center">
-                    <span>
-                      {{ member.user.name }} {{ member.user.surname }} 
-                      <span class="italic text-sm">({{ member.role || 'member' }})</span>
-                      <span v-if="group.creator_user_id === member.user.user_id" class="text-yellow-400 font-bold">[Admin]</span>
-                    </span>
-                    <button 
-                      v-if="group.creator_user_id !== member.user.user_id"
-                      @click="removeMember(group.group_id, member.user.user_id)" 
-                      class="bg-red-600 hover:bg-red-700 px-2 py-1 rounded text-sm"
-                    >
-                      Usuń
-                    </button>
-                  </li>
+                  <li v-for="member in group.groupMembers" :key="member.user.user_id" class="flex justify-between items-center py-1">
+
+                      <!-- Dane -->
+                      <span>
+                        {{ member.user.name }} {{ member.user.surname }}
+                        <span class="italic text-sm">({{ member.role }})</span>
+                      </span>
+
+                      <!-- Zmiana roli + usuwanie -->
+                      <div class="flex items-center gap-2">
+
+                        <!-- Dropdown roli -->
+                        <select
+                          v-model="member.role"
+                          class="bg-gray-600 text-white px-2 py-1 rounded text-sm"
+                        >
+                          <option value="member">member</option>
+                          <option value="admin">admin</option>
+                        </select>
+
+                        <!-- Zapisz zmianę -->
+                        <button
+                          @click="changeRole(group.group_id, member.user.user_id, member.role)"
+                          class="bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-sm"
+                        >
+                          Zapisz
+                        </button>
+
+                        <!-- Usuń (można usuwać nawet admina i twórcę) -->
+                        <button
+                          @click="removeMember(group.group_id, member.user.user_id)"
+                          class="bg-red-600 hover:bg-red-700 px-2 py-1 rounded text-sm"
+                        >
+                          Usuń
+                        </button>
+
+                      </div>
+
+                    </li>
                   <li v-if="group.groupMembers.length === 0">Brak członków</li>
                 </ul>
               </td>
@@ -67,6 +92,56 @@
         </tbody>
       </table>
     </div>
+
+    <h2 class="text-xl font-semibold mt-10 mb-4">📩 Oczekujące prośby o dołączenie</h2>
+
+        <div class="overflow-x-auto bg-gray-800 rounded-lg shadow-lg">
+          <table class="min-w-full text-sm text-left">
+            <thead class="bg-gray-700 text-gray-300 uppercase">
+              <tr>
+                <th class="py-3 px-4">ID</th>
+                <th class="py-3 px-4">Użytkownik</th>
+                <th class="py-3 px-4">Grupa</th>
+                <th class="py-3 px-4">Typ</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4">Akcje</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr v-for="req in groupRequests" :key="req.request_id" class="border-b border-gray-700">
+                <td class="px-4 py-3">{{ req.request_id }}</td>
+                <td class="px-4 py-3">{{ req.user?.name }} {{ req.user?.surname }}</td>
+                <td class="px-4 py-3">{{ req.group?.group_name }}</td>
+                <td class="px-4 py-3">{{ req.type }}</td>
+                <td class="px-4 py-3">{{ req.status }}</td>
+
+                <td class="px-4 py-3 space-x-2">
+                  <button
+                    @click="respondToRequest(req.request_id, 'accept')"
+                    class="bg-green-600 hover:bg-green-700 px-3 py-1 rounded"
+                  >
+                    ✔ Akceptuj
+                  </button>
+
+                  <button
+                    @click="respondToRequest(req.request_id, 'rejected')"
+                    class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded"
+                  >
+                    ✖ Odrzuć
+                  </button>
+
+                  <button
+                    @click="deleteRequest(req.request_id)"
+                    class="bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded"
+                  >
+                    🗑 Usuń
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
     <!-- 🔔 Toasty -->
     <div class="fixed top-5 right-5 space-y-2 z-50">
@@ -117,8 +192,7 @@ let toastIdCounter = 0
 
 const toast = useToast()
 const confirm = useConfirm()
-
-// 🔹 Nowe zmienne do edycji
+const groupRequests = ref([])
 const editDialogVisible = ref(false)
 const editGroupData = ref({ group_id: null, name: '', discipline_id: null })
 
@@ -135,6 +209,66 @@ const fetchGroups = async () => {
     groups.value = data.map(g => ({ ...g, groupMembers: [], showMembers: false }))
   } catch (err) {
     showToast('error', 'Błąd', err.message)
+  }
+}
+
+// 🔹 Pobranie wszystkich requestów
+const fetchGroupRequests = async () => {
+  try {
+    const res = await fetch('http://localhost:3000/api/groupRequests/all', {
+      credentials: 'include'
+    })
+    if (!res.ok) throw new Error("Nie udało się pobrać próśb")
+    
+    const data = await res.json()
+    groupRequests.value = data.requests.map(r => ({
+      ...r,
+      user: r.user || null,
+      sender: r.sender || null,
+      group: r.group || null
+    }))
+  } catch (err) {
+    showToast('error', 'Błąd', err.message)
+  }
+}
+
+// 🔹 Odpowiedź na request
+const respondToRequest = async (requestId, action) => {
+  try {
+    const res = await fetch('http://localhost:3000/api/groupRequests/respond', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requestId, action })
+    })
+
+    if (!res.ok) throw new Error("Nie udało się zmienić statusu")
+
+    showToast('success', 'OK', 'Status zmieniony')
+    fetchGroupRequests() // odśwież wszystkie requesty
+    fetchGroups() // odświeża listę członków w grupach
+  } catch (err) {
+    showToast('error', 'Błąd', err.message)
+  }
+}
+
+// 🔹 Usuwanie requesta
+const deleteRequest = async (requestId) => {
+  console.log('Request ID do usunięcia:', requestId);
+  try {
+    const res = await fetch(`http://localhost:3000/api/groupRequests/request/${requestId}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    console.log('Status:', res.status);
+    const data = await res.json();
+    console.log('Odpowiedź z serwera:', data);
+    if (!res.ok) throw new Error(data.error || "Nie udało się usunąć requesta");
+
+    showToast('success', 'Usunięto', 'Request usunięty');
+    fetchGroupRequests();
+  } catch (err) {
+    showToast('error', 'Błąd', err.message);
   }
 }
 
@@ -174,7 +308,11 @@ const addGroup = async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ ...newGroup.value, creator_user_id: 1 })
+      body: JSON.stringify({
+        group_name: newGroup.value.name,
+        discipline_id: newGroup.value.discipline_id,
+        creator_user_id: 1
+      })
     })
     if (!res.ok) throw new Error('Nie udało się utworzyć grupy')
     const group = await res.json()
@@ -237,5 +375,25 @@ const confirmDeleteGroup = (group) => {
   })
 }
 
-onMounted(fetchGroups)
+const changeRole = async (groupId, userId, role) => {
+  try {
+    const res = await fetch(`http://localhost:3000/api/group-members/${groupId}/member/${userId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ role })
+    });
+
+    if (!res.ok) throw new Error("Nie udało się zmienić roli");
+
+    showToast('success', 'Sukces', 'Rola zmieniona');
+  } catch (err) {
+    showToast('error', 'Błąd', err.message);
+  }
+};
+
+onMounted(() => {
+  fetchGroups()
+  fetchGroupRequests()  
+})
 </script>

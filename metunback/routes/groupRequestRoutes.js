@@ -1,30 +1,33 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate } = require('../middleware/auth');
+const { authenticate, isAdmin } = require('../middleware/auth');
 const groupRequestController = require('../controllers/groupRequestController');
 
-// Prośba użytkownika o dołączenie
-router.post('/join', authenticate, groupRequestController.requestJoin);
+// 🔹 GET - pobranie wszystkich requestów (admin)
+router.get('/all', authenticate, isAdmin, groupRequestController.getAllRequests);
 
-// Zaproszenie użytkownika (admin)
-router.post('/invite', authenticate, groupRequestController.inviteUser);
-
-// Pobranie wszystkich requestów / invite
+// 🔹 Pobranie wszystkich requestów / invite (dla admina)
 router.get('/pending', authenticate, groupRequestController.getJoinRequests);
 
-// Akceptacja / odrzucenie
-router.post('/respond', authenticate, groupRequestController.respondToRequest);
-
-// Pobierz zaproszenia dla danej grupy
-router.get('/:groupId/invites', authenticate, groupRequestController.getGroupInvites);
-
-// Pobierz wszystkie prośby / zaproszenia dotyczące zalogowanego użytkownika
+// 🔹 Pobierz wszystkie prośby / zaproszenia dotyczące zalogowanego użytkownika
 router.get('/mine', authenticate, groupRequestController.getPendingRequestsForUser);
 
-// Usuń prośbę (request)
+// 🔹 Prośba użytkownika o dołączenie
+router.post('/join', authenticate, groupRequestController.requestJoin);
+
+// 🔹 Zaproszenie użytkownika (admin)
+router.post('/invite', authenticate, groupRequestController.inviteUser);
+
+// 🔹 Akceptacja / odrzucenie requestu
+router.post('/respond', authenticate, groupRequestController.respondToRequest);
+
+// 🔹 Usuń prośbę (request)
 router.delete('/request/:requestId', authenticate, groupRequestController.deleteRequest);
 
-// Usuń zaproszenie (invite)
+// 🔹 Usuń zaproszenie (invite)
 router.delete('/invite/:requestId', authenticate, groupRequestController.deleteInvite);
+
+// 🔹 Pobierz zaproszenia dla danej grupy (dynamiczne :groupId)
+router.get('/:groupId/invites', authenticate, groupRequestController.getGroupInvites);
 
 module.exports = router;

@@ -22,6 +22,13 @@ exports.addMember = async (req, res) => {
 
 exports.updateMember = async (req, res) => {
   try {
+
+    const { groupId, userId } = req.params;
+    const { role } = req.body;
+
+    if (!['admin', 'member'].includes(role)) {
+      return res.status(400).json({ error: "Invalid role" });
+    }
     const updated = await groupMemberService.updateMember(req.params.groupId, req.params.userId, req.body.role);
     res.json(updated);
   } catch (err) {
