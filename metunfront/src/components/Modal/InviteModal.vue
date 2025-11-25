@@ -104,6 +104,12 @@ async function inviteUser(user) {
     if (res.ok) {
       user.invited = true;
       toast.add({ severity: 'success', summary: 'Sukces', detail: `Zaproszono ${user.name}`, life: 3000 });
+
+      // 🔹 Odśwież listę wszystkich zaproszeń w modalu
+      await loadUsers();
+
+      // 🔹 Jeśli chcesz też powiadomić rodzica, żeby odświeżył requests
+      emit('invited', user);
     } else {
       const data = await res.json();
       toast.add({ severity: 'warn', summary: 'Błąd', detail: data.message || 'Nie udało się wysłać zaproszenia', life: 3000 });

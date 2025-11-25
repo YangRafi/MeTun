@@ -127,14 +127,9 @@ class MatchService {
     }
   }
 
-  async unlikeUser(userId, otherUserId) {
+  async unlikeUser(userId, matchId) {
       const match = await UserMatch.findOne({
-        where: {
-          [Op.or]: [
-            { user_id_1: userId, user_id_2: otherUserId },
-            { user_id_1: otherUserId, user_id_2: userId }
-          ]
-        }
+        where: { match_id: matchId }
       });
       if (!match) throw { status: 404, message: 'Match not found' };
 
@@ -142,12 +137,13 @@ class MatchService {
 
       const io = getIo();
       if (io) {
+        // userId to osoba, która usuwa match, więc odbiorca to druga osoba w matchu
         const receiverId = match.user_id_1 === userId ? match.user_id_2 : match.user_id_1;
         io.to(receiverId).emit('match_removed', { matchId: match.match_id });
       }
 
       return { success: true };
     }
-}
+  }
 
 module.exports = new MatchService();

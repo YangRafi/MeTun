@@ -106,9 +106,9 @@
                       class="absolute top-2 right-16 text-green-600 hover:text-green-800" title="Zaproś do grupy">
                 ➕
               </button>
-              <button v-if="g.role !== 'creator'" @click="leaveGroup(g)"
+              <button v-if="g.role !== 'creator'" @click="confirmLeaveGroup(g)"
                       class="absolute top-2 right-10 text-red-600 hover:text-red-800" title="Opuść grupę">
-                🚪
+                🏃
               </button>
               <button @click="confirmDeleteGroup(g)"
                       class="absolute bottom-2 right-2 text-red-700 hover:text-red-900" title="Usuń grupę">
@@ -200,7 +200,13 @@
     <CreateGroupModal :isOpen="showCreateModal" :disciplines="userDisciplines" @close="showCreateModal = false" @created="onGroupCreated" />
     <ChatBox v-if="activeChat" :chat="activeChat" :userId="userStore.profile.user_id" @close="closeChat" />
     <Toast ref="toastRef" />
-    <InviteModal :isOpen="showInviteModal" :group="inviteGroup" :matches="privateChats" @close="showInviteModal=false" />
+    <InviteModal
+      :isOpen="showInviteModal"
+      :group="inviteGroup"
+      :matches="privateChats"
+      @close="showInviteModal=false"
+      @invited="fetchRequests()"
+    />
   </div>
 </template>
 
@@ -300,6 +306,21 @@ async function fetchRequests() {
   }
 }
 
+function confirmLeaveGroup(group) {
+  confirm.require({
+    message: `Czy na pewno chcesz opuścić grupę "${group.group_name}"?`,
+    header: 'Potwierdź opuszczenie',
+    icon: 'pi pi-exclamation-triangle text-yellow-500',
+    acceptLabel: 'Tak, opuść',
+    rejectLabel: 'Anuluj',
+    acceptClass: 'bg-red-600 border-none hover:bg-red-700 font-semibold text-white rounded-xl px-4 py-2 transition',
+    rejectClass: 'bg-gray-300 border-none hover:bg-gray-400 font-semibold text-gray-800 rounded-xl px-4 py-2 transition',
+    accept: () => leaveGroup(group),
+    reject: () => {
+    }
+  });
+}
+
 
 // SEARCH helpers
 let fetchTimeout;
@@ -392,7 +413,10 @@ async function applyToGroup(group) {
       body: JSON.stringify({ groupId: group.group_id }),
     });
     const data = await res.json().catch(() => ({}));
-    if (res.ok) toast.add({ severity: 'success', summary: 'Dołączono', detail: 'Wysłano prośbę o dołączenie', life: 3000 });
+    if (res.ok) {
+      toast.add({ severity: 'success', summary: 'Dołączono', detail: 'Wysłano prośbę o dołączenie', life: 3000 });
+      await fetchRequests();
+    }
     else toast.add({ severity: 'warn', summary: 'Błąd', detail: data.error || data.message || 'Nie udało się wysłać prośby', life: 3000 });
   } catch (err) { console.error(err); toast.add({ severity: 'error', summary: 'Błąd', detail: 'Błąd podczas wysyłania prośby', life: 3000 }); }
 }
@@ -408,8 +432,9 @@ async function respondRequest(r, action) {
     });
     if (res.ok) {
       requests.value = requests.value.filter(req => req.request_id !== r.request_id);
-      fetchMyGroups();
       toast.add({ severity: 'success', summary: 'Prośba', detail: `Prośba została ${action === 'accept' ? 'zaakceptowana' : 'odrzucona'}`, life: 3000 });
+      await fetchMyGroups();
+      await fetchRequests();
     }
   } catch (err) { console.error(err); toast.add({ severity: 'error', summary: 'Błąd', detail: 'Nie udało się przetworzyć prośby', life: 3000 }); }
 }
@@ -464,6 +489,7 @@ async function deleteInvite(r) {
         detail: `${r.type === "invite" ? "Zaproszenie" : "Prośba"} zostało usunięte`,
         life: 3000
       });
+      await fetchRequests();
     } else {
       const data = await res.json().catch(() => ({}));
       toast.add({
@@ -529,7 +555,6 @@ function onGroupCreated(newGroup) {
   showCreateModal.value = false;
   myGroups.value.unshift(newGroup);
   applyFilters(false);
-  toast.add({ severity: 'success', summary: 'Sukces', detail: 'Grupa została utworzona', life: 3000 });
 }
 </script>
 
