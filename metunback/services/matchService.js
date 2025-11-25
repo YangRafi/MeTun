@@ -128,30 +128,26 @@ class MatchService {
   }
 
   async unlikeUser(userId, otherUserId) {
-    const match = await UserMatch.findOne({
-      where: {
-        [Op.or]: [
-          { user_id_1: userId, user_id_2: otherUserId },
-          { user_id_1: otherUserId, user_id_2: userId }
-        ]
+      const match = await UserMatch.findOne({
+        where: {
+          [Op.or]: [
+            { user_id_1: userId, user_id_2: otherUserId },
+            { user_id_1: otherUserId, user_id_2: userId }
+          ]
+        }
+      });
+      if (!match) throw { status: 404, message: 'Match not found' };
+
+      await match.destroy();
+
+      const io = getIo();
+      if (io) {
+        const receiverId = match.user_id_1 === userId ? match.user_id_2 : match.user_id_1;
+        io.to(receiverId).emit('match_removed', { matchId: match.match_id });
       }
-    });
-    if (!match) throw { status: 404, message: 'Match not found' };
 
-    if (match.user_id_1 === userId) match.user_1_like = false;
-    else match.user_2_like = false;
-
-    match.match_active = false;
-    await match.save();
-
-    const io = getIo();
-    if (io) {
-      const receiverId = match.user_id_1 === userId ? match.user_id_2 : match.user_id_1;
-      io.to(receiverId).emit('match_removed', { matchId: match.match_id });
+      return { success: true };
     }
-
-    return { matchActive: false };
-  }
 }
 
 module.exports = new MatchService();

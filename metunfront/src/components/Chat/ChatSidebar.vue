@@ -34,16 +34,17 @@
           <li
             v-for="chat in chats"
             :key="chat.id"
-            @click="openChat(chat)"
-            class="flex items-center gap-3 p-3 rounded-2xl hover:bg-blue-50 cursor-pointer transition-all shadow-sm"
+            class="flex items-center gap-3 p-3 rounded-2xl hover:bg-blue-50 cursor-pointer transition-all shadow-sm relative"
           >
+            <!-- Avatar i info -->
             <img
               v-if="chat.profile_picture"
               :src="chat.profile_picture"
               alt="avatar"
               class="w-12 h-12 rounded-full object-cover border-2 border-blue-200 shadow-sm"
+              @click="openChat(chat)"
             />
-            <div class="flex-1 truncate relative">
+            <div class="flex-1 truncate relative" @click="openChat(chat)">
               <p class="font-semibold text-blue-800 truncate">{{ chat.name }}</p>
               <p
                 class="text-sm truncate"
@@ -58,6 +59,22 @@
               </p>
               <span v-if="chat.unread" class="absolute top-0 right-0 w-3 h-3 bg-blue-500 rounded-full" title="Nowa wiadomość"></span>
             </div>
+
+            <!-- 🔹 Menu trzech kropek -->
+            <div class="relative">
+              <button @click.stop="chat.showMenu = !chat.showMenu" class="text-gray-500 hover:text-gray-700 font-bold">⋮</button>
+              <div
+                v-if="chat.showMenu"
+                class="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
+              >
+                <button
+                  @click="handleChatAction(chat)"
+                  class="block w-full text-left px-4 py-2 hover:bg-red-100 text-red-600"
+                >
+                  {{ props.onlyGroups ? 'Opuść grupę' : 'Usuń dopasowanie' }}
+                </button>
+              </div>
+            </div>
           </li>
         </ul>
       </div>
@@ -69,6 +86,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import socket from "../../socket.js";
+import { toast } from "vue3-toastify";
 
 const emit = defineEmits(["open-chat"]);
 const props = defineProps({ userId: Number, onlyPrivate: Boolean, onlyGroups: Boolean });
@@ -85,6 +103,38 @@ function toggleSidebar() {
   if (isOpen.value && chats.value.length === 0) fetchChats();
 }
 function closeSidebar() { isOpen.value = false; }
+
+async function handleChatAction(chat) {
+  try {
+    if (props.onlyGroups) {
+      // opuszczenie grupy
+      const res = await fetch(`http://localhost:3000/api/group-members/${chat.id}/leave`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Błąd przy opuszczaniu grupy');
+
+      chats.value = chats.value.filter(c => c.id !== chat.id);
+      toast.success(data.message || 'Pomyślnie opuściłeś grupę', { autoClose: 2500 });
+    } else {
+      // usunięcie dopasowania (match)
+      const res = await fetch(`http://localhost:3000/api/matches/unlike/${chat.id}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Błąd przy usuwaniu dopasowania');
+
+      chats.value = chats.value.filter(c => c.id !== chat.id);
+      toast.success('Dopasowanie zostało usunięte', { autoClose: 2500 });
+    }
+  } catch (err) {
+    console.error(err);
+    toast.error(err.message || 'Wystąpił błąd', { autoClose: 3000 });
+  }
+}
+
 
 async function fetchChats() {
   loading.value = true;

@@ -98,11 +98,11 @@ const showConfirm = ref(false);
 
 async function changePassword() {
   if (!currentPassword.value || !newPassword.value || !confirmPassword.value) {
-    return toast.warning("⚠️ Uzupełnij wszystkie pola!", { autoClose: 2500 });
+    return toast.warning("Uzupełnij wszystkie pola!", { autoClose: 2500 });
   }
 
   if (newPassword.value !== confirmPassword.value) {
-    return toast.error("❌ Nowe hasła nie pasują do siebie!", { autoClose: 2500 });
+    return toast.error("Nowe hasła nie pasują do siebie!", { autoClose: 2500 });
   }
 
   try {
@@ -123,17 +123,17 @@ async function changePassword() {
     });
 
     if (res.ok) {
-      toast.success("✅ Hasło zostało zmienione pomyślnie!", { autoClose: 2500 });
+      toast.success("Hasło zostało zmienione pomyślnie!", { autoClose: 2500 });
       currentPassword.value = "";
       newPassword.value = "";
       confirmPassword.value = "";
     } else {
       const err = await res.json().catch(() => ({}));
-      toast.error(`❌ Błąd: ${err.message || "Nieznany błąd"}`, { autoClose: 3000 });
+      toast.error(`Błąd: ${err.message || "Nieznany błąd"}`, { autoClose: 3000 });
     }
   } catch (err) {
     console.error(err);
-    toast.error("🚫 Nie udało się połączyć z serwerem.", { autoClose: 3000 });
+    toast.error("Nie udało się połączyć z serwerem.", { autoClose: 3000 });
   }
 }
 </script>

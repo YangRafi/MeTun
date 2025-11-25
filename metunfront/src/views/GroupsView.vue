@@ -8,7 +8,7 @@
     <UserHeader :profile="userStore.profile" />
     <ChatSidebar v-model:isOpen="isSidebarOpen" @open-chat="openChat" :onlyGroups="true" />
 
-    <div class="flex-1 flex flex-col px-6 pt-28 relative z-10" v-if="!activeChat">
+    <div class="flex-1 flex flex-col px-6 pt-28 relative z-10">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-7xl mx-auto">
 
         <!-- 🎓 Grupy kierunkowe -->
