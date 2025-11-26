@@ -149,4 +149,109 @@ describe('ProfileService', () => {
     await expect(profileService.deleteProfile(1))
       .rejects.toMatchObject({ status: 404 });
   });
+
+  // --------------------------
+  // CREATE PROFILE - dodatkowe walidacje
+  // --------------------------
+  test('createProfile rzuca błąd przy niepoprawnym gender', async () => {
+    const data = { user_id: 1, name: 'Test', gender: 'invalid' };
+    await expect(profileService.createProfile(data, null, null))
+      .rejects.toMatchObject({ status: 400, message: expect.stringContaining('gender must be one of') });
+  });
+
+  test('createProfile rzuca błąd gdy date_of_birth w przyszłości', async () => {
+    const futureDate = new Date();
+    futureDate.setFullYear(futureDate.getFullYear() + 1);
+
+    User.findByPk.mockResolvedValue({ id: 1 });
+    profileService.getProfileByUserId = jest.fn().mockResolvedValue(null);
+
+    const data = { user_id: 1, name: 'Test', date_of_birth: futureDate.toISOString() };
+    await expect(profileService.createProfile(data, null, null))
+      .rejects.toMatchObject({ status: 400, message: 'date_of_birth cannot be in the future' });
+  });
+
+  test('createProfile rzuca błąd gdy wiek < MIN_AGE', async () => {
+    const youngDate = new Date();
+    youngDate.setFullYear(youngDate.getFullYear() - 10); // 10 lat
+
+    User.findByPk.mockResolvedValue({ id: 1 });
+    profileService.getProfileByUserId = jest.fn().mockResolvedValue(null);
+
+    const data = { user_id: 1, name: 'Test', date_of_birth: youngDate.toISOString() };
+    await expect(profileService.createProfile(data, null, null))
+      .rejects.toMatchObject({ status: 400, message: expect.stringContaining('User must be at least') });
+  });
+
+  test('createProfile rzuca błąd jeśli użytkownik nie istnieje', async () => {
+    User.findByPk.mockResolvedValue(null);
+    profileService.getProfileByUserId = jest.fn().mockResolvedValue(null);
+
+    const data = { user_id: 1, name: 'Test' };
+    await expect(profileService.createProfile(data, null, null))
+      .rejects.toMatchObject({ status: 400, message: 'Invalid user_id' });
+  });
+
+  // --------------------------
+  // UPDATE PROFILE - dodatkowe walidacje
+  // --------------------------
+  test('updateProfile rzuca błąd przy niepoprawnym gender', async () => {
+    const profileMock = { save: jest.fn() };
+    profileService.getProfileById = jest.fn().mockResolvedValue(profileMock);
+
+    const data = { gender: 'invalid' };
+    await expect(profileService.updateProfile(1, data, null, null))
+      .rejects.toMatchObject({ status: 400, message: expect.stringContaining('gender must be one of') });
+  });
+
+  test('updateProfile rzuca błąd gdy date_of_birth w przyszłości', async () => {
+    const profileMock = { save: jest.fn() };
+    profileService.getProfileById = jest.fn().mockResolvedValue(profileMock);
+
+    const futureDate = new Date();
+    futureDate.setFullYear(futureDate.getFullYear() + 1);
+
+    const data = { date_of_birth: futureDate.toISOString() };
+    await expect(profileService.updateProfile(1, data, null, null))
+      .rejects.toMatchObject({ status: 400, message: 'date_of_birth cannot be in the future' });
+  });
+
+  test('updateProfile rzuca błąd gdy wiek < MIN_AGE', async () => {
+    const profileMock = { save: jest.fn() };
+    profileService.getProfileById = jest.fn().mockResolvedValue(profileMock);
+
+    const youngDate = new Date();
+    youngDate.setFullYear(youngDate.getFullYear() - 10);
+
+    const data = { date_of_birth: youngDate.toISOString() };
+    await expect(profileService.updateProfile(1, data, null, null))
+      .rejects.toMatchObject({ status: 400, message: expect.stringContaining('User must be at least') });
+  });
+
+  test('updateProfile aktualizuje profil z plikiem i wszystkimi polami', async () => {
+    const profileMock = { save: jest.fn() };
+    profileService.getProfileById = jest.fn().mockResolvedValue(profileMock);
+
+    const file = { filename: 'pic.jpg' };
+    const host = 'http://localhost';
+    const data = {
+      name: 'NewName',
+      bio: 'Bio',
+      date_of_birth: '2000-01-01',
+      gender: 'male',
+      location: 'City'
+    };
+
+    const result = await profileService.updateProfile(1, data, file, host);
+
+    expect(result).toBe(profileMock);
+    expect(profileMock.name).toBe('NewName');
+    expect(profileMock.bio).toBe('Bio');
+    expect(profileMock.date_of_birth).toBe('2000-01-01');
+    expect(profileMock.gender).toBe('male');
+    expect(profileMock.location).toBe('City');
+    expect(profileMock.profile_picture).toBe('http://localhost/uploads/profile_pictures/pic.jpg');
+    expect(profileMock.save).toHaveBeenCalled();
+  });
+
 });

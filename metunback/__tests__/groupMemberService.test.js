@@ -32,8 +32,15 @@ describe('GroupMemberService', () => {
       include: [
         {
           model: User,
+          as: 'user',
           attributes: ['user_id', 'name', 'surname', 'email'],
-          include: [{ model: Profile, attributes: ['profile_id', 'name', 'profile_picture'] }]
+          include: [
+            {
+              model: Profile,
+              as: 'userProfile',
+              attributes: ['profile_id', 'name', 'profile_picture']
+            }
+          ]
         }
       ]
     });
@@ -97,7 +104,6 @@ describe('GroupMemberService', () => {
   // leaveGroup
   // --------------------------
   test('leaveGroup usuwa członka grupy', async () => {
-    const mockGroup = { creator_user_id: 1 };
     const mockMember = { destroy: jest.fn().mockResolvedValue(true) };
     Group.findByPk.mockResolvedValue({ creator_user_id: 2 });
     GroupMember.findOne.mockResolvedValue(mockMember);

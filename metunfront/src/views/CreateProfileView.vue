@@ -1,118 +1,119 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-100 via-blue-100 to-purple-100">
-    
-    <!-- 🔥 Toast -->
-    <Toast />
+  <div
+    class="relative min-h-screen bg-cover bg-center"
+    :style="{ backgroundImage: `url(${background})` }"
+  >
+    <div class="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
 
-    <div class="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
-      <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
-        Uzupełnij swój profil 💫
-      </h1>
+    <!-- Main -->
+    <main class="relative z-10 flex flex-col items-center pt-28 px-6 w-full">
+      <div class="w-full max-w-3xl mx-auto bg-white/80 backdrop-blur-md rounded-3xl shadow-xl p-8 border border-blue-200">
+        <h1 class="text-3xl font-bold text-center mb-6 text-blue-800 drop-shadow-lg">
+          Uzupełnij swój profil 💫
+        </h1>
 
-      <form @submit.prevent="onSubmit" class="space-y-5">
-        <!-- ZDJĘCIE PROFILOWE -->
-        <div class="flex flex-col items-center">
-          <div class="relative w-32 h-32">
-            <img
-              v-if="previewImage"
-              :src="previewImage"
-              alt="Podgląd zdjęcia"
-              class="w-32 h-32 rounded-full object-cover shadow-md border border-gray-300"
-            />
-            <div
-              v-else
-              class="w-32 h-32 rounded-full flex items-center justify-center bg-gray-200 text-gray-500 text-sm border border-gray-300"
-            >
-              Brak zdjęcia
+        <Toast />
+
+        <form @submit.prevent="onSubmit" class="space-y-5">
+          <!-- ZDJĘCIE PROFILOWE -->
+          <div class="flex flex-col items-center">
+            <div class="relative w-32 h-32">
+              <img
+                v-if="previewImage"
+                :src="previewImage"
+                alt="Podgląd zdjęcia"
+                class="w-32 h-32 rounded-full object-cover shadow-md border border-blue-200"
+              />
+              <div
+                v-else
+                class="w-32 h-32 rounded-full flex items-center justify-center bg-blue-50 text-blue-300 text-sm border border-blue-200"
+              >
+                Brak zdjęcia
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                @change="onFileChange"
+                class="absolute inset-0 opacity-0 cursor-pointer"
+              />
             </div>
+            <p class="text-xs text-blue-500 mt-2">Kliknij, aby dodać zdjęcie</p>
+          </div>
+
+          <!-- BIO -->
+          <div>
+            <label class="block text-sm font-medium text-blue-800 mb-1">O Tobie (Bio)</label>
+            <textarea
+              v-model="bio"
+              class="w-full border border-blue-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              rows="3"
+              placeholder="Napisz coś o sobie..."
+            ></textarea>
+          </div>
+
+          <!-- DATA URODZENIA -->
+          <div>
+            <label class="block text-sm font-medium text-blue-800 mb-1">Data urodzenia</label>
             <input
-              type="file"
-              accept="image/*"
-              @change="onFileChange"
-              class="absolute inset-0 opacity-0 cursor-pointer"
+              type="date"
+              v-model="date_of_birth"
+              class="w-full border border-blue-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-300"
             />
           </div>
-          <p class="text-xs text-gray-500 mt-2">Kliknij, aby dodać zdjęcie</p>
-        </div>
 
-        <!-- BIO -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">O Tobie (Bio)</label>
-          <textarea
-            v-model="bio"
-            class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            rows="3"
-            placeholder="Napisz coś o sobie..."
-          ></textarea>
-        </div>
+          <!-- PŁEĆ -->
+          <div>
+            <label class="block text-sm font-medium text-blue-800 mb-1">Płeć</label>
+            <select
+              v-model="gender"
+              class="w-full border border-blue-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            >
+              <option disabled value="">Wybierz płeć</option>
+              <option value="male">Mężczyzna</option>
+              <option value="female">Kobieta</option>
+              <option value="other">Inna</option>
+            </select>
+          </div>
 
-        <!-- DATA URODZENIA -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Data urodzenia</label>
-          <input
-            type="date"
-            v-model="date_of_birth"
-            class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          <!-- LOKALIZACJA -->
+          <div>
+            <label class="block text-sm font-medium text-blue-800 mb-1">Lokalizacja</label>
+            <input
+              type="text"
+              v-model="location"
+              class="w-full border border-blue-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              placeholder="Miasto / miejscowość"
+            />
+          </div>
+
+          <!-- PRZYCISK -->
+          <Button
+            type="submit"
+            label="Zapisz profil"
+            class="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold py-3 rounded-2xl hover:opacity-90 transition shadow-lg"
           />
-        </div>
-
-        <!-- PŁEĆ -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Płeć</label>
-          <select
-            v-model="gender"
-            class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          >
-            <option disabled value="">Wybierz płeć</option>
-            <option value="male">Mężczyzna</option>
-            <option value="female">Kobieta</option>
-            <option value="other">Inna</option>
-          </select>
-        </div>
-
-        <!-- LOKALIZACJA -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Lokalizacja</label>
-          <input
-            type="text"
-            v-model="location"
-            class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="Miasto / miejscowość"
-          />
-        </div>
-
-        <!-- PRZYCISK -->
-        <Button
-          type="submit"
-          label="Zapisz profil"
-          class="w-full bg-gradient-to-r from-pink-500 to-blue-500 text-white font-semibold py-2 rounded-md hover:opacity-90 transition"
-        />
-      </form>
-    </div>
+        </form>
+      </div>
+    </main>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import Button from 'primevue/button'
 import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
+import UserHeader from '@/components/Layout/UserHeader.vue'
+import background from '@/assets/background.jpg'
 import { useUserStore } from '@/store/userStore'
 import { useRouter } from 'vue-router'
 
 const toast = useToast()
-
-const showToast = (severity, summary, detail) => {
-  toast.add({
-    severity,
-    summary,
-    detail,
-    life: 3500
-  })
-}
+const showToast = (severity, summary, detail) => toast.add({ severity, summary, detail, life: 3500 })
 
 const userStore = useUserStore()
 const router = useRouter()
+const profile = reactive({})
 
 // Dane formularza
 const bio = ref('')
@@ -134,10 +135,7 @@ const onFileChange = (e) => {
 // Wysyłka formularza
 const onSubmit = async () => {
   try {
-    // Pobranie aktualnie zalogowanego użytkownika
-    const resUser = await fetch('http://localhost:3000/api/auth/me', {
-      credentials: 'include'
-    })
+    const resUser = await fetch('http://localhost:3000/api/auth/me', { credentials: 'include' })
     const userData = await resUser.json()
     const user_id = userData?.user_id
 
@@ -146,7 +144,6 @@ const onSubmit = async () => {
       return
     }
 
-    // FormData
     const formData = new FormData()
     formData.append('user_id', user_id)
     formData.append('name', userData.name || userData.email.split('@')[0])
@@ -154,27 +151,15 @@ const onSubmit = async () => {
     formData.append('date_of_birth', date_of_birth.value)
     formData.append('gender', gender.value)
     formData.append('location', location.value)
-    if (profile_picture.value) {
-      formData.append('profile_picture', profile_picture.value)
-    }
+    if (profile_picture.value) formData.append('profile_picture', profile_picture.value)
 
-    // Wysyłka do backendu
-    const res = await fetch('http://localhost:3000/api/profiles', {
-      method: 'POST',
-      credentials: 'include',
-      body: formData
-    })
-
+    const res = await fetch('http://localhost:3000/api/profiles', { method: 'POST', credentials: 'include', body: formData })
     const data = await res.json()
-    if (!res.ok) {
-      showToast("error", "Błąd", data.error || "Nie udało się zapisać profilu.")
-      return
-    }
+    if (!res.ok) { showToast("error", "Błąd", data.error || "Nie udało się zapisać profilu."); return }
 
     showToast("success", "Profil utworzony 🎉", "Twój profil został zapisany.")
     await userStore.fetchUserAndProfile()
     router.push('/dashboard')
-
   } catch (err) {
     showToast("error", "Błąd", err.message || "Wystąpił nieoczekiwany problem.")
   }
@@ -185,15 +170,8 @@ const onSubmit = async () => {
 form {
   animation: fadeIn 0.6s ease-in-out;
 }
-
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>

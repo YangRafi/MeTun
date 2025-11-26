@@ -91,7 +91,7 @@ describe('GroupRequestService', () => {
   // respondToRequest
   // --------------------------
   test('respondToRequest akceptuje prośbę', async () => {
-    const requestMock = { request_id: 1, group_id: 2, user_id: 3, save: jest.fn() };
+    const requestMock = { request_id: 1, group_id: 2, user_id: 3, save: jest.fn(), status: 'pending' };
     GroupJoinRequest.findByPk.mockResolvedValue(requestMock);
     GroupMember.create.mockResolvedValue({});
 
@@ -103,10 +103,10 @@ describe('GroupRequestService', () => {
   });
 
   test('respondToRequest odrzuca prośbę', async () => {
-    const requestMock = { request_id: 1, save: jest.fn() };
+    const requestMock = { request_id: 1, save: jest.fn(), status: 'pending' };
     GroupJoinRequest.findByPk.mockResolvedValue(requestMock);
 
-    const result = await groupRequestService.respondToRequest(1, 'reject');
+    const result = await groupRequestService.respondToRequest(1, 'rejected');
     expect(result).toBe(true);
     expect(requestMock.status).toBe('rejected');
     expect(requestMock.save).toHaveBeenCalled();
@@ -116,6 +116,13 @@ describe('GroupRequestService', () => {
     GroupJoinRequest.findByPk.mockResolvedValue(null);
     await expect(groupRequestService.respondToRequest(1, 'accept'))
       .rejects.toThrow('Nie znaleziono prośby');
+  });
+
+  test('respondToRequest rzuca błąd dla niepoprawnej akcji', async () => {
+    const requestMock = { request_id: 1, save: jest.fn(), status: 'pending' };
+    GroupJoinRequest.findByPk.mockResolvedValue(requestMock);
+    await expect(groupRequestService.respondToRequest(1, 'invalid'))
+      .rejects.toThrow('Nieprawidłowa akcja');
   });
 
   // --------------------------
@@ -164,5 +171,63 @@ describe('GroupRequestService', () => {
     GroupJoinRequest.findAll.mockResolvedValue(mockList);
     const result = await groupRequestService.getPendingRequestsForUser(3);
     expect(result).toEqual(mockList);
+  });
+
+  // --------------------------
+  // getAllRequests
+  // --------------------------
+  test('getAllRequests zwraca wszystkie requesty', async () => {
+    const mockList = [{ request_id: 1 }, { request_id: 2 }];
+    GroupJoinRequest.findAll.mockResolvedValue(mockList);
+
+    const result = await groupRequestService.getAllRequests();
+    expect(result).toEqual(mockList);
+    expect(GroupJoinRequest.findAll).toHaveBeenCalled();
+  });
+
+  // --------------------------
+  // deleteRequest
+  // --------------------------
+  test('deleteRequest usuwa request gdy user jest autorem', async () => {
+    const reqMock = { user_id: 1, destroy: jest.fn() };
+    GroupJoinRequest.findOne.mockResolvedValue(reqMock);
+
+    const result = await groupRequestService.deleteRequest(1, 1, false);
+    expect(result).toBe(true);
+    expect(reqMock.destroy).toHaveBeenCalled();
+  });
+
+  test('deleteRequest usuwa request gdy user jest adminem', async () => {
+    const reqMock = { user_id: 2, destroy: jest.fn() };
+    GroupJoinRequest.findOne.mockResolvedValue(reqMock);
+
+    const result = await groupRequestService.deleteRequest(1, 1, true);
+    expect(result).toBe(true);
+    expect(reqMock.destroy).toHaveBeenCalled();
+  });
+
+  test('deleteRequest rzuca błąd jeśli request nie istnieje', async () => {
+    GroupJoinRequest.findOne.mockResolvedValue(null);
+    await expect(groupRequestService.deleteRequest(1, 1, true))
+      .rejects.toThrow('Nie znaleziono prośby');
+  });
+
+  test('deleteRequest rzuca błąd jeśli user nie ma uprawnień', async () => {
+    const reqMock = { user_id: 2, destroy: jest.fn() };
+    GroupJoinRequest.findOne.mockResolvedValue(reqMock);
+
+    await expect(groupRequestService.deleteRequest(1, 1, false))
+      .rejects.toThrow('Brak uprawnień');
+  });
+
+  // --------------------------
+  // respondToRequest - już zaakceptowany
+  // --------------------------
+  test('respondToRequest rzuca błąd jeśli request już zaakceptowany', async () => {
+    const requestMock = { request_id: 1, status: 'accepted', save: jest.fn() };
+    GroupJoinRequest.findByPk.mockResolvedValue(requestMock);
+
+    await expect(groupRequestService.respondToRequest(1, 'accept'))
+      .rejects.toThrow('Request został już zaakceptowany i nie może być zmieniony');
   });
 });

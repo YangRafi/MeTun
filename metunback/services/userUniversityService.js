@@ -27,15 +27,21 @@ class UserUniversityService {
     const now = new Date();
 
     return Promise.all(records.map(async (r) => {
-      if (r.trial && r.trial_end_date && now > r.trial_end_date) {
-        r.status = 'expired';
+      let expired = false;
+
+      // 🔹 Sprawdź, czy rekord powinien być expired
+      if ((r.trial && r.trial_end_date && now > r.trial_end_date) ||
+          (!r.trial && r.expiry_date && now > r.expiry_date)) {
+        if (r.status !== 'expired') {
+          r.status = 'expired';
+          expired = true;
+        }
+      }
+
+      if (expired) {
         await r.save();
-        await GroupMember.destroy({ where: { user_id: userId } });
-      } 
-      else if (!r.trial && r.expiry_date && now > r.expiry_date) {
-        r.status = 'expired';
-        await r.save();
-        await GroupMember.destroy({ where: { user_id: userId } });
+        // usuń z grupy jeśli faktycznie wygasło
+        await GroupMember.destroy({ where: { user_id: r.user_id } });
       }
 
       return {
@@ -171,13 +177,22 @@ class UserUniversityService {
     });
 
     const now = new Date();
+
+    // 🔹 przekształcamy rekordy z uwzględnieniem wygasłych triali i expiry_date
     const formatted = records.map(r => {
-      let status = r.status;
-      if (r.trial && r.trial_end_date && now > r.trial_end_date) status = 'expired';
+      let isTrialActive = r.trial && r.trial_end_date && now <= r.trial_end_date;
+
+      // 🔹 jeśli trial wygasł lub expiry_date minęło → ustaw expired
+      let recordStatus = r.status;
+      if ((r.trial && r.trial_end_date && now > r.trial_end_date) ||
+          (!r.trial && r.expiry_date && now > r.expiry_date)) {
+        recordStatus = 'expired';
+        isTrialActive = false;
+      }
 
       return {
         id: r.id,
-        status,
+        status: recordStatus,        // ← tu nowy status
         join_date: r.join_date,
         expiry_date: r.expiry_date,
         document_url: r.document_url,
@@ -186,20 +201,36 @@ class UserUniversityService {
         discipline_name: r.Discipline?.name || '',
         user_name: r.User ? `${r.User.name} ${r.User.surname}` : 'Nieznany',
         user_email: r.User?.email || '',
-        trial: r.trial,
+        trial: isTrialActive,
         trial_start_date: r.trial_start_date,
         trial_end_date: r.trial_end_date
       };
     });
 
-    return {
-      pending: formatted.filter(r => r.status === 'pending'),
-      approved: formatted.filter(r => r.status === 'approved'),
-      rejected: formatted.filter(r => r.status === 'rejected'),
-      expired: formatted.filter(r => r.status === 'expired'),
-      trial: formatted.filter(r => r.trial)
+    // 🔹 segregacja po statusach
+    const result = {
+      pending: [],
+      approved: [],
+      rejected: [],
+      expired: [],
+      trial: []
     };
+
+    for (const r of formatted) {
+      if (r.status === 'expired') {
+        result.expired.push(r);
+      } else if (r.trial) {
+        result.trial.push(r); // tylko aktywne triale
+      } else {
+        result[r.status]?.push(r);
+      }
+    }
+
+    return result;
   }
+
+
+
 
   // 🔹 ADMIN: Zmień status
   async updateStatus(applicationId, status) {

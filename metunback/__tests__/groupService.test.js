@@ -17,7 +17,9 @@ jest.mock('../models', () => ({
     findAll: jest.fn(),
     create: jest.fn()
   },
-  User: jest.fn(),
+  User: {
+    findByPk: jest.fn() // <- poprawione
+  },
   Discipline: jest.fn(),
   Faculty: jest.fn(),
   UserUniversity: {
@@ -96,6 +98,7 @@ describe('GroupService', () => {
   // --------------------------
   test('createGroup tworzy grupę', async () => {
     Group.count.mockResolvedValue(0);
+    User.findByPk.mockResolvedValue({ user_id: 1, role: 'student' }); // <- mock użytkownika
     UserUniversity.findOne.mockResolvedValue({});
     const newGroup = { group_id: 1 };
     Group.create.mockResolvedValue(newGroup);
@@ -108,12 +111,14 @@ describe('GroupService', () => {
 
   test('createGroup rzuca błąd jeśli użytkownik ma 2 grupy', async () => {
     Group.count.mockResolvedValue(2);
+    User.findByPk.mockResolvedValue({ user_id: 1, role: 'student' });
     await expect(groupService.createGroup({ group_name: 'Test', discipline_id: 1, creator_user_id: 1 }))
       .rejects.toThrow('Możesz utworzyć maksymalnie 2 grupy');
   });
 
   test('createGroup rzuca błąd jeśli brak zatwierdzonego kierunku', async () => {
     Group.count.mockResolvedValue(0);
+    User.findByPk.mockResolvedValue({ user_id: 1, role: 'student' });
     UserUniversity.findOne.mockResolvedValue(null);
     await expect(groupService.createGroup({ group_name: 'Test', discipline_id: 1, creator_user_id: 1 }))
       .rejects.toThrow('Nie możesz tworzyć grupy dla tego kierunku');

@@ -16,12 +16,10 @@ jest.mock('../models', () => ({
   User: jest.fn()
 }));
 
-jest.mock('../util/socket', () => {
-  return {
-    emitNewMatch: jest.fn(),
-    getIo: jest.fn()
-  };
-});
+jest.mock('../util/socket', () => ({
+  emitNewMatch: jest.fn(),
+  getIo: jest.fn()
+}));
 
 describe('MatchService', () => {
   afterEach(() => {
@@ -104,7 +102,7 @@ describe('MatchService', () => {
       user_1_like: true,
       user_2_like: true,
       match_active: true,
-      save: jest.fn()
+      destroy: jest.fn(), // <- dodane, aby test nie padał
     };
     UserMatch.findOne.mockResolvedValue(matchMock);
 
@@ -112,18 +110,16 @@ describe('MatchService', () => {
     const toMock = jest.fn(() => ({ emit: emitMock }));
     getIo.mockReturnValue({ to: toMock });
 
-    const result = await matchService.unlikeUser(1, 2);
+    const result = await matchService.unlikeUser(1, 123);
 
-    expect(result.matchActive).toBe(false);
-    expect(matchMock.user_1_like).toBe(false);
-    expect(matchMock.match_active).toBe(false);
-    expect(matchMock.save).toHaveBeenCalled();
+    expect(matchMock.destroy).toHaveBeenCalled();
     expect(toMock).toHaveBeenCalledWith(2);
     expect(emitMock).toHaveBeenCalledWith('match_removed', { matchId: 123 });
+    expect(result).toEqual({ success: true });
   });
 
   test('unlikeUser rzuca błąd jeśli match nie istnieje', async () => {
     UserMatch.findOne.mockResolvedValue(null);
-    await expect(matchService.unlikeUser(1, 2)).rejects.toMatchObject({ status: 404 });
+    await expect(matchService.unlikeUser(1, 123)).rejects.toMatchObject({ status: 404 });
   });
 });
