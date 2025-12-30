@@ -100,7 +100,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useUserStore } from "@/store/userstore";
+import { useUserStore } from "@/store/userStore";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 

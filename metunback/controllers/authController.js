@@ -47,6 +47,7 @@ exports.me = async (req, res) => {
     const user = req.user;
     res.json({
       user_id: user.userId,
+      name: user.name,
       email: user.email,
       role: user.role,
       isVerified: user.isVerified

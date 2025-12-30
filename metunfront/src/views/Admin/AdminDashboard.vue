@@ -12,6 +12,7 @@
             <StatCard title="Zweryfikowani" :value="stats.verified" icon="CheckCircle" />
             <StatCard title="Uczelnie" :value="stats.universities" icon="School" />
             <StatCard title="Grupy" :value="stats.groups" icon="UsersRound" />
+            <StatCard title="Zgłoszenia" :value="stats.reports" icon="ClipboardList" />
           </div>
         </div>
 
@@ -56,13 +57,14 @@ import UserHeader from '../../components/Layout/UserHeader.vue'
 
 const router = useRouter()
 const profile = ref(null)
-const stats = reactive({ users: 0, verified: 0, universities: 0, groups: 0 })
+const stats = reactive({ users: 0, verified: 0, universities: 0, groups: 0 , reports: 0})
 
 const sections = [
   { key: 'users', name: 'Zarządzanie użytkownikami', icon: User },
   { key: 'universities', name: 'Zarządzanie uczelniami', icon: School },
   { key: 'requests', name: 'Wnioski do weryfikacji', icon: ClipboardList },
-  { key: 'groups', name: 'Zarządzanie grupami', icon: Users }
+  { key: 'groups', name: 'Zarządzanie grupami', icon: Users },
+  { key: 'reports', name: 'Zgłoszenia', icon: ClipboardList }
 ]
 
 // 🌟 Toasty

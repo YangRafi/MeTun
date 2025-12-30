@@ -103,7 +103,6 @@ import { ref, reactive, onMounted } from 'vue'
 import Button from 'primevue/button'
 import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
-import UserHeader from '@/components/Layout/UserHeader.vue'
 import background from '@/assets/background.jpg'
 import { useUserStore } from '@/store/userStore'
 import { useRouter } from 'vue-router'
@@ -146,7 +145,7 @@ const onSubmit = async () => {
 
     const formData = new FormData()
     formData.append('user_id', user_id)
-    formData.append('name', userData.name || userData.email.split('@')[0])
+    formData.append('name', userData.name)
     formData.append('bio', bio.value)
     formData.append('date_of_birth', date_of_birth.value)
     formData.append('gender', gender.value)
@@ -159,6 +158,9 @@ const onSubmit = async () => {
 
     showToast("success", "Profil utworzony 🎉", "Twój profil został zapisany.")
     await userStore.fetchUserAndProfile()
+
+    await new Promise(resolve => setTimeout(resolve, 200))
+    
     router.push('/dashboard')
   } catch (err) {
     showToast("error", "Błąd", err.message || "Wystąpił nieoczekiwany problem.")

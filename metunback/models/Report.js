@@ -15,18 +15,21 @@ const Report = sequelize.define('Report', {
     type: DataTypes.TEXT,
     allowNull: false,
   },
-  senderId: { // kto wysyła raport
+  senderId: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  reportedUserId: { // opcjonalnie – kogo dotyczy raport
+  reportedUserId: {
     type: DataTypes.INTEGER,
     allowNull: true,
   },
-  status: { // np. open, resolved, closed
+  status: {
     type: DataTypes.ENUM('open', 'resolved', 'closed'),
     defaultValue: 'open',
-  }
+  },
+  response: { 
+    type: DataTypes.TEXT,
+    allowNull: true }
 }, {
   tableName: 'reports',
   timestamps: true,

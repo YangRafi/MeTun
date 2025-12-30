@@ -11,7 +11,7 @@ exports.authenticate = async (req, res, next) => {
     if (!user) throw new Error("User not found");
     await authService.handleBan(user);
     const isVerified = await authService.checkIsVerified(user.user_id);
-    req.user = { userId: user.user_id, email: user.email, role: user.role, isVerified };
+    req.user = { userId: user.user_id, name: user.name, email: user.email, role: user.role, isVerified };
   };
 
   try {

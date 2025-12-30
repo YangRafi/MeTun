@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  db:
+    image: mariadb:11
+    container_name: metun-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ebeebe
+      MYSQL_DATABASE: MeTun
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  backend:
+    build: ./metunback
+    container_name: metun-backend
+    restart: always
+    env_file:
+      - ./metunback/secret.env
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: ebeebe
+      DB_NAME: MeTun
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./metunback:/app
+      - /app/node_modules
+    depends_on:
+      - db
+    entrypoint: ./docker-entrypoint.sh
+
+  frontend:
+    build: ./metunfront
+    container_name: metun-frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./metunfront:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  db_data:

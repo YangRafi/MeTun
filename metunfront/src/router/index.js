@@ -17,6 +17,7 @@ import UsersView from '../views/Admin/UsersView.vue'
 import UniversitiesView from '../views/Admin/UniversitiesView.vue'
 import RequestsView from '../views/Admin/RequestsView.vue'
 import AdminGroups from '../views/Admin/AdminGroups.vue'
+import AdminReports from '../views/Admin/AdminReports.vue'
 
 
 const routes = [
@@ -37,7 +38,8 @@ const routes = [
       { path: 'users', name: 'AdminUsers', component: UsersView },
       { path: 'universities', name: 'AdminUniversities', component: UniversitiesView },
       { path: 'requests', name: 'AdminRequests', component: RequestsView },
-      { path: 'groups', name: 'AdminGroups', component: AdminGroups }
+      { path: 'groups', name: 'AdminGroups', component: AdminGroups },
+      { path: 'reports', name: 'AdminReports', component: AdminReports },
     ]
   }
 ]

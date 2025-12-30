@@ -217,7 +217,7 @@ import { useUserStore } from "@/store/userStore";
 import UserHeader from "../components/Layout/UserHeader.vue";
 import ChatSidebar from "../components/Chat/ChatSidebar.vue";
 import ChatBox from "../components/Chat/ChatBox.vue";
-import CreateGroupModal from "../components/modal/CreateGroupModal.vue";
+import CreateGroupModal from "../components/Modal/CreateGroupModal.vue";
 import background from "@/assets/background.jpg";
 
 import Toast from "primevue/toast";
@@ -229,7 +229,7 @@ const userStore = useUserStore();
 import { useConfirm } from 'primevue/useconfirm';
 const confirm = useConfirm();
 
-import InviteModal from "../components/modal/InviteModal.vue";
+import InviteModal from "../components/Modal/InviteModal.vue";
 
 const showInviteModal = ref(false);
 const inviteGroup = ref(null);

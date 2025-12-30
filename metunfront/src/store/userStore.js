@@ -8,22 +8,31 @@ export const useUserStore = defineStore('user', () => {
   const loaded = ref(false);
 
   async function fetchUserAndProfile() {
-    if (loaded.value) return; // ✅ Nie pobieraj ponownie, jeśli już załadowano
-
     try {
+      // 🧹 ZAWSZE czyścimy obiekty przed ponownym pobraniem
+      Object.keys(user).forEach(k => delete user[k]);
+      Object.keys(profile).forEach(k => delete profile[k]);
+
+      // 🧑 Pobierz usera
       const resUser = await fetchWithRefresh('http://localhost:3000/api/auth/me');
       if (!resUser.ok) throw new Error('Nie zalogowany');
       const userData = await resUser.json();
       Object.assign(user, userData);
 
-      const resProfile = await fetchWithRefresh(`http://localhost:3000/api/profiles/user/${user.user_id}`);
+      // 🧑‍🦰 Pobierz profil
+      const resProfile = await fetchWithRefresh(
+        `http://localhost:3000/api/profiles/user/${user.user_id}`
+      );
+
       if (resProfile.ok) {
-        Object.assign(profile, await resProfile.json());
+        const profileData = await resProfile.json();
+        Object.assign(profile, profileData);
       } else {
         console.log('Brak profilu');
       }
 
       loaded.value = true;
+
     } catch (err) {
       console.error('❌ Błąd pobierania profilu:', err);
     }
