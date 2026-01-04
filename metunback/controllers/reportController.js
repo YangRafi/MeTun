@@ -27,7 +27,7 @@ exports.getReports = async (req, res) => {
     const grouped = {
       pending: reports.filter(r => r.status === 'pending'),
       resolved: reports.filter(r => r.status === 'resolved'),
-      closed:   reports.filter(r => r.status === 'closed'),
+      closed: reports.filter(r => r.status === 'closed'),
     };
 
     res.json(grouped);

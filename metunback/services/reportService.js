@@ -15,13 +15,22 @@ class ReportService {
 
   // Pobranie wszystkich raportów wraz z danymi użytkowników
   async getAllReports() {
-    return await Report.findAll({
-      include: [
-        { model: User, as: 'sender', attributes: ['id','name','email'] },
-        { model: User, as: 'reportedUser', attributes: ['id','name','email'] }
-      ]
-    });
-  }
+  return await Report.findAll({
+    order: [['createdAt', 'DESC']],
+    include: [
+      {
+        model: User,
+        as: 'sender',
+        attributes: ['user_id', 'name', 'email']
+      },
+      {
+        model: User,
+        as: 'reportedUser',
+        attributes: ['user_id', 'name', 'email']
+      }
+    ]
+  });
+}
 
   // Aktualizacja statusu i/lub odpowiedzi raportu
   async updateReport(id, { status, response }) {

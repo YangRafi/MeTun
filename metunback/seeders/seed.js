@@ -18,7 +18,8 @@ const {
   Group,
   UserUniversity,
   UserMatch,
-  GroupMember
+  GroupMember,
+  Report
 } = models;
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
@@ -188,6 +189,43 @@ async function seed() {
         match_active: true,
       });
     }
+
+    // 🔟 Przykładowe raporty
+    console.log('🚨 Seedowanie raportów...');
+
+    await Report.bulkCreate([
+      {
+        subject: 'Nieodpowiednie zachowanie',
+        message: 'Użytkownik wysyła niestosowne wiadomości.',
+        senderId: users[0].user_id,          // Anna
+        reportedUserId: users[8].user_id,    // Jan
+        status: 'pending'
+      },
+      {
+        subject: 'Spam',
+        message: 'Wysyła linki reklamowe.',
+        senderId: users[1].user_id,          // Kasia
+        reportedUserId: users[9].user_id,    // Piotr
+        status: 'pending'
+      },
+      {
+        subject: 'Obraźliwe treści',
+        message: 'Użytkownik używa wulgaryzmów na czacie.',
+        senderId: users[2].user_id,          // Ola
+        reportedUserId: users[10].user_id,   // Tomek
+        status: 'resolved',
+        response: 'Dziękujemy za zgłoszenie. Użytkownik został upomniany.'
+      },
+      {
+        subject: 'Fałszywy profil',
+        message: 'Podejrzenie, że to nie jest prawdziwa osoba.',
+        senderId: users[3].user_id,          // Magda
+        reportedUserId: users[11].user_id,   // Michał
+        status: 'closed',
+        response: 'Profil zweryfikowany – brak naruszeń regulaminu.'
+      }
+    ]);
+
 
     console.log('🎉 SEEDOWANIE zakończone pomyślnie!');
     process.exit(0);

@@ -24,8 +24,8 @@ const Report = sequelize.define('Report', {
     allowNull: true,
   },
   status: {
-    type: DataTypes.ENUM('open', 'resolved', 'closed'),
-    defaultValue: 'open',
+  type: DataTypes.ENUM('pending', 'resolved', 'closed'),
+  defaultValue: 'pending',
   },
   response: { 
     type: DataTypes.TEXT,

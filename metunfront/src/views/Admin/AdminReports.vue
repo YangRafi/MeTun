@@ -34,10 +34,16 @@
         :key="r.id"
         class="bg-gray-800 text-white p-5 rounded-3xl shadow hover:shadow-xl transition relative border border-gray-700"
       >
-        <h3 class="font-semibold text-lg text-blue-400">{{ r.user_name }} ({{ r.user_email }})</h3>
+        <h3 class="font-semibold text-lg text-blue-400">
+          {{ r.sender?.name ?? 'Nieznany' }}
+          ({{ r.sender?.email ?? 'brak emaila' }})
+        </h3>
         <p class="text-gray-300">{{ r.subject }}</p>
         <p class="text-gray-400 text-sm mt-2">{{ r.message }}</p>
-        <p v-if="r.reportedUserId" class="text-gray-400 text-sm mt-1">Zgłoszony użytkownik ID: {{ r.reportedUserId }}</p>
+        <p v-if="r.reportedUser">
+          Zgłoszony użytkownik:
+          {{ r.reportedUser.name }} ({{ r.reportedUser.email }})
+        </p>
 
         <div class="flex gap-2 mt-4">
           <button
