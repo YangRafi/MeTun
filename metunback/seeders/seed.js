@@ -135,7 +135,7 @@ async function seed() {
     await importDisciplines();
 
     // 7️⃣ Przypisanie uczelni i kierunków (status approved)
-    const disciplineIds = [177, 193, 201]; // przykładowe ID kierunków
+    const disciplineIds = [178, 194, 202]; // przykładowe ID kierunków
     for (let i = 0; i < users.length; i++) {
       const disciplineId = disciplineIds[i % disciplineIds.length];
       const joinDate = new Date();
