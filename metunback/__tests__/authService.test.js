@@ -12,10 +12,7 @@ jest.mock('jsonwebtoken');
 describe('authService', () => {
   afterEach(() => jest.clearAllMocks());
 
-  // --------------------------
-  // signup
-  // --------------------------
-  test('signup tworzy nowego użytkownika', async () => {
+  test('signup creates a new user', async () => {
     User.findOne.mockResolvedValue(null);
     bcrypt.hash.mockResolvedValue('hashedPassword');
     const mockUser = { user_id: 1, name: 'Alice', email: 'alice@test.com' };
@@ -27,16 +24,13 @@ describe('authService', () => {
     expect(result).toEqual(mockUser);
   });
 
-  test('signup rzuca błąd jeśli email istnieje', async () => {
+  test('signup throws an error if the email exists', async () => {
     User.findOne.mockResolvedValue({ user_id: 1 });
     await expect(authService.signup({ name: 'Alice', surname: 'Smith', email: 'alice@test.com', password: 'pass' }))
       .rejects.toThrow('User already exists');
   });
 
-  // --------------------------
-  // login
-  // --------------------------
-  test('login zwraca tokeny i informacje o użytkowniku', async () => {
+  test('login returns tokens and user information', async () => {
     const mockUser = { user_id: 1, email: 'a@test.com', password: 'hashed', role: 'user', is_banned: false };
     User.findOne.mockResolvedValue(mockUser);
     bcrypt.compare.mockResolvedValue(true);
@@ -50,13 +44,13 @@ describe('authService', () => {
     expect(result.refreshToken).toBe('token');
   });
 
-  test('login rzuca błąd przy niepoprawnym emailu', async () => {
+  test('login throws an error if email is invalid', async () => {
     User.findOne.mockResolvedValue(null);
     await expect(authService.login({ email: 'x@test.com', password: 'pass' }))
       .rejects.toThrow('Invalid email or password');
   });
 
-  test('login rzuca błąd przy złym haśle', async () => {
+  test('login throws an error if password is incorrect', async () => {
     const mockUser = { password: 'hashed' };
     User.findOne.mockResolvedValue(mockUser);
     bcrypt.compare.mockResolvedValue(false);
@@ -64,7 +58,7 @@ describe('authService', () => {
       .rejects.toThrow('Invalid email or password');
   });
 
-  test('login rzuca błąd jeśli użytkownik jest zbanowany', async () => {
+  test('login throws an error if user is banned', async () => {
     const bannedUser = { user_id: 1, email: 'a@test.com', password: 'hashed', is_banned: true, banned_until: new Date(Date.now() + 1000) };
     User.findOne.mockResolvedValue(bannedUser);
     bcrypt.compare.mockResolvedValue(true);
@@ -72,10 +66,7 @@ describe('authService', () => {
       .rejects.toThrow(/Twoje konto jest zbanowane do/);
   });
 
-  // --------------------------
-  // refreshAccessToken
-  // --------------------------
-  test('refreshAccessToken zwraca nowy access token', async () => {
+  test('refreshAccessToken returns a new access token', async () => {
     const mockUser = { user_id: 1, email: 'a@test.com', role: 'user', is_banned: false };
     jwt.verify.mockReturnValue({ userId: 1 });
     User.findByPk.mockResolvedValue(mockUser);
@@ -87,40 +78,34 @@ describe('authService', () => {
     expect(result.user).toBe(mockUser);
   });
 
-  test('refreshAccessToken rzuca błąd przy braku tokenu', async () => {
+  test('refreshAccessToken throws an error when no refresh token is provided', async () => {
     await expect(authService.refreshAccessToken(null)).rejects.toThrow('No refresh token');
   });
 
-  test('refreshAccessToken rzuca błąd jeśli użytkownik nie istnieje', async () => {
+  test('refreshAccessToken throws an error if user does not exist', async () => {
     jwt.verify.mockReturnValue({ userId: 1 });
     User.findByPk.mockResolvedValue(null);
     await expect(authService.refreshAccessToken('token')).rejects.toThrow('User not found');
   });
 
-  // --------------------------
-  // checkIsVerified
-  // --------------------------
-  test('checkIsVerified zwraca true jeśli status approved', async () => {
+  test('checkIsVerified returns true if status approved', async () => {
     UserUniversity.findAll.mockResolvedValue([{ status: 'approved' }]);
     const result = await authService.checkIsVerified(1);
     expect(result).toBe(true);
   });
 
-  test('checkIsVerified zwraca false jeśli brak approval', async () => {
+  test('checkIsVerified returns false if there is no approval', async () => {
     UserUniversity.findAll.mockResolvedValue([{ status: 'pending' }]);
     const result = await authService.checkIsVerified(1);
     expect(result).toBe(false);
   });
 
-  // --------------------------
-  // handleBan
-  // --------------------------
-  test('handleBan nie rzuca jeśli użytkownik nie jest zbanowany', async () => {
+  test('handleBan does not throw if the user is not banned', async () => {
     const user = { is_banned: false };
     await expect(authService.handleBan(user)).resolves.toBeUndefined();
   });
 
-  test('handleBan odblokowuje użytkownika jeśli ban wygasł', async () => {
+  test('handleBan unblocks the user if the ban has expired', async () => {
     const user = { is_banned: true, banned_until: new Date(Date.now() - 1000), save: jest.fn() };
     await authService.handleBan(user);
     expect(user.is_banned).toBe(false);
@@ -128,7 +113,7 @@ describe('authService', () => {
     expect(user.save).toHaveBeenCalled();
   });
 
-  test('handleBan rzuca błąd jeśli ban aktywny', async () => {
+  test('handleBan throws an error if the ban is active', async () => {
     const future = new Date(Date.now() + 1000);
     const user = { is_banned: true, banned_until: future };
     await expect(authService.handleBan(user)).rejects.toThrow(/Twoje konto jest zbanowane do/);

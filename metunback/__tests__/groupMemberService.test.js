@@ -19,10 +19,7 @@ describe('GroupMemberService', () => {
     jest.clearAllMocks();
   });
 
-  // --------------------------
-  // getMembersByGroup
-  // --------------------------
-  test('getMembersByGroup zwraca członków grupy', async () => {
+  test('getMembersByGroup returns group members', async () => {
     const mockMembers = [{ user_id: 1 }];
     GroupMember.findAll.mockResolvedValue(mockMembers);
 
@@ -47,10 +44,7 @@ describe('GroupMemberService', () => {
     expect(result).toEqual(mockMembers);
   });
 
-  // --------------------------
-  // addMember
-  // --------------------------
-  test('addMember dodaje członka do grupy', async () => {
+  test('addMember adds a member to the group', async () => {
     const mockMember = { user_id: 2 };
     GroupMember.create.mockResolvedValue(mockMember);
 
@@ -64,10 +58,7 @@ describe('GroupMemberService', () => {
     expect(result).toEqual(mockMember);
   });
 
-  // --------------------------
-  // updateMember
-  // --------------------------
-  test('updateMember aktualizuje rolę członka', async () => {
+  test('updateMember updates member role', async () => {
     const mockMember = { update: jest.fn().mockResolvedValue({ role: 'admin' }) };
     GroupMember.findOne.mockResolvedValue(mockMember);
 
@@ -77,15 +68,14 @@ describe('GroupMemberService', () => {
     expect(result).toEqual({ role: 'admin' });
   });
 
-  test('updateMember rzuca błąd jeśli brak członka', async () => {
+  test('updateMember throws an error if member does not exist', async () => {
     GroupMember.findOne.mockResolvedValue(null);
-    await expect(GroupMemberService.updateMember(1, 2, 'admin')).rejects.toThrow('Group member not found');
+    await expect(
+      GroupMemberService.updateMember(1, 2, 'admin')
+    ).rejects.toThrow('Group member not found');
   });
 
-  // --------------------------
-  // removeMember
-  // --------------------------
-  test('removeMember usuwa członka grupy', async () => {
+  test('removeMember removes a member from the group', async () => {
     const mockMember = { destroy: jest.fn().mockResolvedValue(true) };
     GroupMember.findOne.mockResolvedValue(mockMember);
 
@@ -95,15 +85,14 @@ describe('GroupMemberService', () => {
     expect(result).toBe(true);
   });
 
-  test('removeMember rzuca błąd jeśli brak członka', async () => {
+  test('removeMember throws an error if member does not exist', async () => {
     GroupMember.findOne.mockResolvedValue(null);
-    await expect(GroupMemberService.removeMember(1, 2)).rejects.toThrow('Group member not found');
+    await expect(
+      GroupMemberService.removeMember(1, 2)
+    ).rejects.toThrow('Group member not found');
   });
 
-  // --------------------------
-  // leaveGroup
-  // --------------------------
-  test('leaveGroup usuwa członka grupy', async () => {
+  test('leaveGroup removes a member from the group', async () => {
     const mockMember = { destroy: jest.fn().mockResolvedValue(true) };
     Group.findByPk.mockResolvedValue({ creator_user_id: 2 });
     GroupMember.findOne.mockResolvedValue(mockMember);
@@ -115,19 +104,25 @@ describe('GroupMemberService', () => {
     expect(result).toBe(true);
   });
 
-  test('leaveGroup rzuca błąd jeśli grupa nie istnieje', async () => {
+  test('leaveGroup throws an error if group does not exist', async () => {
     Group.findByPk.mockResolvedValue(null);
-    await expect(GroupMemberService.leaveGroup(1, 1)).rejects.toThrow('Grupa nie istnieje');
+    await expect(
+      GroupMemberService.leaveGroup(1, 1)
+    ).rejects.toThrow('Grupa nie istnieje');
   });
 
-  test('leaveGroup rzuca błąd jeśli użytkownik jest twórcą grupy', async () => {
+  test('leaveGroup throws an error if user is the group creator', async () => {
     Group.findByPk.mockResolvedValue({ creator_user_id: 1 });
-    await expect(GroupMemberService.leaveGroup(1, 1)).rejects.toThrow('Nie możesz opuścić grupy, którą sam założyłeś');
+    await expect(
+      GroupMemberService.leaveGroup(1, 1)
+    ).rejects.toThrow('Nie możesz opuścić grupy, którą sam założyłeś');
   });
 
-  test('leaveGroup rzuca błąd jeśli użytkownik nie należy do grupy', async () => {
+  test('leaveGroup throws an error if user is not a group member', async () => {
     Group.findByPk.mockResolvedValue({ creator_user_id: 2 });
     GroupMember.findOne.mockResolvedValue(null);
-    await expect(GroupMemberService.leaveGroup(1, 3)).rejects.toThrow('Nie należysz do tej grupy');
+    await expect(
+      GroupMemberService.leaveGroup(1, 3)
+    ).rejects.toThrow('Nie należysz do tej grupy');
   });
 });

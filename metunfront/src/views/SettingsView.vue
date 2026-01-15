@@ -5,16 +5,13 @@
   >
   <div class="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
 
-    <!-- Header -->
     <UserHeader :profile="profile" />
 
-    <!-- Main -->
     <main class="relative z-10 flex flex-col items-center pt-28 px-6 w-full">
       <h1 class="text-4xl font-bold text-white mb-10 drop-shadow-lg">
         ⚙️ Ustawienia
       </h1>
 
-      <!-- 🔹 Menu kafelków -->
       <div
         v-if="!currentView"
         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full justify-items-center"
@@ -30,7 +27,6 @@
         </button>
       </div>
 
-      <!-- 🔹 Podstrony -->
       <div v-else class="w-full flex flex-col items-center">
         <button
           @click="currentView = null"
@@ -51,7 +47,6 @@ import background from "../assets/background.jpg";
 import UserHeader from "../components/Layout/UserHeader.vue";
 import { UserCog, Lock, Mail, Trash2, HelpCircle, BarChart2 } from "lucide-vue-next";
 
-// Podstrony
 import EditProfile from "../components/Settings/EditProfile.vue";
 import ChangePassword from "../components/Settings/ChangePassword.vue";
 import ChangeEmail from "../components/Settings/ChangeEmail.vue";
@@ -62,7 +57,6 @@ import Support from "../components/Settings/Support.vue";
 const profile = reactive({});
 const currentView = ref(null);
 
-// Pobieranie danych użytkownika
 const fetchUser = async () => {
   try {
     const res = await fetch("http://localhost:3000/api/auth/me", {
@@ -77,7 +71,6 @@ const fetchUser = async () => {
 
 onMounted(fetchUser);
 
-// Lista kafelków ustawień
 const settingsOptions = [
   { name: "Edytuj profil", icon: UserCog, action: "editProfile" },
   { name: "Zmień hasło", icon: Lock, action: "changePassword" },
@@ -87,7 +80,6 @@ const settingsOptions = [
   { name: "Centrum pomocy", icon: HelpCircle, action: "helpCenter" },
 ];
 
-// Mapowanie akcji na komponenty
 const componentsMap = {
   editProfile: EditProfile,
   changePassword: ChangePassword,
@@ -97,7 +89,6 @@ const componentsMap = {
   helpCenter: Support,
 };
 
-// Komponent aktualnie wyświetlany
 const currentComponent = computed(() =>
   currentView.value ? componentsMap[currentView.value] : null
 );

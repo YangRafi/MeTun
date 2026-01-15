@@ -11,7 +11,6 @@
     <div class="flex-1 flex flex-col px-6 pt-28 relative z-10">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-7xl mx-auto">
 
-        <!-- 🎓 Grupy kierunkowe -->
         <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-lg border border-blue-200 flex flex-col h-[70vh]">
           <div class="flex items-center justify-between sticky top-0 bg-white/90 backdrop-blur-sm p-2 rounded-xl mb-4 shadow-sm z-10">
             <h2 class="text-2xl font-bold text-blue-800">🎓 Grupy kierunkowe</h2>
@@ -25,11 +24,9 @@
             </button>
           </div>
 
-          <!-- Filtry z animacją -->
           <transition name="slide-filters">
             <div v-show="showFilters" class="mb-4 space-y-3 p-3 bg-blue-50 border border-blue-200 rounded-xl shadow-inner">
 
-              <!-- Szukanie uczelni -->
               <input
                 v-model="universityQuery"
                 @input="fetchUniversities"
@@ -47,14 +44,12 @@
                 </li>
               </ul>
 
-              <!-- Wydział: pokazuje się dopiero po wybraniu uczelni -->
               <select v-if="filters.universityId" v-model="filters.facultyId" @change="onFacultyChange"
                       class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
                 <option value="">Wybierz wydział</option>
                 <option v-for="f in faculties" :key="f.faculty_id" :value="f.faculty_id">{{ f.faculty_name }}</option>
               </select>
 
-              <!-- Kierunek: pokazuje się dopiero po wybraniu wydziału -->
               <select v-if="filters.facultyId" v-model="filters.disciplineId"
                     class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
               <option value="">Wybierz kierunek</option>
@@ -70,7 +65,6 @@
             </div>
           </transition>
 
-          <!-- Lista grup -->
           <div v-if="groups.length" class="space-y-3 overflow-y-auto pr-1 flex-1">
             <div
               v-for="g in groups"
@@ -88,7 +82,6 @@
           </p>
         </div>
 
-        <!-- 👥 Moje grupy -->
         <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-lg border border-blue-200 flex flex-col h-[70vh]">
           <div class="sticky top-0 bg-white/90 backdrop-blur-sm p-2 rounded-xl mb-4 shadow-sm z-10">
             <h2 class="text-2xl font-bold text-blue-800 text-center">👥 Moje grupy</h2>
@@ -124,7 +117,6 @@
           </p>
         </div>
 
-        <!-- 📩 Prośby / Zaproszenia -->
 <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-lg border border-blue-200 flex flex-col h-[70vh]">
   <div class="sticky top-0 bg-white/90 backdrop-blur-sm p-2 rounded-xl mb-4 shadow-sm z-10">
     <h2 class="text-2xl font-bold text-blue-800 text-center">📩 Prośby / Zaproszenia</h2>
@@ -147,19 +139,16 @@
 
       <div class="mt-2 flex gap-2">
 
-        <!-- 🟦 1. Użytkownik ODBIORCA zaproszenia -->
         <template v-if="r.type === 'invite' && r.user_id === userStore.profile.user_id">
           <button @click="respondRequest(r, 'accept')" class="bg-green-600 text-white py-1 px-3 rounded-lg hover:bg-green-700">Akceptuj</button>
           <button @click="respondRequest(r, 'reject')" class="bg-red-600 text-white py-1 px-3 rounded-lg hover:bg-red-700">Odrzuć</button>
         </template>
 
-        <!-- 🟦 2. Użytkownik NADAWCA zaproszenia -->
         <template v-else-if="r.type === 'invite' && r.sender_id === userStore.profile.user_id">
           <p class="text-gray-600">Zaproszono: {{ r.user.name }} {{ r.user.surname }}</p>
           <button @click="deleteInvite(r)" class="bg-red-600 text-white py-1 px-3 rounded-lg hover:bg-red-700">Usuń zaproszenie</button>
         </template>
 
-        <!-- 🟦 3. Użytkownik wysłał request i czeka -->
         <template v-else-if="r.type === 'request' && r.user_id === userStore.profile.user_id">
           <p class="text-gray-600 text-sm italic">Oczekuje na akceptację administratora.</p>
           <button @click="deleteInvite(r)" class="bg-red-600 text-white py-1 px-3 rounded-lg hover:bg-red-700">
@@ -167,7 +156,6 @@
           </button>
         </template>
 
-        <!-- 🟦 4. ADMIN grupy widzi request innej osoby -->
         <template
   v-else-if="r.type === 'request' &&
              myGroups.some(g => g.group_id === r.group.group_id && (g.role === 'admin' || g.role === 'creator'))"
@@ -187,7 +175,6 @@
 
       </div>
 
-      <!-- 🔹 DOLNY PASEK: PRZYCISK ZAJMUJĄCY CAŁĄ SZEROKOŚĆ -->
       <div class="w-full max-w-7xl mx-auto mt-10 bg-blue-50 border border-blue-200 rounded-2xl shadow-lg p-4">
         <button @click="showCreateModal = true"
                 class="w-full bg-blue-600 text-white text-lg font-semibold py-3 rounded-xl shadow-md hover:bg-blue-700 hover:scale-[1.03] transition-transform">
@@ -196,7 +183,6 @@
       </div>
     </div>
 
-    <!-- 🔹 Modale i Toast -->
     <CreateGroupModal :isOpen="showCreateModal" :disciplines="userDisciplines" @close="showCreateModal = false" @created="onGroupCreated" />
     <ChatBox v-if="activeChat" :chat="activeChat" :userId="userStore.profile.user_id" @close="closeChat" />
     <Toast ref="toastRef" />
@@ -233,18 +219,16 @@ import InviteModal from "../components/Modal/InviteModal.vue";
 
 const showInviteModal = ref(false);
 const inviteGroup = ref(null);
-const privateChats = ref([]); // lista osób z prywatnych czatów
+const privateChats = ref([]);
 
 async function openInviteModal(group) {
   inviteGroup.value = group;
 
-  // fetch matches / prywatnych czatów
   try {
     const res = await fetch("http://localhost:3000/api/chats/private", { credentials: "include" });
     if(res.ok) {
-      const allMatches = await res.json(); // wszystkie osoby z dopasowań / prywatnych czatów
+      const allMatches = await res.json();
 
-      // filtrujemy tylko tych, którzy **nie są jeszcze w grupie**
       privateChats.value = allMatches.filter(u => 
         !group.members?.some(m => m.user_id === u.user_id)
       );
@@ -270,7 +254,6 @@ const faculties = ref([]);
 const disciplines = ref([]);
 const userDisciplines = ref([]);
 
-// Initialize
 async function initialize() {
   await userStore.fetchUserAndProfile();
   await fetchMyGroups();
@@ -280,7 +263,6 @@ async function initialize() {
 }
 onMounted(initialize);
 
-// Fetch moje grupy
 async function fetchMyGroups() {
   try {
     const res = await fetch("http://localhost:3000/api/groups/mine", { credentials: "include" });
@@ -288,18 +270,14 @@ async function fetchMyGroups() {
   } catch (err) { console.error(err); }
 }
 
-// Fetch requests
 async function fetchRequests() {
   try {
-    // 🔹 Requesty dla admina (do Twoich grup)
     const resMine = await fetch("http://localhost:3000/api/groupRequests/mine", { credentials: "include" });
     const dataMine = resMine.ok ? await resMine.json() : { requests: [] };
 
-    // 🔹 Requesty i zaproszenia dla zalogowanego użytkownika
     const resPending = await fetch("http://localhost:3000/api/groupRequests/pending", { credentials: "include" });
     const dataPending = resPending.ok ? await resPending.json() : { requests: [] };
 
-    // 🔹 Scal wszystko w jedną listę
     requests.value = [...dataMine.requests, ...dataPending.requests];
   } catch (err) {
     console.error(err);
@@ -322,7 +300,6 @@ function confirmLeaveGroup(group) {
 }
 
 
-// SEARCH helpers
 let fetchTimeout;
 async function fetchUniversities() {
   if (universityQuery.value.length < 1) return (universitySuggestions.value = []);
@@ -369,7 +346,6 @@ async function onFacultyChange() {
   }
 }
 
-// APPLY FILTERS
 async function applyFilters(showToast = true) {
   const params = new URLSearchParams();
   if (filters.universityId) params.append("university_id", filters.universityId);
@@ -403,7 +379,6 @@ function clearFilters() {
   applyFilters();
 }
 
-// Dołącz / request
 async function applyToGroup(group) {
   try {
     const res = await fetch("http://localhost:3000/api/groupRequests/join", {
@@ -421,7 +396,6 @@ async function applyToGroup(group) {
   } catch (err) { console.error(err); toast.add({ severity: 'error', summary: 'Błąd', detail: 'Błąd podczas wysyłania prośby', life: 3000 }); }
 }
 
-// Respond request
 async function respondRequest(r, action) {
   try {
     const res = await fetch("http://localhost:3000/api/groupRequests/respond", {
@@ -439,11 +413,9 @@ async function respondRequest(r, action) {
   } catch (err) { console.error(err); toast.add({ severity: 'error', summary: 'Błąd', detail: 'Nie udało się przetworzyć prośby', life: 3000 }); }
 }
 
-// Chat
 function openChat(chat) { activeChat.value = chat; }
 function closeChat() { activeChat.value = null; }
 
-// Admin/creator actions
 async function leaveGroup(group) {
   try {
     const res = await fetch(`http://localhost:3000/api/group-members/${group.group_id}/leave`, { method: 'POST', credentials: 'include' });
@@ -469,7 +441,6 @@ async function deleteGroup(group) {
 }
 async function deleteInvite(r) {
   try {
-    // wybór endpointu zależnie od typu
     const endpoint =
       r.type === "invite"
         ? `invite/${r.request_id}`
@@ -536,13 +507,10 @@ function confirmDeleteGroup(group) {
       }
     },
     reject: () => {
-      // Nic nie robimy, dialog po prostu się zamyka
     }
   });
 }
 
-
-// User disciplines
 async function fetchUserDisciplines() {
   try {
     const res = await fetch("http://localhost:3000/api/userUniversity/my?status=approved", { credentials: "include" });
@@ -550,7 +518,6 @@ async function fetchUserDisciplines() {
   } catch (err) { console.error(err); }
 }
 
-// On group created
 function onGroupCreated(newGroup) {
   showCreateModal.value = false;
   myGroups.value.unshift(newGroup);

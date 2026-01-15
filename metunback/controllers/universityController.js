@@ -1,6 +1,5 @@
 const universityService = require('../services/universityService');
 
-// GET all universities
 exports.getAllUniversities = async (req, res) => {
   try {
     const { query } = req.query;
@@ -12,7 +11,6 @@ exports.getAllUniversities = async (req, res) => {
   }
 };
 
-// GET one university by ID
 exports.getUniversityById = async (req, res) => {
   try {
     const uni = await universityService.getById(req.params.id);
@@ -24,7 +22,6 @@ exports.getUniversityById = async (req, res) => {
   }
 };
 
-// CREATE university
 exports.createUniversity = async (req, res) => {
   try {
     const uni = await universityService.create(req.body);
@@ -35,7 +32,6 @@ exports.createUniversity = async (req, res) => {
   }
 };
 
-// UPDATE university
 exports.updateUniversity = async (req, res) => {
   try {
     const uni = await universityService.update(req.params.id, req.body);
@@ -47,7 +43,6 @@ exports.updateUniversity = async (req, res) => {
   }
 };
 
-// DELETE university
 exports.deleteUniversity = async (req, res) => {
   try {
     const ok = await universityService.remove(req.params.id);

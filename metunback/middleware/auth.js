@@ -15,12 +15,10 @@ exports.authenticate = async (req, res, next) => {
   };
 
   try {
-    // access token
     const decoded = jwt.verify(token, JWT_SECRET);
     await verifyUser(decoded);
     next();
   } catch (err) {
-    // jeśli access token wygasł, próbujemy odświeżyć
     const refreshToken = req.cookies.refresh_token;
     if (!refreshToken) return res.status(401).json({ error: "Unauthorized" });
 
@@ -37,7 +35,6 @@ exports.authenticate = async (req, res, next) => {
   }
 };
 
-// middleware admin
 exports.isAdmin = (req, res, next) => {
   if (req.user?.role === 'admin') return next();
   return res.status(403).json({ error: "Brak uprawnień" });

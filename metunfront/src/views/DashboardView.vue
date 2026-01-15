@@ -1,19 +1,16 @@
 <template>
   <div class="min-h-screen relative overflow-hidden">
-    <!-- Tło -->
     <div
       class="absolute inset-0 bg-cover bg-center z-0"
       :style="{ backgroundImage: `url(${background})` }"
     >
-      <div class="absolute inset-0 bg-black/30"></div> <!-- przyciemnienie dla czytelności -->
+      <div class="absolute inset-0 bg-black/30"></div>
     </div>
 
-    <!-- Zawartość -->
     <div class="relative z-10 text-white">
       <UserHeader :profile="profile" />
 
       <main class="grid grid-cols-6 grid-rows-4 gap-2 min-h-screen">
-      <!-- Duży kafelek Grupy -->
       <DashboardTile
         label="Grupy"
         route="/groups"
@@ -23,7 +20,6 @@
         tile-class="bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white"
       />
 
-      <!-- Średni kafelek Dopasowania -->
       <DashboardTile
         label="Dopasowania"
         route="/matches"
@@ -33,7 +29,6 @@
         tile-class="bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white"
       />
 
-      <!-- Średni kafelek Weryfikacja -->
       <DashboardTile
         label="Weryfikacja"
         route="/verification"
@@ -42,7 +37,6 @@
         tile-class="bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white"
       />
 
-      <!-- Średni kafelek Ustawienia -->
       <DashboardTile
         label="Ustawienia"
         route="/settings"
@@ -52,7 +46,6 @@
         tile-class="bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white"
       />
 
-      <!-- Admin pośrodku -->
       <div
         v-if="profile.role==='admin'"
         class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20"
@@ -67,7 +60,6 @@
       </div>
     </main>
 
-      <!-- Popup -->
       <transition name="fade">
         <div v-if="showPopup" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div class="bg-white text-black p-6 rounded-xl max-w-sm text-center shadow-xl">
@@ -89,7 +81,6 @@ import DashboardCircle from '../components/Dashboard/DashboardCircle.vue'
 import DashboardTile from '../components/Dashboard/DashboardTile.vue'
 import { showVerifiedPopup } from '../store/popupStore.js'
 
-// Import tła
 import background from '@/assets/background.jpg'
 
 const router = useRouter()

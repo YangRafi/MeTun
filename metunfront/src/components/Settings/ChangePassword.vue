@@ -7,7 +7,6 @@
     </h2>
 
     <div class="space-y-6">
-      <!-- Aktualne hasło -->
       <div>
         <label class="block text-blue-800 font-semibold mb-2">Aktualne hasło</label>
         <div class="relative">
@@ -28,7 +27,6 @@
         </div>
       </div>
 
-      <!-- Nowe hasło -->
       <div>
         <label class="block text-blue-800 font-semibold mb-2">Nowe hasło</label>
         <div class="relative">
@@ -49,7 +47,6 @@
         </div>
       </div>
 
-      <!-- Potwierdzenie hasła -->
       <div>
         <label class="block text-blue-800 font-semibold mb-2">Potwierdź nowe hasło</label>
         <div class="relative">
@@ -70,7 +67,6 @@
         </div>
       </div>
 
-      <!-- Przycisk -->
       <button
         @click="changePassword"
         class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-semibold shadow-lg transition-transform hover:scale-[1.02] mt-6"
@@ -84,7 +80,7 @@
 <script setup>
 import { ref } from "vue";
 import { useUserStore } from "@/store/userStore";
-import { toast } from "vue3-toastify"; // ✅ import toastów
+import { toast } from "vue3-toastify";
 
 const userStore = useUserStore();
 

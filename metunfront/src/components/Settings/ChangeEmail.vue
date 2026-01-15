@@ -29,7 +29,6 @@
       </button>
     </div>
 
-    <!-- Toast PrimeVue -->
     <Toast />
   </div>
 </template>

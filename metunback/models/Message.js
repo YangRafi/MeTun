@@ -6,8 +6,8 @@ const Message = sequelize.define('Message', {
   sender_id: { type: Sequelize.INTEGER, allowNull: false },
   content: { type: Sequelize.TEXT, allowNull: false },
   timestamp: { type: Sequelize.DATE, defaultValue: Sequelize.NOW },
-  match_id: { type: Sequelize.INTEGER, allowNull: true }, // prywatny match
-  group_id: { type: Sequelize.INTEGER, allowNull: true }  // czat grupowy
+  match_id: { type: Sequelize.INTEGER, allowNull: true },
+  group_id: { type: Sequelize.INTEGER, allowNull: true }
 }, {
   tableName: 'messages',
   timestamps: false

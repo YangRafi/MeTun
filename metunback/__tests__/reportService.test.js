@@ -1,26 +1,17 @@
 const reportService = require('../services/reportService');
 const Report = require('../models/Report');
 
-// -----------------------------
-// MOCK MODELI
-// -----------------------------
 jest.mock('../models/Report', () => ({
   create: jest.fn()
 }));
 
-// -----------------------------
-// TESTY REPORT SERVICE
-// -----------------------------
 describe('ReportService', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  // --------------------------
-  // CREATE REPORT
-  // --------------------------
-  test('createReport tworzy nowy raport z reportedUserId', async () => {
+  test('createReport creates a new report with reportedUserId', async () => {
     const data = { subject: 'Spam', message: 'This is spam', senderId: 1, reportedUserId: 2 };
     const createdReport = { id: 1, ...data };
 
@@ -32,7 +23,7 @@ describe('ReportService', () => {
     expect(Report.create).toHaveBeenCalledWith(data);
   });
 
-  test('createReport tworzy nowy raport bez reportedUserId', async () => {
+  test('createReport creates a new report without reportedUserId', async () => {
     const data = { subject: 'Spam', message: 'This is spam', senderId: 1 };
     const expectedData = { ...data, reportedUserId: null };
     const createdReport = { id: 1, ...expectedData };

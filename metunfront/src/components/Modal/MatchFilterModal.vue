@@ -1,12 +1,10 @@
 <template>
   <div class="fixed right-0 top-40 z-40">
 
-    <!-- 🔹 Panel filtrów -->
     <transition name="slide">
       <div v-if="isOpen" class="fixed right-0 top-40 w-96 bg-white/90 backdrop-blur-md p-6 rounded-l-3xl shadow-2xl border border-blue-200 overflow-y-auto h-[65vh]">
         <h2 class="text-2xl font-semibold mb-6 text-blue-800 text-center">🎯 Filtry dopasowań</h2>
 
-        <!-- Płeć -->
         <div class="mb-4">
           <label class="block mb-2 text-sm font-medium text-blue-700">Płeć</label>
           <div class="flex justify-between items-center bg-blue-50 rounded-full p-2">
@@ -21,7 +19,6 @@
           </div>
         </div>
 
-        <!-- Wiek -->
         <div class="mb-4">
           <label class="block mb-2 text-sm font-medium text-blue-700">Wiek</label>
           <div class="flex gap-2">
@@ -32,7 +29,6 @@
           </div>
         </div>
 
-        <!-- Uczelnia -->
         <div class="mb-4">
           <label class="block mb-1 text-sm font-medium text-blue-700">Uczelnia</label>
           <input v-model="localUniversityQuery" @input="fetchUniversities" type="text" placeholder="Wpisz nazwę uczelni..."
@@ -52,7 +48,6 @@
           </ul>
         </div>
 
-        <!-- Wydział -->
         <div v-if="filters.universityId" class="mb-4">
           <label class="block mb-1 text-sm font-medium text-blue-700">Wydział</label>
           <select v-model="filters.facultyId" @change="onFacultyChange" class="w-full border border-blue-200 rounded-lg p-2 text-blue-800 focus:ring-blue-300 focus:border-blue-300">
@@ -61,7 +56,6 @@
           </select>
         </div>
 
-        <!-- Kierunek -->
         <div v-if="filters.facultyId" class="mb-4">
           <label class="block mb-1 text-sm font-medium text-blue-700">Kierunek</label>
           <select v-model="filters.disciplineId" class="w-full border border-blue-200 rounded-lg p-2 text-blue-800 focus:ring-blue-300 focus:border-blue-300">
@@ -70,7 +64,6 @@
           </select>
         </div>
 
-        <!-- Zastosuj -->
         <div class="mt-6">
           <button @click="applyAndShowToast" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 w-full shadow-md transition">
             ✅ Zastosuj filtry
@@ -79,7 +72,6 @@
       </div>
     </transition>
 
-    <!-- 🔹 Przycisk toggle -->
     <button
       @click="isOpen = !isOpen"
       class="fixed top-1/2 -translate-y-1/2 bg-blue-600 text-white rounded-l-3xl shadow-2xl flex items-center justify-center w-14 h-24 p-4 transition-all duration-300 hover:bg-blue-700 hover:scale-105"
@@ -155,7 +147,6 @@ function applyAndShowToast() {
   setTimeout(() => showToast.value = false, 2000);
 }
 
-// 🔹 Watcher – gdy zmienia się uczelnia, resetuj wydział i kierunek
 watch(
   () => props.filters.universityId,
   (newVal, oldVal) => {

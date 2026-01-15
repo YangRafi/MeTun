@@ -1,6 +1,5 @@
 const authService = require('../services/authService');
 
-// ✅ REGISTER
 exports.signup = async (req, res) => {
   try {
     const newUser = await authService.signup(req.body);
@@ -11,7 +10,6 @@ exports.signup = async (req, res) => {
   }
 };
 
-// ✅ LOGIN
 exports.login = async (req, res) => {
   try {
     const { user, isVerified, accessToken, refreshToken } = await authService.login(req.body);
@@ -26,7 +24,6 @@ exports.login = async (req, res) => {
   }
 };
 
-// ✅ REFRESH TOKEN
 exports.refreshToken = async (req, res) => {
   try {
     const { user, isVerified, accessToken } = await authService.refreshAccessToken(req.cookies.refresh_token);
@@ -38,10 +35,8 @@ exports.refreshToken = async (req, res) => {
   }
 };
 
-// ✅ CHECK
 exports.check = (req, res) => res.json({ authenticated: true, user: req.user });
 
-// ✅ ME
 exports.me = async (req, res) => {
   try {
     const user = req.user;
@@ -58,7 +53,6 @@ exports.me = async (req, res) => {
   }
 };
 
-// ✅ LOGOUT
 exports.logout = (req, res) => {
   res.clearCookie('access_token');
   res.clearCookie('refresh_token');

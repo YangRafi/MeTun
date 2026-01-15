@@ -1,4 +1,3 @@
-// Funkcja obliczająca datę wygaśnięcia legitymacji/weryfikacji
 function getNextExpiryDate() {
   const now = new Date();
   const year = now.getMonth() < 3 ? now.getFullYear() : now.getMonth() < 10 ? now.getFullYear() : now.getFullYear() + 1;

@@ -47,16 +47,13 @@ const users = ref([]);
 const loading = ref(false);
 const toast = useToast();
 
-// lokalny stan widoczności
 const localVisible = ref(props.isOpen);
 
-// synchronizacja z props.isOpen
 watch(() => props.isOpen, (val) => {
   localVisible.value = val;
   if (val) loadUsers();
 });
 
-// powiadamianie rodzica przy zamknięciu
 watch(localVisible, (val) => {
   if (!val) emit('close');
 });
@@ -105,10 +102,8 @@ async function inviteUser(user) {
       user.invited = true;
       toast.add({ severity: 'success', summary: 'Sukces', detail: `Zaproszono ${user.name}`, life: 3000 });
 
-      // 🔹 Odśwież listę wszystkich zaproszeń w modalu
       await loadUsers();
 
-      // 🔹 Jeśli chcesz też powiadomić rodzica, żeby odświeżył requests
       emit('invited', user);
     } else {
       const data = await res.json();

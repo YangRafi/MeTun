@@ -1,6 +1,5 @@
 const reportService = require('../services/reportService');
 
-// Tworzenie raportu przez użytkownika
 exports.createReport = async (req, res) => {
   try {
     const senderId = req.user.userId;
@@ -19,7 +18,6 @@ exports.createReport = async (req, res) => {
   }
 };
 
-// Pobranie raportów dla panelu admina (pogrupowane wg statusu)
 exports.getReports = async (req, res) => {
   try {
     const reports = await reportService.getAllReports();
@@ -36,8 +34,6 @@ exports.getReports = async (req, res) => {
     res.status(500).json({ error: 'Błąd serwera.' });
   }
 };
-
-// Aktualizacja statusu raportu i opcjonalnej odpowiedzi
 exports.updateReport = async (req, res) => {
   try {
     const { id } = req.params;

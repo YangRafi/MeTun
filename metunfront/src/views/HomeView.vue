@@ -1,6 +1,5 @@
 <template>
   <div class="min-h-screen flex flex-col relative">
-    <!-- Modale -->
     <AuthModal 
       type="signup" 
       v-model:visible="showSignup" 
@@ -8,7 +7,6 @@
     />
     <AuthModal type="login" v-model:visible="showLogin" />
 
-    <!-- Wideo w tle -->
     <video
       ref="bgVideo"
       autoplay
@@ -20,10 +18,8 @@
       <source src="/videos/home.mp4" type="video/mp4" />
     </video>
 
-    <!-- Overlay (przyciemnienie) -->
     <div class="absolute inset-0 bg-black/40"></div>
 
-    <!-- Treść -->
     <div class="relative z-10 flex flex-col min-h-screen">
       <AppHeader @show-login="showLogin = true" />
 
@@ -66,12 +62,10 @@ const showSignup = ref(false)
 const showLogin = ref(false)
 const bgVideo = ref(null)
 
-// Włącz autoplay przy pierwszym mount
 onMounted(() => {
   bgVideo.value?.play().catch(() => {})
 })
 
-// Włącz autoplay przy powrocie do komponentu z keep-alive
 onActivated(() => {
   bgVideo.value?.play().catch(() => {})
 })

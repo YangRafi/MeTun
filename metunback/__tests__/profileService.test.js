@@ -2,9 +2,6 @@ const profileService = require('../services/profileService');
 const Profile = require('../models/Profile');
 const User = require('../models/User');
 
-// -----------------------------
-// MOCK MODELI
-// -----------------------------
 jest.mock('../models/Profile', () => ({
   findAll: jest.fn(),
   findByPk: jest.fn(),
@@ -16,64 +13,46 @@ jest.mock('../models/User', () => ({
   findByPk: jest.fn()
 }));
 
-// -----------------------------
-// TESTY PROFILE SERVICE
-// -----------------------------
 describe('ProfileService', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  // --------------------------
-  // GET ALL PROFILES
-  // --------------------------
-  test('getAllProfiles zwraca listę profili', async () => {
+  test('getAllProfiles returns a list of profiles', async () => {
     Profile.findAll.mockResolvedValue([{ id: 1 }, { id: 2 }]);
     const result = await profileService.getAllProfiles();
     expect(result.length).toBe(2);
     expect(Profile.findAll).toHaveBeenCalled();
   });
 
-  // --------------------------
-  // GET PROFILE BY ID
-  // --------------------------
-  test('getProfileById zwraca profil', async () => {
+  test('getProfileById returns a profile', async () => {
     Profile.findByPk.mockResolvedValue({ id: 1 });
     const result = await profileService.getProfileById(1);
     expect(result).toEqual({ id: 1 });
     expect(Profile.findByPk).toHaveBeenCalledWith(1);
   });
 
-  // --------------------------
-  // GET PROFILE BY USER ID
-  // --------------------------
-  test('getProfileByUserId zwraca profil', async () => {
+  test('getProfileByUserId returns a profile', async () => {
     Profile.findOne.mockResolvedValue({ id: 1, user_id: 1 });
     const result = await profileService.getProfileByUserId(1);
     expect(result).toEqual({ id: 1, user_id: 1 });
     expect(Profile.findOne).toHaveBeenCalledWith({ where: { user_id: 1 } });
   });
 
-  // --------------------------
-  // CHECK USER PROFILE
-  // --------------------------
-  test('checkUserProfile zwraca true jeśli profil istnieje', async () => {
+  test('checkUserProfile returns true if profile exists', async () => {
     profileService.getProfileByUserId = jest.fn().mockResolvedValue({ id: 1 });
     const result = await profileService.checkUserProfile(1);
     expect(result).toBe(true);
   });
 
-  test('checkUserProfile zwraca false jeśli profil nie istnieje', async () => {
+  test('checkUserProfile returns false if profile does not exist', async () => {
     profileService.getProfileByUserId = jest.fn().mockResolvedValue(null);
     const result = await profileService.checkUserProfile(1);
     expect(result).toBe(false);
   });
 
-  // --------------------------
-  // CREATE PROFILE
-  // --------------------------
-  test('createProfile tworzy nowy profil', async () => {
+  test('createProfile creates a new profile', async () => {
     const user = { id: 1 };
     User.findByPk.mockResolvedValue(user);
     profileService.getProfileByUserId = jest.fn().mockResolvedValue(null);
@@ -98,12 +77,12 @@ describe('ProfileService', () => {
     });
   });
 
-  test('createProfile rzuca błąd przy braku user_id', async () => {
+  test('createProfile throws an error when user_id is missing', async () => {
     await expect(profileService.createProfile({ name: 'Test' }, null, null))
       .rejects.toMatchObject({ status: 400 });
   });
 
-  test('createProfile rzuca błąd jeśli profil już istnieje', async () => {
+  test('createProfile throws an error if profile already exists', async () => {
     User.findByPk.mockResolvedValue({ id: 1 });
     profileService.getProfileByUserId = jest.fn().mockResolvedValue({ id: 1 });
 
@@ -111,10 +90,7 @@ describe('ProfileService', () => {
       .rejects.toMatchObject({ status: 400, message: 'Profile already exists for this user' });
   });
 
-  // --------------------------
-  // UPDATE PROFILE
-  // --------------------------
-  test('updateProfile aktualizuje profil', async () => {
+  test('updateProfile updates the profile', async () => {
     const profileMock = { id: 1, save: jest.fn() };
     profileService.getProfileById = jest.fn().mockResolvedValue(profileMock);
 
@@ -126,16 +102,13 @@ describe('ProfileService', () => {
     expect(profileMock.save).toHaveBeenCalled();
   });
 
-  test('updateProfile rzuca błąd jeśli profil nie istnieje', async () => {
+  test('updateProfile throws an error if profile does not exist', async () => {
     profileService.getProfileById = jest.fn().mockResolvedValue(null);
     await expect(profileService.updateProfile(1, {}, null, null))
       .rejects.toMatchObject({ status: 404 });
   });
 
-  // --------------------------
-  // DELETE PROFILE
-  // --------------------------
-  test('deleteProfile usuwa profil', async () => {
+  test('deleteProfile deletes the profile', async () => {
     const profileMock = { destroy: jest.fn() };
     profileService.getProfileById = jest.fn().mockResolvedValue(profileMock);
 
@@ -144,22 +117,19 @@ describe('ProfileService', () => {
     expect(profileMock.destroy).toHaveBeenCalled();
   });
 
-  test('deleteProfile rzuca błąd jeśli profil nie istnieje', async () => {
+  test('deleteProfile throws an error if profile does not exist', async () => {
     profileService.getProfileById = jest.fn().mockResolvedValue(null);
     await expect(profileService.deleteProfile(1))
       .rejects.toMatchObject({ status: 404 });
   });
 
-  // --------------------------
-  // CREATE PROFILE - dodatkowe walidacje
-  // --------------------------
-  test('createProfile rzuca błąd przy niepoprawnym gender', async () => {
+  test('createProfile throws an error for invalid gender', async () => {
     const data = { user_id: 1, name: 'Test', gender: 'invalid' };
     await expect(profileService.createProfile(data, null, null))
       .rejects.toMatchObject({ status: 400, message: expect.stringContaining('gender must be one of') });
   });
 
-  test('createProfile rzuca błąd gdy date_of_birth w przyszłości', async () => {
+  test('createProfile throws an error when date_of_birth is in the future', async () => {
     const futureDate = new Date();
     futureDate.setFullYear(futureDate.getFullYear() + 1);
 
@@ -171,9 +141,9 @@ describe('ProfileService', () => {
       .rejects.toMatchObject({ status: 400, message: 'date_of_birth cannot be in the future' });
   });
 
-  test('createProfile rzuca błąd gdy wiek < MIN_AGE', async () => {
+  test('createProfile throws an error when age is below MIN_AGE', async () => {
     const youngDate = new Date();
-    youngDate.setFullYear(youngDate.getFullYear() - 10); // 10 lat
+    youngDate.setFullYear(youngDate.getFullYear() - 10);
 
     User.findByPk.mockResolvedValue({ id: 1 });
     profileService.getProfileByUserId = jest.fn().mockResolvedValue(null);
@@ -183,7 +153,7 @@ describe('ProfileService', () => {
       .rejects.toMatchObject({ status: 400, message: expect.stringContaining('User must be at least') });
   });
 
-  test('createProfile rzuca błąd jeśli użytkownik nie istnieje', async () => {
+  test('createProfile throws an error if user does not exist', async () => {
     User.findByPk.mockResolvedValue(null);
     profileService.getProfileByUserId = jest.fn().mockResolvedValue(null);
 
@@ -192,10 +162,7 @@ describe('ProfileService', () => {
       .rejects.toMatchObject({ status: 400, message: 'Invalid user_id' });
   });
 
-  // --------------------------
-  // UPDATE PROFILE - dodatkowe walidacje
-  // --------------------------
-  test('updateProfile rzuca błąd przy niepoprawnym gender', async () => {
+  test('updateProfile throws an error for invalid gender', async () => {
     const profileMock = { save: jest.fn() };
     profileService.getProfileById = jest.fn().mockResolvedValue(profileMock);
 
@@ -204,7 +171,7 @@ describe('ProfileService', () => {
       .rejects.toMatchObject({ status: 400, message: expect.stringContaining('gender must be one of') });
   });
 
-  test('updateProfile rzuca błąd gdy date_of_birth w przyszłości', async () => {
+  test('updateProfile throws an error when date_of_birth is in the future', async () => {
     const profileMock = { save: jest.fn() };
     profileService.getProfileById = jest.fn().mockResolvedValue(profileMock);
 
@@ -216,7 +183,7 @@ describe('ProfileService', () => {
       .rejects.toMatchObject({ status: 400, message: 'date_of_birth cannot be in the future' });
   });
 
-  test('updateProfile rzuca błąd gdy wiek < MIN_AGE', async () => {
+  test('updateProfile throws an error when age is below MIN_AGE', async () => {
     const profileMock = { save: jest.fn() };
     profileService.getProfileById = jest.fn().mockResolvedValue(profileMock);
 
@@ -228,7 +195,7 @@ describe('ProfileService', () => {
       .rejects.toMatchObject({ status: 400, message: expect.stringContaining('User must be at least') });
   });
 
-  test('updateProfile aktualizuje profil z plikiem i wszystkimi polami', async () => {
+  test('updateProfile updates profile with file and all fields', async () => {
     const profileMock = { save: jest.fn() };
     profileService.getProfileById = jest.fn().mockResolvedValue(profileMock);
 

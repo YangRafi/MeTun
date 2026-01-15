@@ -13,10 +13,7 @@ jest.mock('../models', () => ({
 describe('ChatService', () => {
   afterEach(() => jest.clearAllMocks());
 
-  // --------------------------
-  // getPrivateChats
-  // --------------------------
-  test('getPrivateChats zwraca listę czatów prywatnych', async () => {
+  test('getPrivateChats returns a list of private chats', async () => {
     const mockMatches = [
       {
         match_id: 1,
@@ -41,10 +38,7 @@ describe('ChatService', () => {
     }));
   });
 
-  // --------------------------
-  // getGroupChats
-  // --------------------------
-  test('getGroupChats zwraca listę czatów grupowych', async () => {
+  test('getGroupChats returns a list of group chats', async () => {
     const mockGroups = [
       {
         group_id: 1,
@@ -66,10 +60,7 @@ describe('ChatService', () => {
     }));
   });
 
-  // --------------------------
-  // getMessages - private
-  // --------------------------
-  test('getMessages zwraca wiadomości prywatne', async () => {
+  test('getMessages returns private messages', async () => {
     const matchMock = {
       match_id: 1,
       user_id_1: 1,
@@ -91,15 +82,12 @@ describe('ChatService', () => {
     expect(result[1]).toEqual(expect.objectContaining({ senderAvatar: 'pic2', content: 'Hi' }));
   });
 
-  test('getMessages prywatne rzuca błąd przy braku dostępu', async () => {
+  test('getMessages throws an error for private chat when access is denied', async () => {
     UserMatch.findOne.mockResolvedValue(null);
     await expect(ChatService.getMessages(1, 'private', 1)).rejects.toThrow('Access denied');
   });
 
-  // --------------------------
-  // getMessages - group
-  // --------------------------
-  test('getMessages zwraca wiadomości grupowe', async () => {
+  test('getMessages returns group messages', async () => {
     const groupMock = { 
       group_id: 1, 
       members: [{ user_id: 1 }],
@@ -118,12 +106,12 @@ describe('ChatService', () => {
     expect(result[0]).toEqual(expect.objectContaining({ senderAvatar: 'pic2', content: 'Hello' }));
   });
 
-  test('getMessages grupowe rzuca błąd przy braku członkostwa', async () => {
+  test('getMessages throws an error for group chat when user is not a member', async () => {
     Group.findOne.mockResolvedValue(null);
     await expect(ChatService.getMessages(1, 'group', 1)).rejects.toThrow('Access denied');
   });
 
-  test('getMessages rzuca błąd przy niepoprawnym typie', async () => {
+  test('getMessages throws an error for invalid chat type', async () => {
     await expect(ChatService.getMessages(1, 'invalid', 1)).rejects.toThrow('Invalid chat type');
   });
 });

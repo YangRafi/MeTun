@@ -5,7 +5,6 @@
            bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl border border-blue-200
            flex flex-col overflow-hidden font-sans text-black transition-all z-50 animate-slide-up"
   >
-    <!-- 🔹 Nagłówek -->
     <div class="flex items-center justify-between p-3 bg-gradient-to-r from-blue-600 to-blue-400 text-white rounded-t-3xl shadow-md">
       <div class="flex items-center gap-3">
         <img
@@ -47,7 +46,6 @@
       </div>
     </div>
 
-    <!-- 🔹 Wiadomości -->
     <div
       ref="messagesContainer"
       class="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-blue-50"
@@ -76,7 +74,6 @@
         </div>
       </div>
 
-      <!-- 🔹 Typing indicator -->
       <div
         v-if="typingUser"
         class="ml-2 text-sm text-blue-600 flex items-center gap-2 italic"
@@ -87,7 +84,6 @@
       </div>
     </div>
 
-    <!-- 🔹 Input -->
     <div class="p-3 border-t bg-gradient-to-r from-blue-50 to-blue-100 rounded-b-3xl flex gap-2">
       <input
         v-model="newMessage"
@@ -102,7 +98,6 @@
       >➤</button>
     </div>
 
-    <!-- 🔹 Modal członków grupy -->
     <MemberListModal
       v-if="showMemberModal"
       :members="groupMembers"
@@ -136,7 +131,6 @@ const isCurrentUserAdmin = ref(false);
 const profileCache = new Map();
 let typingTimer = null;
 
-// SOCKET EVENTS
 onMounted(() => {
   socket.emit("register", props.userId);
   socket.on("receive_message", handleReceive);
@@ -158,7 +152,6 @@ onBeforeUnmount(() => {
   if (typingTimer) clearTimeout(typingTimer);
 });
 
-// HANDLERS
 const handleReceive = (msg) => {
   const isMatch = msg.matchId === props.chat?.id;
   const isGroup = msg.groupId === props.chat?.id;
@@ -178,7 +171,6 @@ const handleMessageSent = (msg) => {
   }
 };
 
-// WATCH CHAT
 watch(
   () => props.chat,
   async (newChat) => {
@@ -191,7 +183,6 @@ watch(
   { immediate: true }
 );
 
-// LOAD MESSAGES
 async function loadMessages(chatType, chatId) {
   try {
     const endpoint =
@@ -212,7 +203,6 @@ async function loadMessages(chatType, chatId) {
   }
 }
 
-// SEND MESSAGE
 function sendMessage() {
   if (!newMessage.value.trim()) return;
   const payload = {
@@ -231,7 +221,6 @@ function sendMessage() {
   newMessage.value = "";
 }
 
-// TYPING
 function notifyTyping() {
   if (!props.chat) return;
   socket.emit("user_typing", {
@@ -242,7 +231,6 @@ function notifyTyping() {
   });
 }
 
-// SCROLL
 function scrollToBottom() {
   nextTick(() => {
     if (messagesContainer.value)
@@ -257,7 +245,6 @@ function formatTimestamp(ts) {
   return new Date(ts).toLocaleString();
 }
 
-// GET USER NAME
 async function getUserName(userId) {
   if (!userId) return null;
   if (profileCache.has(userId)) return profileCache.get(userId);
@@ -274,7 +261,6 @@ async function getUserName(userId) {
   }
 }
 
-// MEMBERS MODAL
 async function openMemberModal() {
   showGroupMenu.value = false;
   try {

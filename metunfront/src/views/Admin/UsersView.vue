@@ -56,7 +56,6 @@
       </table>
     </div>
 
-    <!-- 🔸 Dialog do wpisania dni bana -->
     <Dialog header="Zbanuj użytkownika" v-model:visible="banDialogVisible" modal>
       <div class="space-y-3">
         <p>Na ile dni chcesz zbanować użytkownika?</p>

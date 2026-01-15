@@ -9,17 +9,14 @@ export const useUserStore = defineStore('user', () => {
 
   async function fetchUserAndProfile() {
     try {
-      // 🧹 ZAWSZE czyścimy obiekty przed ponownym pobraniem
       Object.keys(user).forEach(k => delete user[k]);
       Object.keys(profile).forEach(k => delete profile[k]);
 
-      // 🧑 Pobierz usera
       const resUser = await fetchWithRefresh('http://localhost:3000/api/auth/me');
       if (!resUser.ok) throw new Error('Nie zalogowany');
       const userData = await resUser.json();
       Object.assign(user, userData);
-
-      // 🧑‍🦰 Pobierz profil
+      
       const resProfile = await fetchWithRefresh(
         `http://localhost:3000/api/profiles/user/${user.user_id}`
       );

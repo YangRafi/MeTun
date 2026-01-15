@@ -106,6 +106,5 @@ async function submitReport() {
 </script>
 
 <style scoped>
-/* small safety: ensure modal content is readable on mobile */
 .max-w-md { max-width: 95%; }
 </style>

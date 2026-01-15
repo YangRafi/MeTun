@@ -1,15 +1,13 @@
 # Node.js
 node_modules/
-.env
 
 # Backend
 metunback/node_modules/
 metunback/secret.env
-metunback/.env
+
 
 # Frontend
 metunfront/node_modules/
-metunfront/.env
 
 # Systemowe
 .DS_Store

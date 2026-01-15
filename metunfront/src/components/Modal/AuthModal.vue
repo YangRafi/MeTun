@@ -1,13 +1,11 @@
 <template>
   <transition name="fade">
     <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center">
-      <!-- Overlay -->
       <div
         class="absolute inset-0 bg-black/40 backdrop-blur-sm"
         @click="close"
       ></div>
 
-      <!-- Modal -->
       <transition name="scale-up">
         <div
           class="relative bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl p-8 w-full max-w-md z-10 text-gray-900"
@@ -18,7 +16,6 @@
           </h2>
 
           <form @submit.prevent="onSubmit">
-            <!-- Signup -->
             <template v-if="type === 'signup'">
               <div class="mb-4">
                 <label class="block mb-1 font-medium text-blue-800">Imię</label>
@@ -39,7 +36,6 @@
               </div>
             </template>
 
-            <!-- Email -->
             <div class="mb-4">
               <label class="block mb-1 font-medium text-blue-800">Email</label>
               <InputText
@@ -50,7 +46,6 @@
               <span class="text-red-600 text-sm">{{ errors.email }}</span>
             </div>
 
-            <!-- Hasło -->
             <div class="mb-4">
               <label class="block mb-1 font-medium text-blue-800">Hasło</label>
               <Password
@@ -63,7 +58,6 @@
               <span class="text-red-600 text-sm">{{ errors.password }}</span>
             </div>
 
-            <!-- Confirm password (signup only) -->
             <div v-if="type === 'signup'" class="mb-4">
               <label class="block mb-1 font-medium text-blue-800">Powtórz hasło</label>
               <Password
@@ -82,7 +76,6 @@
             />
           </form>
 
-          <!-- Zamknij -->
           <button
             class="absolute top-3 right-3 text-gray-700 hover:text-gray-900 text-xl font-bold"
             @click="close"
@@ -90,7 +83,6 @@
         </div>
       </transition>
 
-      <!-- Toast -->
       <Toast position="top-right" />
     </div>
   </transition>

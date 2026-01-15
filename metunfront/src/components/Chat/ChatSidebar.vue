@@ -1,31 +1,26 @@
 <template>
   <div>
-    <!-- 🔹 Przycisk otwarcia -->
     <button
       @click="toggleSidebar"
       class="fixed top-24 left-6 z-50 bg-gradient-to-r from-blue-600 to-blue-400 text-white p-4 rounded-full shadow-xl hover:scale-105 transition-transform"
       title="Otwórz czat"
     >💬</button>
 
-    <!-- 🔹 Overlay -->
     <div
       v-if="isOpen"
       @click="closeSidebar"
       class="fixed inset-0 bg-white/20 backdrop-blur-sm z-40 transition-opacity"
     ></div>
 
-    <!-- 🔹 Sidebar -->
     <div
       class="fixed top-0 left-0 h-full w-80 bg-white/80 backdrop-blur-md shadow-2xl z-50 transform transition-transform duration-300 rounded-r-3xl border border-blue-200 overflow-hidden"
       :class="{ '-translate-x-full': !isOpen, 'translate-x-0': isOpen }"
     >
-      <!-- nagłówek -->
       <div class="flex justify-between items-center p-4 bg-gradient-to-r from-blue-600 to-blue-400 text-white rounded-r-3xl shadow-md">
         <h2 class="text-lg font-semibold drop-shadow-md">Czaty</h2>
         <button @click="closeSidebar" class="text-white hover:text-gray-100 text-xl font-bold">×</button>
       </div>
 
-      <!-- lista czatów -->
       <div class="p-4 overflow-y-auto h-[calc(100%-4rem)] scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-blue-50">
         <p v-if="loading" class="text-gray-500 text-center mt-6">Ładowanie...</p>
         <p v-else-if="chats.length === 0" class="text-gray-400 text-center mt-6 italic">Brak czatów.</p>
@@ -36,7 +31,6 @@
             :key="chat.id"
             class="flex items-center gap-3 p-3 rounded-2xl hover:bg-blue-50 cursor-pointer transition-all shadow-sm relative"
           >
-            <!-- Avatar i info -->
             <img
               v-if="chat.profile_picture"
               :src="chat.profile_picture"
@@ -60,7 +54,6 @@
               <span v-if="chat.unread" class="absolute top-0 right-0 w-3 h-3 bg-blue-500 rounded-full" title="Nowa wiadomość"></span>
             </div>
 
-            <!-- 🔹 Menu trzech kropek -->
             <div class="relative">
               <button @click.stop="chat.showMenu = !chat.showMenu" class="text-gray-500 hover:text-gray-700 font-bold">⋮</button>
               <div
@@ -107,7 +100,6 @@ function closeSidebar() { isOpen.value = false; }
 async function handleChatAction(chat) {
   try {
     if (props.onlyGroups) {
-      // opuszczenie grupy
       const res = await fetch(`http://localhost:3000/api/group-members/${chat.id}/leave`, {
         method: 'POST',
         credentials: 'include'
@@ -118,7 +110,6 @@ async function handleChatAction(chat) {
       chats.value = chats.value.filter(c => c.id !== chat.id);
       toast.success(data.message || 'Pomyślnie opuściłeś grupę', { autoClose: 2500 });
     } else {
-      // usunięcie dopasowania (match)
       const res = await fetch(`http://localhost:3000/api/matches/unlike/${chat.id}`, {
         method: 'POST',
         credentials: 'include'

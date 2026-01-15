@@ -7,7 +7,6 @@
     </h2>
 
     <form @submit.prevent="saveProfile" class="grid gap-6">
-      <!-- Zdjęcie profilowe -->
       <div class="flex flex-col items-center gap-4">
         <div class="relative">
           <img
@@ -30,7 +29,6 @@
         />
       </div>
 
-      <!-- Imię -->
       <div class="flex flex-col">
         <label class="text-blue-800 font-semibold mb-2">Imię</label>
         <input
@@ -41,7 +39,6 @@
         />
       </div>
 
-      <!-- Opis -->
       <div class="flex flex-col">
         <label class="text-blue-800 font-semibold mb-2">Opis</label>
         <textarea
@@ -52,7 +49,6 @@
         ></textarea>
       </div>
 
-      <!-- Lokalizacja -->
       <div class="flex flex-col">
         <label class="text-blue-800 font-semibold mb-2">Lokalizacja</label>
         <input
@@ -63,7 +59,6 @@
         />
       </div>
 
-      <!-- Data urodzenia -->
       <div class="flex flex-col">
         <label class="text-blue-800 font-semibold mb-2">Data urodzenia</label>
         <input
@@ -73,7 +68,6 @@
         />
       </div>
 
-      <!-- Płeć -->
       <div class="flex flex-col">
         <label class="text-blue-800 font-semibold mb-2">Płeć</label>
         <select
@@ -87,7 +81,6 @@
         </select>
       </div>
 
-      <!-- Przycisk -->
       <button
         type="submit"
         class="bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-semibold shadow-lg transition-transform hover:scale-[1.02]"
@@ -109,7 +102,7 @@ const { profile, fetchUserAndProfile } = userStore;
 
 const file = ref(null);
 const previewImage = ref("");
-const MIN_AGE = 16; // minimalny wiek
+const MIN_AGE = 16;
 
 onMounted(async () => {
   await fetchUserAndProfile();
@@ -129,7 +122,6 @@ function getProfilePictureUrl(path) {
   return `http://localhost:3000/${path}`;
 }
 
-// 🔹 Walidacja daty urodzenia
 function validateDateOfBirth(dateOfBirth) {
   if (!dateOfBirth) return true;
   const dob = new Date(dateOfBirth);

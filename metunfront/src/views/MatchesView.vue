@@ -1,6 +1,5 @@
 <template>
   <div class="relative min-h-screen overflow-hidden">
-    <!-- 🔹 Tło -->
     <div
       class="absolute inset-0 bg-cover bg-center z-0"
       :style="{ backgroundImage: `url(${background})` }"
@@ -8,9 +7,7 @@
       <div class="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
     </div>
 
-    <!-- 🔹 Zawartość -->
     <div class="relative z-10 text-white flex">
-      <!-- Główna sekcja -->
       <div class="flex-1 max-w-3xl mx-auto p-6 relative">
         <UserHeader ref="header" :profile="profile" />
         <ChatSidebar
@@ -19,7 +16,6 @@
           :onlyPrivate="true"
         />
 
-        <!-- 🔹 Widok dopasowań -->
         <div class="relative">
           <MatchProfileCard
             v-if="matches.length && currentIndex < matches.length"
@@ -29,7 +25,6 @@
             class="rounded-3xl shadow-2xl match-card mt-8"
           />
 
-          <!-- 🔹 Brak wyników -->
           <div
             v-else-if="searched && matches.length === 0"
             class="flex justify-center items-center min-h-[45rem]"
@@ -40,7 +35,6 @@
             </div>
           </div>
 
-          <!-- 🔹 Jeszcze nie wybrano filtrów -->
           <div
             v-else-if="!searched"
             class="flex justify-center items-center min-h-[45rem]"
@@ -54,7 +48,6 @@
           </div>
         </div>
 
-        <!-- 🔹 ChatBox -->
         <ChatBox
           v-if="activeChat"
           :chat="activeChat"
@@ -64,7 +57,6 @@
         />
       </div>
 
-      <!-- 🔹 Panel filtrów -->
       <MatchFilter
         :filters="filters"
         :faculties="faculties"
@@ -75,7 +67,6 @@
       />
     </div>
 
-    <!-- 🔹 It's a Match -->
     <transition name="fade">
       <div
         v-if="showMatch"
@@ -104,7 +95,6 @@
             {{ matchProfile.name }}
           </p>
 
-          <!-- 🔹 Konfetti -->
           <div class="absolute inset-0 pointer-events-none">
             <div
               v-for="n in 8"
@@ -122,7 +112,6 @@
       </div>
     </transition>
 
-    <!-- 🔹 Alert – filtry zastosowane -->
     <transition name="fade">
       <div
         v-if="showApplied"
@@ -294,7 +283,6 @@ async function fetchFaculties() {
   }
 }
 
-/* Animacja konfetti */
 @keyframes fall {
   0% {
     transform: translateY(-10px) rotate(0deg);

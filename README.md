@@ -4,9 +4,9 @@ cd metunback
 
 npm i
 
-npm start
-
 node seeders/seed.js
+
+npm start
 
 Frontend:
 

@@ -1,9 +1,6 @@
 const adminService = require('../services/adminService');
 const { User, University, UserUniversity, Group } = require('../models');
 
-// -----------------------------
-// MOCK MODELI
-// -----------------------------
 jest.mock('../models', () => ({
   User: { count: jest.fn(), findAll: jest.fn() },
   University: { count: jest.fn(), findAll: jest.fn() },
@@ -16,14 +13,12 @@ describe('AdminService', () => {
     jest.clearAllMocks();
   });
 
-  test('getDashboardData zwraca poprawne statystyki i listy', async () => {
-    // Mockowanie count
+  test('getDashboardData returns correct statistics and lists', async () => {
     User.count.mockResolvedValue(10);
     UserUniversity.count.mockResolvedValue(7);
     University.count.mockResolvedValue(3);
     Group.count.mockResolvedValue(5);
 
-    // Mockowanie findAll
     const mockUsers = [
       { user_id: 1, name: 'Jan', surname: 'Kowalski', email: 'jan@test.com', role: 'user' },
       { user_id: 2, name: 'Anna', surname: 'Nowak', email: 'anna@test.com', role: 'admin' }
@@ -47,7 +42,6 @@ describe('AdminService', () => {
     expect(result.users).toEqual(mockUsers);
     expect(result.universities).toEqual(mockUniversities);
 
-    // Sprawdzenie, czy count i findAll zostały wywołane
     expect(User.count).toHaveBeenCalled();
     expect(UserUniversity.count).toHaveBeenCalledWith({ where: { status: 'approved' } });
     expect(University.count).toHaveBeenCalled();

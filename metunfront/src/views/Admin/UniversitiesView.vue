@@ -1,6 +1,5 @@
 <template>
   <section class="animate-fade-in p-15">
-    <!-- Nagłówek -->
     <div class="flex justify-between mb-6 items-center">
       <h2 class="text-2xl font-semibold">🏫 Zarządzanie uczelniami</h2>
       <button
@@ -11,7 +10,6 @@
       </button>
     </div>
 
-    <!-- Dodawanie uczelni -->
     <div class="flex gap-2 mb-4">
       <input
         v-model="newUniversity.name"
@@ -36,7 +34,6 @@
       </button>
     </div>
 
-    <!-- Wyszukiwanie -->
     <div class="flex gap-2 mb-6">
       <input
         v-model="searchQuery"
@@ -46,7 +43,6 @@
       />
     </div>
 
-    <!-- Lista uczelni -->
     <div class="space-y-4">
       <div
         v-for="uni in universities"
@@ -66,7 +62,6 @@
           </div>
         </div>
 
-        <!-- Wydziały -->
         <div v-if="uni.show" class="mt-2 pl-4 space-y-2">
           <div
             v-for="fac in uni.faculties"
@@ -83,7 +78,6 @@
               </div>
             </div>
 
-            <!-- Kierunki -->
             <div v-if="fac.show" class="mt-1 pl-4 space-y-1">
               <div
                 v-for="disc in fac.disciplines"
@@ -97,7 +91,6 @@
                 </div>
               </div>
 
-              <!-- Dodawanie kierunku -->
               <div class="flex gap-2 mt-1">
                 <input v-model="newDiscipline[fac.faculty_id]" placeholder="Nowy kierunek" class="px-2 py-1 rounded bg-gray-700 text-white w-1/2" />
                 <button @click="addDiscipline(fac.faculty_id)" class="bg-green-500 hover:bg-green-600 px-3 py-1 rounded text-sm">Dodaj</button>
@@ -105,7 +98,6 @@
             </div>
           </div>
 
-          <!-- Dodawanie wydziału -->
           <div class="flex gap-2 mt-2">
             <input v-model="newFaculty[uni.university_id]" placeholder="Nowy wydział" class="px-2 py-1 rounded bg-gray-700 text-white w-1/2" />
             <button @click="addFaculty(uni.university_id)" class="bg-green-500 hover:bg-green-600 px-3 py-1 rounded text-sm">Dodaj wydział</button>
@@ -114,7 +106,6 @@
       </div>
     </div>
 
-    <!-- Dialogi edycji -->
     <Dialog v-model:visible="showEditUniversity" header="Edytuj uczelnię" modal>
       <div class="flex flex-col gap-3">
         <input v-model="editUniversityData.name" placeholder="Nazwa uczelni" class="px-3 py-2 rounded w-full bg-gray-200"/>
@@ -150,7 +141,6 @@
       </div>
     </Dialog>
 
-    <!-- PrimeVue Toast -->
     <Toast ref="toast" position="top-right" />
     <ConfirmDialog />
   </section>
@@ -170,7 +160,6 @@ const newUniversity = ref({ name: '', location: '', type: '' })
 const newFaculty = ref({})
 const newDiscipline = ref({})
 
-// Modale edycji
 const showEditUniversity = ref(false)
 const editUniversityData = ref({})
 const showEditFaculty = ref(false)
@@ -225,7 +214,6 @@ const buildUniversityTree = async (universityList) => {
   }))
 }
 
-// CRUD i metody modali
 const addUniversity = async () => {
   if (!newUniversity.value.name || !newUniversity.value.type) return
   try {

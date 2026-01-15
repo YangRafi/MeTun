@@ -1,9 +1,8 @@
-const fs = require('fs'); // 🔹 dodany import
+const fs = require('fs');
 const userUniversityService = require('../services/userUniversityService');
 const { UserUniversity, GroupMember, Group, Discipline } = require('../models');
 const { addUserToDisciplineGroup } = require('../util/groupUtils');
 
-// 🔹 Mock utils
 jest.mock('fs', () => ({ unlink: jest.fn() }));
 jest.mock('path', () => ({
   join: jest.fn(() => '/mock/path'),
@@ -16,7 +15,6 @@ jest.mock('../util/dateUtils', () => ({
   getNextExpiryDate: jest.fn(() => new Date('2030-01-01'))
 }));
 
-// 🔹 Mock modeli Sequelize
 jest.mock('../models', () => ({
   UserUniversity: {
     findAll: jest.fn(),
@@ -39,12 +37,11 @@ jest.mock('../models', () => ({
   }
 }));
 
-describe('UserUniversityService — testy jednostkowe', () => {
+describe('UserUniversityService — unit tests', () => {
 
   afterEach(() => jest.clearAllMocks());
 
-  // -------------------------------------------------------
-  test('getUserUniversities powinno zwrócić poprawne dane', async () => {
+  test('getUserUniversities should return correct data', async () => {
     const mockRecord = {
       id: 1,
       University: { university_name: 'Uni' },
@@ -70,8 +67,7 @@ describe('UserUniversityService — testy jednostkowe', () => {
     expect(UserUniversity.findAll).toHaveBeenCalled();
   });
 
-  // -------------------------------------------------------
-  test('addUserUniversity tworzy nowy rekord', async () => {
+  test('addUserUniversity creates a new record', async () => {
     UserUniversity.count.mockResolvedValue(0);
     UserUniversity.create.mockResolvedValue({ id: 1 });
 
@@ -85,8 +81,7 @@ describe('UserUniversityService — testy jednostkowe', () => {
     expect(UserUniversity.create).toHaveBeenCalled();
   });
 
-  // -------------------------------------------------------
-  test('addUserUniversity rzuca LIMIT_REACHED', async () => {
+  test('addUserUniversity throws LIMIT_REACHED error', async () => {
     UserUniversity.count.mockResolvedValue(2);
 
     await expect(
@@ -94,8 +89,7 @@ describe('UserUniversityService — testy jednostkowe', () => {
     ).rejects.toThrow('LIMIT_REACHED');
   });
 
-  // -------------------------------------------------------
-  test('activateTrial ustawia trial i dodaje do grupy', async () => {
+  test('activateTrial sets trial and adds user to group', async () => {
     const user = { user_id: 1, has_trial: false, save: jest.fn() };
     const mockRecord = { id: 1, user_id: 1, status: 'pending', trial: false, discipline_id: 11, save: jest.fn() };
 
@@ -108,8 +102,7 @@ describe('UserUniversityService — testy jednostkowe', () => {
     expect(addUserToDisciplineGroup).toHaveBeenCalledWith(1, 11, true);
   });
 
-  // -------------------------------------------------------
-  test('updateDocument aktualizuje document_url', async () => {
+  test('updateDocument updates document_url', async () => {
     const mockRecord = { id: 1, user_id: 1, document_url: null, status: 'pending', save: jest.fn() };
     UserUniversity.findOne.mockResolvedValue(mockRecord);
 
@@ -121,8 +114,7 @@ describe('UserUniversityService — testy jednostkowe', () => {
     expect(mockRecord.save).toHaveBeenCalled();
   });
 
-  // -------------------------------------------------------
-  test('deleteUserUniversity usuwa rekord', async () => {
+  test('deleteUserUniversity removes the record', async () => {
     const mockRecord = { id: 1, user_id: 1, document_url: null, destroy: jest.fn() };
     UserUniversity.findOne.mockResolvedValue(mockRecord);
 
@@ -132,8 +124,7 @@ describe('UserUniversityService — testy jednostkowe', () => {
     expect(mockRecord.destroy).toHaveBeenCalled();
   });
 
-  // -------------------------------------------------------
-  test('updateStatus tworzy grupę gdy jej nie ma', async () => {
+  test('updateStatus creates a group if it does not exist', async () => {
     const mockRecord = { id: 1, user_id: 5, status: 'pending', discipline_id: 99, save: jest.fn() };
     UserUniversity.findByPk.mockResolvedValue(mockRecord);
     Group.findOne.mockResolvedValue(null);
@@ -149,8 +140,7 @@ describe('UserUniversityService — testy jednostkowe', () => {
     expect(GroupMember.create).toHaveBeenCalled();
   });
 
-  // -------------------------------------------------------
-  test('getUserUniversities ustawia expired i usuwa z grupy gdy trial wygasł', async () => {
+  test('getUserUniversities sets expired status and removes from group when trial has expired', async () => {
     const mockRecord = { id: 1, University: {}, Faculty: {}, Discipline: {}, trial: true, trial_end_date: new Date('2000-01-01'), expiry_date: null, status: 'pending', save: jest.fn() };
     UserUniversity.findAll.mockResolvedValue([mockRecord]);
     GroupMember.destroy.mockResolvedValue(1);
@@ -162,8 +152,7 @@ describe('UserUniversityService — testy jednostkowe', () => {
     expect(GroupMember.destroy).toHaveBeenCalled();
   });
 
-  // -------------------------------------------------------
-  test('updateDocument usuwa stary plik jeśli istnieje', async () => {
+  test('updateDocument removes old file if it exists', async () => {
     const mockRecord = { id: 1, user_id: 1, document_url: 'http://example.com/old.pdf', status: 'rejected', save: jest.fn() };
     UserUniversity.findOne.mockResolvedValue(mockRecord);
 
@@ -174,7 +163,7 @@ describe('UserUniversityService — testy jednostkowe', () => {
     expect(result).toBe('http://new.pdf');
   });
 
-  test('deleteUserUniversity usuwa plik jeśli istnieje dokument', async () => {
+  test('deleteUserUniversity removes file if document exists', async () => {
     const mockRecord = { id: 1, user_id: 1, document_url: 'http://example.com/doc.pdf', destroy: jest.fn() };
     UserUniversity.findOne.mockResolvedValue(mockRecord);
 
@@ -185,24 +174,24 @@ describe('UserUniversityService — testy jednostkowe', () => {
     expect(result).toBe(true);
   });
 
-  test('activateTrial rzuca błąd TRIAL_ALREADY_USED', async () => {
+  test('activateTrial throws TRIAL_ALREADY_USED error', async () => {
     const user = { user_id: 1, has_trial: true };
     await expect(userUniversityService.activateTrial(user, 1))
       .rejects.toThrow('TRIAL_ALREADY_USED');
   });
 
-  test('activateTrial rzuca błąd NOT_FOUND gdy brak rekordu', async () => {
+  test('activateTrial throws NOT_FOUND error when record does not exist', async () => {
     const user = { user_id: 1, has_trial: false };
     UserUniversity.findOne.mockResolvedValue(null);
     await expect(userUniversityService.activateTrial(user, 99))
       .rejects.toThrow('NOT_FOUND');
   });
 
-  test('updateStatus nie dodaje usera gdy jest w grupie', async () => {
+  test('updateStatus does not add user if already in group', async () => {
     const mockRecord = { id: 1, user_id: 5, status: 'pending', discipline_id: 99, save: jest.fn() };
     UserUniversity.findByPk.mockResolvedValue(mockRecord);
     Group.findOne.mockResolvedValue({ group_id: 123 });
-    GroupMember.findOne.mockResolvedValue({}); // user already in group
+    GroupMember.findOne.mockResolvedValue({});
 
     const result = await userUniversityService.updateStatus(1, 'approved');
 
@@ -210,21 +199,20 @@ describe('UserUniversityService — testy jednostkowe', () => {
     expect(result).toBe(true);
   });
 
-  test('getUserUniversities ustawia expired dla normalnego rekordu (nie trial)', async () => {
+  test('getUserUniversities sets expired status for non-trial record', async () => {
     const mockRecord = {
       id: 2,
       University: {},
       Faculty: {},
       Discipline: {},
       trial: false,
-      expiry_date: new Date('2000-01-01'), // w przeszłości
+      expiry_date: new Date('2000-01-01'),
       status: 'approved',
       save: jest.fn()
     };
     UserUniversity.findAll.mockResolvedValue([mockRecord]);
     GroupMember.destroy.mockResolvedValue(1);
 
-    // Wymuszenie nowej daty "teraz" na późniejszą niż expiry_date
     const RealDate = Date;
     global.Date = class extends RealDate {
       constructor() {
@@ -242,19 +230,19 @@ describe('UserUniversityService — testy jednostkowe', () => {
     global.Date = RealDate;
   });
 
-  test('updateDocument rzuca NOT_FOUND jeśli brak rekordu', async () => {
+  test('updateDocument throws NOT_FOUND error if record does not exist', async () => {
     UserUniversity.findOne.mockResolvedValue(null);
     await expect(userUniversityService.updateDocument(1, 1, 'url'))
       .rejects.toThrow('NOT_FOUND');
   });
 
-  test('deleteUserUniversity rzuca NOT_FOUND jeśli brak rekordu', async () => {
+  test('deleteUserUniversity throws NOT_FOUND error if record does not exist', async () => {
     UserUniversity.findOne.mockResolvedValue(null);
     await expect(userUniversityService.deleteUserUniversity(1, 1))
       .rejects.toThrow('NOT_FOUND');
   });
 
-  test('activateTrial rzuca INVALID_STATUS gdy status nie pending', async () => {
+  test('activateTrial throws INVALID_STATUS error when status is not pending', async () => {
     const user = { user_id: 1, has_trial: false };
     const mockRecord = { status: 'approved', trial: false, save: jest.fn() };
     UserUniversity.findOne.mockResolvedValue(mockRecord);
@@ -263,7 +251,7 @@ describe('UserUniversityService — testy jednostkowe', () => {
       .rejects.toThrow('INVALID_STATUS');
   });
 
-  test('activateTrial rzuca ALREADY_HAS_TRIAL gdy record.trial true', async () => {
+  test('activateTrial throws ALREADY_HAS_TRIAL error when record.trial is true', async () => {
     const user = { user_id: 1, has_trial: false };
     const mockRecord = { status: 'pending', trial: true, save: jest.fn() };
     UserUniversity.findOne.mockResolvedValue(mockRecord);
@@ -272,13 +260,13 @@ describe('UserUniversityService — testy jednostkowe', () => {
       .rejects.toThrow('ALREADY_HAS_TRIAL');
   });
 
-  test('updateStatus rzuca NOT_FOUND jeśli brak rekordu', async () => {
+  test('updateStatus throws NOT_FOUND error if record does not exist', async () => {
     UserUniversity.findByPk.mockResolvedValue(null);
     await expect(userUniversityService.updateStatus(1, 'approved'))
       .rejects.toThrow('NOT_FOUND');
   });
 
-  test('updateStatus tworzy tylko grupę gdy group nie istnieje i Discipline zwraca null', async () => {
+  test('updateStatus creates only group when group does not exist and Discipline is null', async () => {
     const mockRecord = { id: 1, user_id: 1, status: 'pending', discipline_id: 99, save: jest.fn() };
     UserUniversity.findByPk.mockResolvedValue(mockRecord);
     Group.findOne.mockResolvedValue(null);
@@ -290,19 +278,18 @@ describe('UserUniversityService — testy jednostkowe', () => {
     expect(Group.create).toHaveBeenCalled();
   });
 
-
-    test('getAllApplications wywołuje UserUniversity.findAll', async () => {
-      UserUniversity.findAll.mockResolvedValue([]);
-      const result = await userUniversityService.getAllApplications();
-      expect(UserUniversity.findAll).toHaveBeenCalled();
-      expect(result).toEqual([]);
-    });
-
-    test('getApplication wywołuje UserUniversity.findByPk', async () => {
-      UserUniversity.findByPk.mockResolvedValue({ id: 1 });
-      const result = await userUniversityService.getApplication(1);
-      expect(UserUniversity.findByPk).toHaveBeenCalledWith(1);
-      expect(result.id).toBe(1);
-    });
-
+  test('getAllApplications calls UserUniversity.findAll', async () => {
+    UserUniversity.findAll.mockResolvedValue([]);
+    const result = await userUniversityService.getAllApplications();
+    expect(UserUniversity.findAll).toHaveBeenCalled();
+    expect(result).toEqual([]);
   });
+
+  test('getApplication calls UserUniversity.findByPk', async () => {
+    UserUniversity.findByPk.mockResolvedValue({ id: 1 });
+    const result = await userUniversityService.getApplication(1);
+    expect(UserUniversity.findByPk).toHaveBeenCalledWith(1);
+    expect(result.id).toBe(1);
+  });
+
+});

@@ -2,9 +2,7 @@ const userService = require('../services/userService');
 const bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
 
-// -----------------------------
-// MOCK MODELI
-// -----------------------------
+
 jest.mock('../models', () => ({
   User: {
     findAll: jest.fn(),
@@ -18,9 +16,7 @@ jest.mock('../models', () => ({
   Message: { count: jest.fn() }
 }));
 
-// -----------------------------
-// MOCK SOCKET
-// -----------------------------
+
 
 jest.mock('../util/socket', () => {
 const  mockEmit = jest.fn();
@@ -31,7 +27,7 @@ const  mockTo = jest.fn().mockReturnValue({ emit: mockEmit });
       to: mockTo
     })),
     userSockets: new Map(),
-    __mockEmit: mockEmit, // do użycia w testach
+    __mockEmit: mockEmit,
     __mockTo: mockTo
   };
 });
@@ -39,17 +35,11 @@ const  mockTo = jest.fn().mockReturnValue({ emit: mockEmit });
 const { User, UserMatch, GroupMember, UserUniversity, Message } = require('../models');
 const { getIo, userSockets, __mockEmit, __mockTo } = require('../util/socket');
 
-// -----------------------------
-// MOCK BCRYPT
-// -----------------------------
 jest.mock('bcryptjs', () => ({
   hash: jest.fn(),
   compare: jest.fn()
 }));
 
-// -----------------------------
-// TESTY USER SERVICE
-// -----------------------------
 describe('UserService', () => {
 
   afterEach(() => {
@@ -57,10 +47,7 @@ describe('UserService', () => {
     userSockets.clear();
   });
 
-  // --------------------------
-  // GET ALL USERS
-  // --------------------------
-  test('getAllUsers zwraca listę użytkowników', async () => {
+  test('getAllUsers returns a list of users', async () => {
     User.findAll.mockResolvedValue([{ id: 1 }, { id: 2 }]);
 
     const result = await userService.getAllUsers();
@@ -73,10 +60,7 @@ describe('UserService', () => {
     );
   });
 
-  // --------------------------
-  // GET USER BY ID
-  // --------------------------
-  test('getUserById zwraca użytkownika', async () => {
+  test('getUserById returns a user', async () => {
     User.findByPk.mockResolvedValue({ id: 1 });
 
     const result = await userService.getUserById(1);
@@ -85,10 +69,7 @@ describe('UserService', () => {
     expect(User.findByPk).toHaveBeenCalled();
   });
 
-  // --------------------------
-  // CREATE USER
-  // --------------------------
-  test('createUser tworzy nowego użytkownika', async () => {
+  test('createUser creates a new user', async () => {
     User.findOne.mockResolvedValue(null);
     bcrypt.hash.mockResolvedValue("hashed123");
     User.create.mockResolvedValue({
@@ -106,7 +87,7 @@ describe('UserService', () => {
     expect(User.create).toHaveBeenCalled();
   });
 
-  test('createUser rzuca błąd jeśli email istnieje', async () => {
+  test('createUser throws error if email exists', async () => {
     User.findOne.mockResolvedValue({ id: 1 });
 
     await expect(
@@ -114,10 +95,7 @@ describe('UserService', () => {
     ).rejects.toThrow("Email already in use");
   });
 
-  // --------------------------
-  // CHANGE PASSWORD
-  // --------------------------
-  test('changePassword zmienia hasło', async () => {
+  test('changePassword changes password', async () => {
     const userMock = { password: 'old', save: jest.fn() };
 
     User.findByPk.mockResolvedValue(userMock);
@@ -130,7 +108,7 @@ describe('UserService', () => {
     expect(userMock.password).toBe("newhash");
   });
 
-  test('changePassword rzuca błąd przy złym haśle', async () => {
+  test('changePassword throws error with wrong password', async () => {
     bcrypt.compare.mockResolvedValue(false);
     User.findByPk.mockResolvedValue({ password: 'old' });
 
@@ -139,10 +117,7 @@ describe('UserService', () => {
     ).rejects.toThrow("Wrong current password");
   });
 
-  // --------------------------
-  // UPDATE USER
-  // --------------------------
-  test('updateUser poprawnie aktualizuje dane', async () => {
+  test('updateUser correctly updates data', async () => {
     const userMock = {
       email: 'old@mail.com',
       toJSON: () => ({ id: 1, email: 'new@mail.com' }),
@@ -158,10 +133,7 @@ describe('UserService', () => {
     expect(userMock.save).toHaveBeenCalled();
   });
 
-  // --------------------------
-  // DELETE USER
-  // --------------------------
-  test('deleteUser usuwa użytkownika i wysyła event socketowy', async () => {
+  test('deleteUser deletes user and sends socket event', async () => {
     const destroyMock = jest.fn();
     User.findByPk.mockResolvedValue({ destroy: destroyMock });
 
@@ -176,10 +148,7 @@ describe('UserService', () => {
     expect(__mockEmit).toHaveBeenCalled();
   });
 
-  // --------------------------
-  // STATS
-  // --------------------------
-  test('getStats zwraca statystyki', async () => {
+  test('getStats returns statistics', async () => {
     UserMatch.count.mockResolvedValue(2);
     GroupMember.count.mockResolvedValue(3);
     UserUniversity.count.mockResolvedValue(1);
@@ -197,10 +166,7 @@ describe('UserService', () => {
     });
   });
 
-  // --------------------------
-  // CHANGE EMAIL
-  // --------------------------
-  test('changeEmail działa poprawnie', async () => {
+  test('changeEmail works correctly', async () => {
     const userMock = {
       email: 'old@mail.com',
       toJSON: () => ({ id: 1, email: 'new@mail.com' }),
@@ -216,10 +182,7 @@ describe('UserService', () => {
     expect(userMock.save).toHaveBeenCalled();
   });
 
-  // --------------------------
-  // CHANGE USER ROLE
-  // --------------------------
-  test('changeUserRole zmienia rolę i wysyła socket', async () => {
+  test('changeUserRole changes the role and sends a socket', async () => {
     const userMock = { role: 'user', save: jest.fn() };
     User.findByPk.mockResolvedValue(userMock);
 
@@ -234,10 +197,7 @@ describe('UserService', () => {
     expect(__mockEmit).toHaveBeenCalled();
   });
 
-  // --------------------------
-  // BAN / UNBAN
-  // --------------------------
-  test('banUser ustawia ban i wysyła event', async () => {
+  test('banUser sets a ban and sends an event', async () => {
     const userMock = { save: jest.fn() };
     User.findByPk.mockResolvedValue(userMock);
 
@@ -251,7 +211,7 @@ describe('UserService', () => {
     expect(__mockEmit).toHaveBeenCalled();
   });
 
-  test('unbanUser działa poprawnie', async () => {
+  test('unbanUser works correctly', async () => {
     const userMock = { save: jest.fn() };
     User.findByPk.mockResolvedValue(userMock);
 

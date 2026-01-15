@@ -10,12 +10,10 @@ export async function fetchWithRefresh(url, options = {}) {
     if (!refresh.ok) throw new Error("Refresh token failed");
 
     const data = await refresh.json();
-    // Aktualizujemy store po refresh token
     const userStore = useUserStore();
     Object.assign(userStore.user, data.user);
     userStore.user.isVerified = data.isVerified;
 
-    // powtarzamy request
     res = await fetch(url, { ...options, credentials: 'include' });
   }
 

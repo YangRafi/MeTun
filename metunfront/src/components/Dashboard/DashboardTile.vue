@@ -5,7 +5,6 @@
     @mouseenter="handleMouseEnter"
     @mouseleave="handleMouseLeave"
   >
-    <!-- Video / GIF w tle -->
     <video
       v-if="videoSrc"
       :src="videoSrc"
@@ -15,7 +14,6 @@
       ref="videoEl"
     ></video>
 
-    <!-- Etykieta -->
     <span class="relative text-white text-2xl font-bold z-10 text-center px-2">
       {{ label }}
     </span>

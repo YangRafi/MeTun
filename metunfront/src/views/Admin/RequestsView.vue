@@ -1,6 +1,5 @@
 <template>
   <section class="animate-fade-in p-15 relative">
-    <!-- Nagłówek z ikoną i przyciskiem powrotu -->
     <div class="flex justify-between items-center mb-6">
       <div class="flex items-center gap-2">
         <span class="text-2xl">📝</span>
@@ -14,7 +13,6 @@
       </button>
     </div>
 
-    <!-- Zakładki -->
     <div class="flex gap-4 mb-6">
       <button
         v-for="tab in tabs"
@@ -27,7 +25,6 @@
       </button>
     </div>
 
-    <!-- Lista wniosków -->
     <div v-if="requests[activeTab]?.length" class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div
         v-for="r in requests[activeTab]"
@@ -87,7 +84,6 @@
 
     <p v-else class="text-gray-400 text-center mt-6">Brak wniosków w tej kategorii.</p>
 
-    <!-- 🔔 Toasty -->
     <div class="fixed top-5 right-5 space-y-2 z-50">
       <div
         v-for="(toast, i) in toasts"
@@ -113,7 +109,6 @@ const tabs = [
   { key: 'trial', name: 'Aktywny Trial' }
 ]
 
-// 🌟 Toasty
 const toasts = ref([])
 const showToast = (message, type='success', duration=3000) => {
   toasts.value.push({ message, type })

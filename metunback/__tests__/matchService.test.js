@@ -3,9 +3,6 @@ const { UserMatch, Profile, UserUniversity, University, Faculty, Discipline, Use
 const { emitNewMatch, getIo } = require('../util/socket');
 const { Op } = require('sequelize');
 
-// -----------------------------
-// MOCK MODELI
-// -----------------------------
 jest.mock('../models', () => ({
   UserMatch: { findAll: jest.fn(), findOne: jest.fn(), create: jest.fn() },
   Profile: { findAll: jest.fn() },
@@ -26,10 +23,7 @@ describe('MatchService', () => {
     jest.clearAllMocks();
   });
 
-  // --------------------------
-  // GET POTENTIAL MATCHES
-  // --------------------------
-  test('getPotentialMatches filtruje profile', async () => {
+  test('getPotentialMatches filters profiles', async () => {
     const userId = 1;
     const filters = { gender: 'female' };
     const profileMock = {
@@ -55,10 +49,7 @@ describe('MatchService', () => {
     expect(result[0].name).toBe('Alice');
   });
 
-  // --------------------------
-  // VOTE USER - nowy match
-  // --------------------------
-  test('voteUser tworzy nowy match jeśli nie istnieje', async () => {
+  test('voteUser creates a new match if it does not exist', async () => {
     UserMatch.findOne.mockResolvedValue(null);
     UserMatch.create.mockResolvedValue({});
 
@@ -68,10 +59,7 @@ describe('MatchService', () => {
     expect(UserMatch.create).toHaveBeenCalled();
   });
 
-  // --------------------------
-  // VOTE USER - aktualizacja match
-  // --------------------------
-  test('voteUser aktywuje match jeśli obie osoby polubiły się', async () => {
+  test('voteUser activates match when both users liked each other', async () => {
     const matchMock = {
       user_id_1: 1,
       user_id_2: 2,
@@ -91,10 +79,7 @@ describe('MatchService', () => {
     expect(emitNewMatch).toHaveBeenCalledWith(1, 2, expect.any(Object));
   });
 
-  // --------------------------
-  // UNLIKE USER
-  // --------------------------
-  test('unlikeUser ustawia match_active na false i emituje socket', async () => {
+  test('unlikeUser sets match_active to false and emits socket event', async () => {
     const matchMock = {
       match_id: 123,
       user_id_1: 1,
@@ -102,7 +87,7 @@ describe('MatchService', () => {
       user_1_like: true,
       user_2_like: true,
       match_active: true,
-      destroy: jest.fn(), // <- dodane, aby test nie padał
+      destroy: jest.fn(),
     };
     UserMatch.findOne.mockResolvedValue(matchMock);
 
@@ -118,7 +103,7 @@ describe('MatchService', () => {
     expect(result).toEqual({ success: true });
   });
 
-  test('unlikeUser rzuca błąd jeśli match nie istnieje', async () => {
+  test('unlikeUser throws an error when match does not exist', async () => {
     UserMatch.findOne.mockResolvedValue(null);
     await expect(matchService.unlikeUser(1, 123)).rejects.toMatchObject({ status: 404 });
   });

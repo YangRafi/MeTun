@@ -11,11 +11,9 @@
         Weryfikacja studenta
       </h1>
 
-      <!-- 🔹 Formularz weryfikacji -->
       <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 mb-8 shadow-md border border-blue-100">
         <h2 class="text-xl font-semibold mb-4 text-blue-800">Złóż wniosek o weryfikację</h2>
 
-        <!-- 🔹 Uczelnia -->
         <div class="mb-4 relative">
           <label class="block mb-1 text-sm font-medium text-blue-800">Uczelnia</label>
           <input
@@ -40,7 +38,6 @@
           </ul>
         </div>
 
-        <!-- 🔹 Wydział -->
         <div v-if="faculties.length > 0" class="mb-4">
           <label class="block mb-1 text-sm font-medium text-blue-800">Wydział</label>
           <select
@@ -55,7 +52,6 @@
           </select>
         </div>
 
-        <!-- 🔹 Kierunek -->
         <div v-if="disciplines.length > 0" class="mb-4">
           <label class="block mb-1 text-sm font-medium text-blue-800">Kierunek</label>
           <select
@@ -69,7 +65,6 @@
           </select>
         </div>
 
-        <!-- 🔹 Plik -->
         <div class="mb-4">
           <label class="block mb-1 text-sm font-medium text-blue-800">Załącz dokument</label>
           <input
@@ -91,7 +86,6 @@
         </button>
       </div>
 
-      <!-- 🔹 Lista wniosków -->
       <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-md border border-blue-100">
         <h2 class="text-xl font-semibold mb-4 text-blue-800">Twoje wnioski</h2>
 
@@ -202,7 +196,6 @@ const selectedDiscipline = ref("");
 const file = ref(null);
 const applications = ref([]);
 
-// Fetch user info
 async function fetchUser() {
   const res = await fetch("http://localhost:3000/api/auth/me", { credentials: "include" });
   if (res.ok) Object.assign(profile, await res.json());

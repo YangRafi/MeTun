@@ -5,7 +5,6 @@
   >
     <div class="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
 
-    <!-- Main -->
     <main class="relative z-10 flex flex-col items-center pt-28 px-6 w-full">
       <div class="w-full max-w-3xl mx-auto bg-white/80 backdrop-blur-md rounded-3xl shadow-xl p-8 border border-blue-200">
         <h1 class="text-3xl font-bold text-center mb-6 text-blue-800 drop-shadow-lg">
@@ -15,7 +14,6 @@
         <Toast />
 
         <form @submit.prevent="onSubmit" class="space-y-5">
-          <!-- ZDJĘCIE PROFILOWE -->
           <div class="flex flex-col items-center">
             <div class="relative w-32 h-32">
               <img
@@ -40,7 +38,6 @@
             <p class="text-xs text-blue-500 mt-2">Kliknij, aby dodać zdjęcie</p>
           </div>
 
-          <!-- BIO -->
           <div>
             <label class="block text-sm font-medium text-blue-800 mb-1">O Tobie (Bio)</label>
             <textarea
@@ -51,7 +48,6 @@
             ></textarea>
           </div>
 
-          <!-- DATA URODZENIA -->
           <div>
             <label class="block text-sm font-medium text-blue-800 mb-1">Data urodzenia</label>
             <input
@@ -61,7 +57,6 @@
             />
           </div>
 
-          <!-- PŁEĆ -->
           <div>
             <label class="block text-sm font-medium text-blue-800 mb-1">Płeć</label>
             <select
@@ -75,7 +70,6 @@
             </select>
           </div>
 
-          <!-- LOKALIZACJA -->
           <div>
             <label class="block text-sm font-medium text-blue-800 mb-1">Lokalizacja</label>
             <input
@@ -86,7 +80,6 @@
             />
           </div>
 
-          <!-- PRZYCISK -->
           <Button
             type="submit"
             label="Zapisz profil"
@@ -114,7 +107,6 @@ const userStore = useUserStore()
 const router = useRouter()
 const profile = reactive({})
 
-// Dane formularza
 const bio = ref('')
 const date_of_birth = ref('')
 const gender = ref('')
@@ -122,7 +114,6 @@ const location = ref('')
 const profile_picture = ref(null)
 const previewImage = ref(null)
 
-// Obsługa wyboru pliku
 const onFileChange = (e) => {
   const file = e.target.files[0]
   if (file) {
@@ -131,7 +122,6 @@ const onFileChange = (e) => {
   }
 }
 
-// Wysyłka formularza
 const onSubmit = async () => {
   try {
     const resUser = await fetch('http://localhost:3000/api/auth/me', { credentials: 'include' })

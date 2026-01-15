@@ -3,7 +3,6 @@
     <UserHeader :profile="profile" />
 
     <main class="max-w-6xl mx-auto py-10 px-6">
-      <!-- Widok główny statystyk admina -->
       <section v-if="$route.path === '/admin'" class="space-y-10">
         <div>
           <h2 class="text-2xl font-semibold mb-6">📊 Statystyki systemu</h2>
@@ -12,7 +11,6 @@
             <StatCard title="Zweryfikowani" :value="stats.verified" icon="CheckCircle" />
             <StatCard title="Uczelnie" :value="stats.universities" icon="School" />
             <StatCard title="Grupy" :value="stats.groups" icon="UsersRound" />
-            <StatCard title="Zgłoszenia" :value="stats.reports" icon="ClipboardList" />
           </div>
         </div>
 
@@ -29,13 +27,11 @@
         </div>
       </section>
 
-      <!-- Dynamiczne podstrony admina -->
       <router-view v-slot="{ Component }">
         <component :is="Component" @back="router.push('/admin')" />
       </router-view>
     </main>
 
-    <!-- 🔔 Toasty -->
     <div class="fixed top-5 right-5 space-y-2 z-50">
       <div
         v-for="(toast, i) in toasts"
@@ -67,7 +63,6 @@ const sections = [
   { key: 'reports', name: 'Zgłoszenia', icon: ClipboardList }
 ]
 
-// 🌟 Toasty
 const toasts = ref([])
 const showToast = (message, type='success', duration=3000) => {
   toasts.value.push({ message, type })

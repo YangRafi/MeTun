@@ -2,28 +2,19 @@ const universityService = require('../services/universityService');
 const University = require('../models/University');
 const { Op, Sequelize } = require('sequelize');
 
-// -----------------------------
-// MOCK MODELI
-// -----------------------------
 jest.mock('../models/University', () => ({
   findAll: jest.fn(),
   findByPk: jest.fn(),
   create: jest.fn()
 }));
 
-// -----------------------------
-// TESTY UNIVERSITY SERVICE
-// -----------------------------
 describe('UniversityService', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  // --------------------------
-  // GET ALL
-  // --------------------------
-  test('getAll bez query zwraca wszystkie uczelnie', async () => {
+  test('getAll returns all universities when no query is provided', async () => {
     University.findAll.mockResolvedValue([{ id: 1 }, { id: 2 }]);
 
     const result = await universityService.getAll();
@@ -32,7 +23,7 @@ describe('UniversityService', () => {
     expect(University.findAll).toHaveBeenCalledWith();
   });
 
-  test('getAll z query filtruje uczelnie', async () => {
+  test('getAll filters universities when query is provided', async () => {
     University.findAll.mockResolvedValue([{ id: 1 }]);
     const query = 'Test';
 
@@ -48,10 +39,7 @@ describe('UniversityService', () => {
     });
   });
 
-  // --------------------------
-  // GET BY ID
-  // --------------------------
-  test('getById zwraca uczelnię', async () => {
+  test('getById returns a university', async () => {
     University.findByPk.mockResolvedValue({ id: 1 });
 
     const result = await universityService.getById(1);
@@ -60,10 +48,7 @@ describe('UniversityService', () => {
     expect(University.findByPk).toHaveBeenCalledWith(1);
   });
 
-  // --------------------------
-  // CREATE
-  // --------------------------
-  test('create dodaje nową uczelnię', async () => {
+  test('create adds a new university', async () => {
     const data = { university_name: 'Test Uni' };
     University.create.mockResolvedValue({ id: 1, ...data });
 
@@ -73,10 +58,7 @@ describe('UniversityService', () => {
     expect(University.create).toHaveBeenCalledWith(data);
   });
 
-  // --------------------------
-  // UPDATE
-  // --------------------------
-  test('update aktualizuje uczelnię', async () => {
+  test('update updates an existing university', async () => {
     const uniMock = { update: jest.fn().mockResolvedValue({ id: 1, university_name: 'Updated' }) };
     University.findByPk.mockResolvedValue(uniMock);
 
@@ -86,7 +68,7 @@ describe('UniversityService', () => {
     expect(uniMock.update).toHaveBeenCalledWith({ university_name: 'Updated' });
   });
 
-  test('update zwraca null jeśli uczelnia nie istnieje', async () => {
+  test('update returns null if university does not exist', async () => {
     University.findByPk.mockResolvedValue(null);
 
     const result = await universityService.update(1, { university_name: 'Updated' });
@@ -94,10 +76,7 @@ describe('UniversityService', () => {
     expect(result).toBeNull();
   });
 
-  // --------------------------
-  // REMOVE
-  // --------------------------
-  test('remove usuwa uczelnię', async () => {
+  test('remove deletes the university', async () => {
     const uniMock = { destroy: jest.fn() };
     University.findByPk.mockResolvedValue(uniMock);
 
@@ -107,7 +86,7 @@ describe('UniversityService', () => {
     expect(uniMock.destroy).toHaveBeenCalled();
   });
 
-  test('remove zwraca null jeśli uczelnia nie istnieje', async () => {
+  test('remove returns null if university does not exist', async () => {
     University.findByPk.mockResolvedValue(null);
 
     const result = await universityService.remove(1);

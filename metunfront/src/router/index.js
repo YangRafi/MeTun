@@ -58,7 +58,6 @@ router.beforeEach(async (to, from, next) => {
       const userStore = useUserStore()
       if (!userStore.loaded) await userStore.fetchUserAndProfile()
 
-      // Pobieramy /me z retry przy refresh token
       const res = await fetchWithRefresh("http://localhost:3000/api/auth/me")
       if (!res.ok) return next("/")
       

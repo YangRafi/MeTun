@@ -7,7 +7,6 @@
       </button>
     </div>
 
-    <!-- Dodaj grupę -->
     <div class="flex gap-2 mb-4">
       <input v-model="newGroup.name" placeholder="Nazwa grupy" class="px-4 py-2 rounded bg-gray-700 text-white w-1/3" />
       <input v-model="newGroup.discipline_id" placeholder="ID kierunku" class="px-4 py-2 rounded bg-gray-700 text-white w-1/6" />
@@ -41,22 +40,18 @@
                 <button @click="confirmDeleteGroup(group)" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Usuń</button>
               </td>
             </tr>
-            <!-- Członkowie grupy -->
             <tr v-if="group.showMembers" class="bg-gray-700">
               <td colspan="5" class="px-4 py-2">
                 <ul>
                   <li v-for="member in group.groupMembers" :key="member.user.user_id" class="flex justify-between items-center py-1">
 
-                      <!-- Dane -->
                       <span>
                         {{ member.user.name }} {{ member.user.surname }}
                         <span class="italic text-sm">({{ member.role }})</span>
                       </span>
 
-                      <!-- Zmiana roli + usuwanie -->
                       <div class="flex items-center gap-2">
 
-                        <!-- Dropdown roli -->
                         <select
                           v-model="member.role"
                           class="bg-gray-600 text-white px-2 py-1 rounded text-sm"
@@ -65,7 +60,6 @@
                           <option value="admin">admin</option>
                         </select>
 
-                        <!-- Zapisz zmianę -->
                         <button
                           @click="changeRole(group.group_id, member.user.user_id, member.role)"
                           class="bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-sm"
@@ -73,7 +67,6 @@
                           Zapisz
                         </button>
 
-                        <!-- Usuń (można usuwać nawet admina i twórcę) -->
                         <button
                           @click="removeMember(group.group_id, member.user.user_id)"
                           class="bg-red-600 hover:bg-red-700 px-2 py-1 rounded text-sm"
@@ -143,7 +136,6 @@
           </table>
         </div>
 
-    <!-- 🔔 Toasty -->
     <div class="fixed top-5 right-5 space-y-2 z-50">
       <transition-group name="toast" tag="div">
         <div
@@ -160,7 +152,6 @@
       </transition-group>
     </div>
 
-    <!-- 🔹 Dialog edycji grupy -->
     <Dialog header="Edytuj grupę" v-model:visible="editDialogVisible" modal>
       <div class="space-y-3">
         <label class="block">Nazwa grupy</label>
@@ -200,7 +191,6 @@ const showToast = (severity, title, message) => {
   toast.add({ severity, summary: title, detail: message, life: 3000 })
 }
 
-// 🔹 Pobieranie grup + członków
 const fetchGroups = async () => {
   try {
     const res = await fetch('http://localhost:3000/api/groups', { credentials: 'include' })
@@ -212,7 +202,6 @@ const fetchGroups = async () => {
   }
 }
 
-// 🔹 Pobranie wszystkich requestów
 const fetchGroupRequests = async () => {
   try {
     const res = await fetch('http://localhost:3000/api/groupRequests/all', {
@@ -232,7 +221,6 @@ const fetchGroupRequests = async () => {
   }
 }
 
-// 🔹 Odpowiedź na request
 const respondToRequest = async (requestId, action) => {
   try {
     const res = await fetch('http://localhost:3000/api/groupRequests/respond', {
@@ -245,14 +233,13 @@ const respondToRequest = async (requestId, action) => {
     if (!res.ok) throw new Error("Nie udało się zmienić statusu")
 
     showToast('success', 'OK', 'Status zmieniony')
-    fetchGroupRequests() // odśwież wszystkie requesty
-    fetchGroups() // odświeża listę członków w grupach
+    fetchGroupRequests()
+    fetchGroups()
   } catch (err) {
     showToast('error', 'Błąd', err.message)
   }
 }
 
-// 🔹 Usuwanie requesta
 const deleteRequest = async (requestId) => {
   console.log('Request ID do usunięcia:', requestId);
   try {
@@ -300,7 +287,6 @@ const removeMember = async (groupId, userId) => {
   }
 }
 
-// 🔹 Dodawanie grupy
 const addGroup = async () => {
   if (!newGroup.value.name) return showToast('error', 'Błąd', 'Podaj nazwę grupy')
   try {
@@ -326,7 +312,6 @@ const addGroup = async () => {
   }
 }
 
-// 🔹 Edycja grupy
 const openEditDialog = (group) => {
   editGroupData.value = { group_id: group.group_id, name: group.group_name, discipline_id: group.discipline_id }
   editDialogVisible.value = true
@@ -352,7 +337,6 @@ const confirmEditGroup = async () => {
   }
 }
 
-// 🔹 Usuwanie grupy
 const confirmDeleteGroup = (group) => {
   confirm.require({
     message: `Czy na pewno chcesz usunąć grupę ${group.group_name}?`,

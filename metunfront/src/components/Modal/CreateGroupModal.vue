@@ -7,7 +7,6 @@
       <div
         class="bg-white/90 backdrop-blur-md w-full max-w-md mx-auto mt-24 p-8 rounded-3xl shadow-2xl border border-blue-200 relative"
       >
-        <!-- Zamknięcie -->
         <button
           @click="$emit('close')"
           class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl"
@@ -15,7 +14,6 @@
           ✕
         </button>
 
-        <!-- Nagłówek -->
         <h2
           class="text-2xl font-extrabold mb-6 text-center text-blue-800 flex items-center justify-center gap-2"
         >
@@ -23,7 +21,6 @@
         </h2>
 
         <div class="grid grid-cols-1 gap-4">
-          <!-- Nazwa grupy -->
           <div>
             <label class="block mb-1 text-sm font-semibold text-blue-800">
               Nazwa grupy
@@ -36,7 +33,6 @@
             />
           </div>
 
-          <!-- Uczelnia / Kierunek -->
           <div v-if="disciplines.length">
             <label class="block mb-1 text-sm font-semibold text-blue-800">
               Uczelnia / Wydział / Kierunek
@@ -59,12 +55,10 @@
             Brak zatwierdzonych uczelni/kierunków.
           </div>
 
-          <!-- Podgląd wybranej opcji -->
           <p v-if="selectedDiscipline" class="text-gray-700 text-sm mt-1">
             Wybrano: {{ selectedDiscipline.university_name }} - {{ selectedDiscipline.faculty_name }} - {{ selectedDiscipline.discipline_name }}
           </p>
 
-          <!-- Przycisk -->
           <div class="mt-6">
             <button
               @click="submit"
@@ -88,7 +82,7 @@ const toast = useToast();
 
 const props = defineProps({
   isOpen: Boolean,
-  disciplines: Array, // [{ id, discipline_id, name, faculty_name, university_name }]
+  disciplines: Array,
 });
 const emit = defineEmits(["close", "created"]);
 

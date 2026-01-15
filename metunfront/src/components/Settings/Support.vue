@@ -8,7 +8,6 @@
       Masz problem lub pytanie? Skontaktuj się z administracją:
     </p>
 
-    <!-- Wybór tematu -->
     <select
       v-model="selectedTopic"
       class="w-full p-3 rounded-xl border border-blue-300 focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition"
@@ -18,7 +17,6 @@
       <option>Inny temat</option>
     </select>
 
-    <!-- Pole własnego tematu, pojawia się tylko gdy wybrano Inny temat -->
     <input
       v-if="selectedTopic === 'Inny temat'"
       v-model="customTopic"

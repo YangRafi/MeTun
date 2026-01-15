@@ -2,9 +2,6 @@ const groupService = require('../services/groupService');
 const { Group, User, Discipline, Faculty, UserUniversity, GroupMember } = require('../models');
 const { Op } = require('sequelize');
 
-// -----------------------------
-// MOCK MODELI
-// -----------------------------
 jest.mock('../models', () => ({
   Group: {
     findAll: jest.fn(),
@@ -18,7 +15,7 @@ jest.mock('../models', () => ({
     create: jest.fn()
   },
   User: {
-    findByPk: jest.fn() // <- poprawione
+    findByPk: jest.fn()
   },
   Discipline: jest.fn(),
   Faculty: jest.fn(),
@@ -32,17 +29,14 @@ describe('GroupService', () => {
     jest.clearAllMocks();
   });
 
-  // --------------------------
-  // getAllGroups
-  // --------------------------
-  test('getAllGroups zwraca puste gdy brak grup', async () => {
+  test('getAllGroups returns empty array when no groups exist', async () => {
     Group.findAll.mockResolvedValue([]);
     const result = await groupService.getAllGroups();
     expect(result).toEqual([]);
     expect(Group.findAll).toHaveBeenCalled();
   });
 
-  test('getAllGroups filtruje po discipline_id', async () => {
+  test('getAllGroups filters by discipline_id', async () => {
     Group.findAll.mockResolvedValue([{ group_id: 1 }]);
     const result = await groupService.getAllGroups({ discipline_id: 2 });
     expect(result).toEqual([{ group_id: 1 }]);
@@ -51,10 +45,7 @@ describe('GroupService', () => {
     }));
   });
 
-  // --------------------------
-  // getGroupsByCreator
-  // --------------------------
-  test('getGroupsByCreator zwraca grupy dla twórcy', async () => {
+  test('getGroupsByCreator returns groups created by the user', async () => {
     Group.findAll.mockResolvedValue([{ group_id: 1 }]);
     const result = await groupService.getGroupsByCreator(1);
     expect(result).toEqual([{ group_id: 1 }]);
@@ -63,10 +54,7 @@ describe('GroupService', () => {
     }));
   });
 
-  // --------------------------
-  // getMyGroups
-  // --------------------------
-  test('getMyGroups zwraca grupy użytkownika', async () => {
+  test('getMyGroups returns groups of the user', async () => {
     const gmMock = {
       group: {
         toJSON: () => ({ group_id: 1 }),
@@ -74,76 +62,78 @@ describe('GroupService', () => {
       role: 'member'
     };
     GroupMember.findAll.mockResolvedValue([gmMock]);
+
     const result = await groupService.getMyGroups(1);
     expect(result).toEqual([{ group_id: 1, role: 'member' }]);
   });
 
-  // --------------------------
-  // getGroupById
-  // --------------------------
-  test('getGroupById zwraca grupę', async () => {
+  test('getGroupById returns a group', async () => {
     const groupMock = { group_id: 1 };
     Group.findByPk.mockResolvedValue(groupMock);
+
     const result = await groupService.getGroupById(1);
     expect(result).toEqual(groupMock);
   });
 
-  test('getGroupById rzuca błąd gdy brak grupy', async () => {
+  test('getGroupById throws an error when group does not exist', async () => {
     Group.findByPk.mockResolvedValue(null);
     await expect(groupService.getGroupById(1)).rejects.toThrow('Group not found');
   });
 
-  // --------------------------
-  // createGroup
-  // --------------------------
-  test('createGroup tworzy grupę', async () => {
+  test('createGroup creates a group', async () => {
     Group.count.mockResolvedValue(0);
-    User.findByPk.mockResolvedValue({ user_id: 1, role: 'student' }); // <- mock użytkownika
+    User.findByPk.mockResolvedValue({ user_id: 1, role: 'student' });
     UserUniversity.findOne.mockResolvedValue({});
     const newGroup = { group_id: 1 };
     Group.create.mockResolvedValue(newGroup);
     GroupMember.create.mockResolvedValue({});
 
-    const result = await groupService.createGroup({ group_name: 'Test', discipline_id: 1, creator_user_id: 1 });
+    const result = await groupService.createGroup({
+      group_name: 'Test',
+      discipline_id: 1,
+      creator_user_id: 1
+    });
+
     expect(result).toEqual(newGroup);
-    expect(Group.create).toHaveBeenCalledWith(expect.objectContaining({ group_name: 'Test' }));
+    expect(Group.create).toHaveBeenCalledWith(
+      expect.objectContaining({ group_name: 'Test' })
+    );
   });
 
-  test('createGroup rzuca błąd jeśli użytkownik ma 2 grupy', async () => {
+  test('createGroup throws an error if user already has 2 groups', async () => {
     Group.count.mockResolvedValue(2);
     User.findByPk.mockResolvedValue({ user_id: 1, role: 'student' });
-    await expect(groupService.createGroup({ group_name: 'Test', discipline_id: 1, creator_user_id: 1 }))
-      .rejects.toThrow('Możesz utworzyć maksymalnie 2 grupy');
+
+    await expect(
+      groupService.createGroup({ group_name: 'Test', discipline_id: 1, creator_user_id: 1 })
+    ).rejects.toThrow('Możesz utworzyć maksymalnie 2 grupy');
   });
 
-  test('createGroup rzuca błąd jeśli brak zatwierdzonego kierunku', async () => {
+  test('createGroup throws an error if user has no approved discipline', async () => {
     Group.count.mockResolvedValue(0);
     User.findByPk.mockResolvedValue({ user_id: 1, role: 'student' });
     UserUniversity.findOne.mockResolvedValue(null);
-    await expect(groupService.createGroup({ group_name: 'Test', discipline_id: 1, creator_user_id: 1 }))
-      .rejects.toThrow('Nie możesz tworzyć grupy dla tego kierunku');
+
+    await expect(
+      groupService.createGroup({ group_name: 'Test', discipline_id: 1, creator_user_id: 1 })
+    ).rejects.toThrow('Nie możesz tworzyć grupy dla tego kierunku');
   });
 
-  // --------------------------
-  // updateGroup
-  // --------------------------
-  test('updateGroup aktualizuje grupę', async () => {
+  test('updateGroup updates a group', async () => {
     const groupMock = { update: jest.fn(), group_id: 1 };
     Group.findByPk.mockResolvedValue(groupMock);
+
     const result = await groupService.updateGroup(1, { group_name: 'New' });
     expect(groupMock.update).toHaveBeenCalledWith({ group_name: 'New' });
     expect(result).toEqual(groupMock);
   });
 
-  test('updateGroup rzuca błąd gdy brak grupy', async () => {
+  test('updateGroup throws an error when group does not exist', async () => {
     Group.findByPk.mockResolvedValue(null);
     await expect(groupService.updateGroup(1, {})).rejects.toThrow('Group not found');
   });
 
-  // --------------------------
-  // deleteGroup
-  // --------------------------
-  test('deleteGroup usuwa grupę', async () => {
+  test('deleteGroup deletes a group', async () => {
     const groupMock = { creator_user_id: 1, group_id: 1 };
     Group.findByPk.mockResolvedValue(groupMock);
     Group.destroy.mockResolvedValue(true);
@@ -153,14 +143,17 @@ describe('GroupService', () => {
     expect(Group.destroy).toHaveBeenCalledWith({ where: { group_id: 1 } });
   });
 
-  test('deleteGroup rzuca błąd jeśli brak grupy', async () => {
+  test('deleteGroup throws an error if group does not exist', async () => {
     Group.findByPk.mockResolvedValue(null);
-    await expect(groupService.deleteGroup(1, 1)).rejects.toThrow('Grupa nie istnieje');
+    await expect(groupService.deleteGroup(1, 1))
+      .rejects.toThrow('Grupa nie istnieje');
   });
 
-  test('deleteGroup rzuca błąd jeśli użytkownik nie jest twórcą', async () => {
+  test('deleteGroup throws an error if user is not the creator', async () => {
     const groupMock = { creator_user_id: 2, group_id: 1 };
     Group.findByPk.mockResolvedValue(groupMock);
-    await expect(groupService.deleteGroup(1, 1)).rejects.toThrow('Nie masz uprawnień do usunięcia tej grupy');
+
+    await expect(groupService.deleteGroup(1, 1))
+      .rejects.toThrow('Nie masz uprawnień do usunięcia tej grupy');
   });
 });

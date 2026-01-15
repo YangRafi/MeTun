@@ -15,9 +15,7 @@
       🗑️ Usuń konto
     </button>
 
-    <!-- Dialog potwierdzenia -->
     <ConfirmDialog v-if="showConfirm" />
-    <!-- Toast powiadomienia -->
     <Toast />
   </div>
 </template>
@@ -34,10 +32,10 @@ const confirm = useConfirm();
 const toast = useToast();
 const userStore = useUserStore();
 
-const showConfirm = ref(false); // 🔹 kontrola widoczności ConfirmDialog
+const showConfirm = ref(false);
 
 async function performDelete() {
-  showConfirm.value = false; // 🔹 zamyka dialog natychmiast
+  showConfirm.value = false;
   try {
     const res = await fetch("http://localhost:3000/api/users/me", {
       method: "DELETE",

@@ -24,7 +24,7 @@ exports.voteUser = async (req, res) => {
 exports.unlikeUser = async (req, res) => {
   try {
     const matchId = parseInt(req.params.id);
-    const userId = req.user.userId; // <-- tu bierzesz zalogowanego użytkownika
+    const userId = req.user.userId;
     const result = await matchService.unlikeUser(userId, matchId);
     res.json({ success: true, ...result });
   } catch (err) {

@@ -17,18 +17,15 @@ function initSocket(server) {
   io.on('connection', (socket) => {
     console.log('🟢 Użytkownik połączony:', socket.id);
 
-    // 🔹 Rejestracja użytkownika
     socket.on('register', (userId) => {
       userSockets.set(userId, socket.id);
       console.log(`✅ Zarejestrowano użytkownika ${userId}`);
     });
 
-    // 🔹 Wysyłanie wiadomości (prywatne lub grupowe)
     socket.on('send_message', async (data) => {
       const { matchId, groupId, senderId, receiverId, content } = data;
 
       try {
-        // Zapis wiadomości do bazy
         const msg = await Message.create({
           match_id: matchId || null,
           group_id: groupId || null,
@@ -37,7 +34,6 @@ function initSocket(server) {
           timestamp: new Date(),
         });
 
-        // Pobranie avatara nadawcy
         const senderProfile = await Profile.findOne({
           where: { user_id: senderId },
           attributes: ['profile_picture'],
@@ -54,11 +50,9 @@ function initSocket(server) {
           senderAvatar: senderProfile?.profile_picture || null,
         };
 
-        // 💬 Wysyłanie wiadomości
         io.to(socket.id).emit('message_sent', fullMsg);
 
         if (groupId) {
-          // 🔹 Grupowy czat — wysyłamy do wszystkich członków grupy
           const members = await GroupMember.findAll({
             where: { group_id: groupId },
             attributes: ['user_id'],
@@ -71,7 +65,6 @@ function initSocket(server) {
             }
           }
         } else if (receiverId) {
-          // 🔹 Prywatny czat
           const receiverSocket = userSockets.get(receiverId);
           if (receiverSocket) io.to(receiverSocket).emit('receive_message', fullMsg);
         }
@@ -80,10 +73,8 @@ function initSocket(server) {
       }
     });
 
-    // 🔹 Typing indicator
     socket.on('user_typing', ({ chatId, userId, receiverId, groupId }) => {
       if (groupId) {
-        // Typing w grupie
         GroupMember.findAll({
           where: { group_id: groupId },
           attributes: ['user_id'],
@@ -91,18 +82,16 @@ function initSocket(server) {
           for (const m of members) {
             const sock = userSockets.get(m.user_id);
             if (sock && m.user_id !== userId) {
-              io.to(sock).emit('user_typing', { chatId: groupId, userId }); // ✅ zawsze chatId
+              io.to(sock).emit('user_typing', { chatId: groupId, userId });
             }
           }
         });
       } else if (receiverId) {
-        // Typing prywatny
         const receiverSocket = userSockets.get(receiverId);
-        if (receiverSocket) io.to(receiverSocket).emit('user_typing', { chatId, userId }); // ✅ ujednolicone
+        if (receiverSocket) io.to(receiverSocket).emit('user_typing', { chatId, userId });
       }
     });
 
-    // 🔹 Usuwanie matcha
     socket.on('delete_match', ({ matchId, userId, receiverId }) => {
       console.log(`❌ Usunięto match ${matchId} przez ${userId}`);
       const receiverSocket = userSockets.get(receiverId);
@@ -121,7 +110,6 @@ function initSocket(server) {
   return io;
 }
 
-// 🔹 Emitowanie eventu new_match
 function emitNewMatch(userId1, userId2, matchData) {
   const io = getIo();
   if (!io) return;

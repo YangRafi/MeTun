@@ -1,6 +1,5 @@
 <template>
   <div class="min-h-screen flex flex-col relative">
-    <!-- Modale -->
     <AuthModal 
       type="signup" 
       v-model:visible="showSignup" 
@@ -8,16 +7,13 @@
     />
     <AuthModal type="login" v-model:visible="showLogin" />
 
-    <!-- Tło -->
     <div
       class="absolute inset-0 bg-cover bg-center"
       :style="{ backgroundImage: 'url(/src/assets/more.jpg)' }"
     ></div>
 
-    <!-- Overlay -->
     <div class="absolute inset-0 bg-black/40"></div>
 
-    <!-- Treść -->
     <div class="relative z-10 flex flex-col min-h-screen">
       <AppHeader @show-login="showLogin = true" />
 
@@ -74,7 +70,6 @@
             </div>
           </div>
 
-          <!-- 🔹 Przycisk otwierający modal rejestracji -->
           <div class="mt-12 text-center">
             <button
               @click="showSignup = true"

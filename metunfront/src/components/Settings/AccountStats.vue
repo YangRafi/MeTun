@@ -1,29 +1,23 @@
 <template>
   <div class="max-w-4xl mx-auto mt-12 p-6">
-    <!-- Boxik ze statystykami -->
     <div class="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-2xl border border-blue-200">
-      <!-- Nagłówek -->
       <h2 class="text-3xl md:text-4xl font-extrabold text-blue-800 mb-12 text-center flex items-center justify-center gap-2">
         📊 Statystyki profilu
       </h2>
 
-      <!-- Grid statystyk -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
-        <!-- Matchy -->
         <div class="bg-blue-50 rounded-full shadow-lg p-6 flex flex-col items-center justify-center border border-blue-200 hover:scale-105 transition-transform">
           <div class="text-4xl mb-2">💖</div>
           <span class="text-sm text-blue-600 mb-1">Aktywne dopasowania</span>
           <span class="text-3xl md:text-4xl font-bold text-blue-800">{{ stats.matchesCount }}</span>
         </div>
 
-        <!-- Grupy -->
         <div class="bg-blue-50 rounded-full shadow-lg p-6 flex flex-col items-center justify-center border border-blue-200 hover:scale-105 transition-transform">
           <div class="text-4xl mb-2">👥</div>
           <span class="text-sm text-blue-600 mb-1">Grupy</span>
           <span class="text-3xl md:text-4xl font-bold text-blue-800">{{ stats.groupsCount }}</span>
         </div>
 
-        <!-- Uczelnie -->
         <div class="bg-blue-50 rounded-full shadow-lg p-6 flex flex-col items-center justify-center border border-blue-200 hover:scale-105 transition-transform">
           <div class="text-4xl mb-2">🎓</div>
           <span class="text-sm text-blue-600 mb-1">Zatwierdzone uczelnie</span>
@@ -31,16 +25,13 @@
         </div>
       </div>
 
-      <!-- Drugi rząd -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <!-- Wiadomości -->
         <div class="bg-blue-50 rounded-full shadow-lg p-6 flex flex-col items-center justify-center border border-blue-200 hover:scale-105 transition-transform">
           <div class="text-4xl mb-2">✉️</div>
           <span class="text-sm text-blue-600 mb-1">Wysłane wiadomości</span>
           <span class="text-3xl md:text-4xl font-bold text-blue-800">{{ stats.messagesCount }}</span>
         </div>
 
-        <!-- Status trial -->
         <div class="bg-blue-50 rounded-full shadow-lg p-6 flex flex-col items-center justify-center border border-blue-200 hover:scale-105 transition-transform">
           <div class="text-4xl mb-2">⏱️</div>
           <span class="text-sm text-blue-600 mb-1">Status trial</span>
