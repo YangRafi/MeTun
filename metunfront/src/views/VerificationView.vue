@@ -138,7 +138,7 @@
                 <input
                   type="file"
                   @change="e => uploadDocument(a.id, e)"
-                  class="mt-1 border rounded-xl p-2 focus:ring-blue-300 focus:border-blue-300"
+                  class="mt-1 border rounded-lg px-2 py-1 text-xs w-full max-w-xs focus:ring-blue-300 focus:border-blue-300"
                 />
               </template>
             </div>
@@ -173,8 +173,10 @@ import { ref, reactive, onMounted } from "vue";
 import UserHeader from "../components/Layout/UserHeader.vue";
 import background from '@/assets/background.jpg'
 import { useToast } from "primevue/usetoast";
+import { useConfirm } from "primevue/useconfirm";
 
 const toast = useToast();
+const confirm = useConfirm();
 
 function showToast(severity, summary, detail) {
   toast.add({
@@ -263,9 +265,13 @@ async function submitVerification() {
       a.discipline_id === selectedDiscipline.value
   );
   if (exists) {
-    alert("Masz już złożony wniosek lub jesteś studentem tej uczelni/kierunku.");
-    return;
-  }
+  showToast(
+    "warn",
+    "Duplikat wniosku",
+    "Masz już złożony wniosek lub jesteś studentem tej uczelni/kierunku."
+  );
+  return;
+}
 
   const formData = new FormData();
   formData.append("universityId", selectedUniversity.value.university_id);
@@ -299,13 +305,39 @@ async function fetchApplications() {
   }
 }
 
-async function deleteApplication(id) {
-  if (!confirm("Na pewno usunąć wniosek?")) return;
-  await fetch(`http://localhost:3000/api/userUniversity/${id}`, {
-    method: "DELETE",
-    credentials: "include",
+function deleteApplication(id) {
+  confirm.require({
+    message: "Na pewno usunąć wniosek?",
+    header: "Potwierdź usunięcie",
+    icon: "pi pi-exclamation-triangle text-yellow-500",
+    acceptLabel: "Tak, usuń",
+    rejectLabel: "Anuluj",
+    acceptClass:
+      "bg-red-600 border-none hover:bg-red-700 font-semibold text-white rounded-xl px-4 py-2 transition",
+    rejectClass:
+      "bg-gray-300 border-none hover:bg-gray-400 font-semibold text-gray-800 rounded-xl px-4 py-2 transition",
+    accept: async () => {
+      try {
+        const res = await fetch(`http://localhost:3000/api/userUniversity/${id}`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+        if (res.ok) {
+          showToast("success", "Usunięto", "Wniosek został pomyślnie usunięty.");
+          fetchApplications();
+        } else {
+          const err = await res.json();
+          showToast("error", "Błąd", err.error || res.statusText);
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("error", "Błąd", "Wystąpił problem z połączeniem.");
+      }
+    },
+    reject: () => {
+      showToast("info", "Anulowano", "Usunięcie wniosku zostało anulowane.");
+    },
   });
-  fetchApplications();
 }
 
 async function uploadDocument(applicationId, event) {
@@ -330,21 +362,67 @@ async function uploadDocument(applicationId, event) {
     }
 }
 
-async function activateTrialForApplication(applicationId) {
-  if (!confirm("Aktywować darmowy trial (14 dni) dla tego wniosku?")) return;
-  const res = await fetch(
-    `http://localhost:3000/api/userUniversity/${applicationId}/activateTrial`,
-    { method: "POST", credentials: "include" }
-  );
-  const data = await res.json();
-  if (res.ok) {
-      showToast("success", "Trial aktywowany 🎉", "Darmowy okres próbny został uruchomiony.");
-      fetchApplications();
-      fetchUser();
-    } else {
-      showToast("error", "Błąd", data.error || "Nie udało się aktywować triala.");
-    }
+const activatingTrial = ref(false);
+function activateTrialForApplication(applicationId) {
+  if (activatingTrial.value) return; 
+  activatingTrial.value = true;
+  confirm.require({
+    message: "Aktywować darmowy trial (14 dni) dla tego wniosku?",
+    header: "Potwierdzenie aktywacji triala",
+    icon: "pi pi-exclamation-triangle text-yellow-500",
+    acceptLabel: "Tak, aktywuj",
+    rejectLabel: "Anuluj",
+    acceptClass:
+      "bg-green-600 border-none hover:bg-green-700 font-semibold text-white rounded-xl px-4 py-2 transition",
+    rejectClass:
+      "bg-gray-300 border-none hover:bg-gray-400 font-semibold text-gray-800 rounded-xl px-4 py-2 transition",
+    accept: async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:3000/api/userUniversity/${applicationId}/activateTrial`,
+          { method: "POST", credentials: "include" }
+        );
+
+        const data = await res.json();
+
+        if (res.ok) {
+          showToast(
+            "success",
+            "Trial aktywowany 🎉",
+            "Darmowy okres próbny został uruchomiony."
+          );
+          fetchApplications();
+          fetchUser();
+        } else {
+          let message = "";
+          switch (data.error) {
+            case "TRIAL_ALREADY_USED":
+              message = "Trial został już wykorzystany.";
+              break;
+            case "USER_NOT_ELIGIBLE":
+              message = "Nie możesz aktywować triala dla tego wniosku.";
+              break;
+            default:
+              message = data.error || "Nie udało się aktywować triala.";
+          }
+
+          showToast("error", "Błąd", message);
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("error", "Błąd", "Wystąpił problem z połączeniem.");
+      }
+    },
+    reject: () => {
+      showToast(
+        "info",
+        "Trial nie został aktywowany",
+        "Nie zatwierdzono aktywacji triala."
+      );
+    },
+  });
 }
+
 
 function formatDate(date) {
   return date ? new Date(date).toLocaleDateString() : "-";
