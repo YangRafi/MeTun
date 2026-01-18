@@ -127,7 +127,7 @@
                   <input
                     type="file"
                     @change="e => uploadDocument(a.id, e)"
-                    class="mt-1 border rounded-xl p-2 focus:ring-blue-300 focus:border-blue-300"
+                    class="w-full max-w-xs border rounded-md px-2 py-1 text-xs focus:ring-blue-300 focus:border-blue-300"
                   />
                 </div>
               </template>

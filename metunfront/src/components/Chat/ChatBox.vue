@@ -51,29 +51,62 @@
       class="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-blue-50"
     >
       <div
-        v-for="m in messages"
+        v-for="(m, index) in messages"
         :key="m.message_id || m.timestamp"
-        class="flex items-start gap-2"
-        :class="m.senderId === userId ? 'justify-end' : 'justify-start'"
+        class="flex flex-col gap-1"
+        :class="m.senderId === userId ? 'items-end' : 'items-start'"
       >
-        <img
-          v-if="m.senderId !== userId && m.senderAvatar"
-          :src="m.senderAvatar"
-          class="w-8 h-8 rounded-full mt-1 border border-blue-200"
-        />
-        <div
-          :class="[ 
-            'inline-block p-3 rounded-2xl max-w-[75%] break-words shadow-sm',
-            m.senderId === userId
-              ? 'bg-gradient-to-r from-blue-500 via-cyan-400 to-teal-400 text-white shadow-md'
-              : 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-900 border border-blue-100'
-          ]"
-          :title="formatTimestamp(m.timestamp)"
+        <span
+          v-if="
+            chat.type === 'group' &&
+            m.senderId !== userId &&
+            (index === 0 || messages[index - 1].senderId !== m.senderId)
+          "
+          class="text-xs text-gray-500 font-semibold ml-10"
         >
-          {{ m.content }}
+          {{ m.senderName || 'Ktoś' }}
+        </span>
+
+        <div
+          v-if="m.senderId !== userId"
+          class="flex items-start gap-2"
+        >
+          <img
+            v-if="
+              m.senderAvatar &&
+              (index === 0 || messages[index - 1].senderId !== m.senderId)
+            "
+            :src="m.senderAvatar"
+            class="w-8 h-8 rounded-full mt-1 border border-blue-200"
+          />
+
+          <div
+            v-else
+            class="w-8"
+          ></div>
+
+          <div
+            class="inline-block p-3 rounded-2xl max-w-[75%] break-words shadow-sm
+                  bg-gradient-to-r from-blue-50 to-blue-100 text-blue-900 border border-blue-100"
+            :title="formatTimestamp(m.timestamp)"
+          >
+            {{ m.content }}
+          </div>
+        </div>
+
+        <div
+          v-else
+          class="flex justify-end"
+        >
+          <div
+          class="inline-block p-3 rounded-2xl w-full max-w-full break-words shadow-md
+                bg-gradient-to-r from-blue-500 via-cyan-400 to-teal-400 text-white text-right"
+            :title="formatTimestamp(m.timestamp)"
+          >
+            {{ m.content }}
+          </div>
         </div>
       </div>
-
       <div
         v-if="typingUser"
         class="ml-2 text-sm text-blue-600 flex items-center gap-2 italic"
@@ -193,9 +226,18 @@ async function loadMessages(chatType, chatId) {
     const res = await fetch(endpoint, { credentials: "include" });
     if (!res.ok) throw new Error("Błąd pobierania wiadomości");
     const data = await res.json();
-    messages.value = Array.isArray(data)
-      ? data.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-      : [];
+
+    messages.value = await Promise.all(
+      (Array.isArray(data) ? data : [])
+        .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+        .map(async (m) => {
+          if (chatType === "group" && m.senderId !== props.userId) {
+            m.senderName = await getUserName(m.senderId);
+          }
+          return m;
+        })
+    );
+
     await nextTick();
     scrollToBottom();
   } catch (err) {
