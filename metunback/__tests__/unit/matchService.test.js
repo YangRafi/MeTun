@@ -1,6 +1,6 @@
-const matchService = require('../services/matchService');
-const { UserMatch, Profile, UserUniversity, University, Faculty, Discipline, User } = require('../models');
-const { emitNewMatch, getIo } = require('../util/socket');
+const matchService = require('../../services/matchService');
+const { UserMatch, Profile, UserUniversity, University, Faculty, Discipline, User } = require('../../models');
+const { emitNewMatch, getIo } = require('../../util/socket');
 const { Op } = require('sequelize');
 
 jest.mock('../models', () => ({

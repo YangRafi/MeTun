@@ -1,4 +1,4 @@
-const groupRequestService = require('../services/groupRequestService');
+const groupRequestService = require('../../services/groupRequestService');
 
 jest.mock('../models', () => ({
   User: jest.fn(),
@@ -17,7 +17,7 @@ jest.mock('../models', () => ({
   }
 }));
 
-const models = require('../models');
+const models = require('../../models');
 const { GroupJoinRequest, GroupMember } = models;
 
 describe('GroupRequestService', () => {

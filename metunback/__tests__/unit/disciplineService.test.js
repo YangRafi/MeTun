@@ -1,5 +1,5 @@
-const DisciplineService = require('../services/disciplineService');
-const Discipline = require('../models/Discipline');
+const DisciplineService = require('../../services/disciplineService');
+const Discipline = require('../../models/Discipline');
 
 jest.mock('../models/Discipline', () => ({
   findAll: jest.fn(),

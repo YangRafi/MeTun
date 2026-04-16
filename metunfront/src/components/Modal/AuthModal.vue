@@ -83,7 +83,7 @@
         </div>
       </transition>
 
-      <Toast position="top-right" />
+      
     </div>
   </transition>
 </template>

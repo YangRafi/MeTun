@@ -1,5 +1,5 @@
-const GroupMemberService = require('../services/groupMemberService');
-const { GroupMember, User, Profile, Group } = require('../models');
+const GroupMemberService = require('../../services/groupMemberService');
+const { GroupMember, User, Profile, Group } = require('../../models');
 
 jest.mock('../models', () => ({
   GroupMember: {

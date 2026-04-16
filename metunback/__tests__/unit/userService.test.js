@@ -1,4 +1,4 @@
-const userService = require('../services/userService');
+const userService = require('../../services/userService');
 const bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
 
@@ -32,8 +32,8 @@ const  mockTo = jest.fn().mockReturnValue({ emit: mockEmit });
   };
 });
 
-const { User, UserMatch, GroupMember, UserUniversity, Message } = require('../models');
-const { getIo, userSockets, __mockEmit, __mockTo } = require('../util/socket');
+const { User, UserMatch, GroupMember, UserUniversity, Message } = require('../../models');
+const { getIo, userSockets, __mockEmit, __mockTo } = require('../../util/socket');
 
 jest.mock('bcryptjs', () => ({
   hash: jest.fn(),

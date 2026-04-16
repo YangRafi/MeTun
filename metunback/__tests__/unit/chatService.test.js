@@ -1,5 +1,5 @@
-const ChatService = require('../services/chatService');
-const { UserMatch, Profile, Message, Group, User } = require('../models');
+const ChatService = require('../../services/chatService');
+const { UserMatch, Profile, Message, Group, User } = require('../../models');
 const { Op } = require('sequelize');
 
 jest.mock('../models', () => ({

@@ -1,6 +1,6 @@
-const profileService = require('../services/profileService');
-const Profile = require('../models/Profile');
-const User = require('../models/User');
+const profileService = require('../../services/profileService');
+const Profile = require('../../models/Profile');
+const User = require('../../models/User');
 
 jest.mock('../models/Profile', () => ({
   findAll: jest.fn(),

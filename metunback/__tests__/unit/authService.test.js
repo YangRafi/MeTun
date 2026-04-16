@@ -1,8 +1,8 @@
-const authService = require('../services/authService');
+const authService = require('../../services/authService');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const UserUniversity = require('../models/UserUniversity');
+const User = require('../../models/User');
+const UserUniversity = require('../../models/UserUniversity');
 
 jest.mock('../models/User');
 jest.mock('../models/UserUniversity');

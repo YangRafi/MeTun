@@ -1,5 +1,5 @@
-const groupService = require('../services/groupService');
-const { Group, User, Discipline, Faculty, UserUniversity, GroupMember } = require('../models');
+const groupService = require('../../services/groupService');
+const { Group, User, Discipline, Faculty, UserUniversity, GroupMember } = require('../../models');
 const { Op } = require('sequelize');
 
 jest.mock('../models', () => ({

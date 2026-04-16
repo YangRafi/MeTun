@@ -1,7 +1,7 @@
 const fs = require('fs');
-const userUniversityService = require('../services/userUniversityService');
-const { UserUniversity, GroupMember, Group, Discipline } = require('../models');
-const { addUserToDisciplineGroup } = require('../util/groupUtils');
+const userUniversityService = require('../../services/userUniversityService');
+const { UserUniversity, GroupMember, Group, Discipline } = require('../../models');
+const { addUserToDisciplineGroup } = require('../../util/groupUtils');
 
 jest.mock('fs', () => ({ unlink: jest.fn() }));
 jest.mock('path', () => ({

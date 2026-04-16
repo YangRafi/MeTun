@@ -1,5 +1,5 @@
-const reportService = require('../services/reportService');
-const Report = require('../models/Report');
+const reportService = require('../../services/reportService');
+const Report = require('../../models/Report');
 
 jest.mock('../models/Report', () => ({
   create: jest.fn()

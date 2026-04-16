@@ -1,5 +1,5 @@
-const FacultyService = require('../services/facultyService');
-const Faculty = require('../models/Faculty');
+const FacultyService = require('../../services/facultyService');
+const Faculty = require('../../models/Faculty');
 
 jest.mock('../models/Faculty', () => ({
   findAll: jest.fn(),

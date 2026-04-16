@@ -1,5 +1,5 @@
-const universityService = require('../services/universityService');
-const University = require('../models/University');
+const universityService = require('../../services/universityService');
+const University = require('../../models/University');
 const { Op, Sequelize } = require('sequelize');
 
 jest.mock('../models/University', () => ({

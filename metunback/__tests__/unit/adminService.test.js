@@ -1,5 +1,5 @@
-const adminService = require('../services/adminService');
-const { User, University, UserUniversity, Group } = require('../models');
+const adminService = require('../../services/adminService');
+const { User, University, UserUniversity, Group } = require('../../models');
 
 jest.mock('../models', () => ({
   User: { count: jest.fn(), findAll: jest.fn() },
