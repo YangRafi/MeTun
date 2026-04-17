@@ -24,10 +24,6 @@ const reportRoutes = require('./routes/reportRoutes');
 // Sockety
 const { initSocket } = require('./util/socket');
 
-sequelize.authenticate()
-  .then(() => console.log("✅ Połączono z bazą"))
-  .catch(err => console.error("❌ Błąd połączenia:", err));
-
 const app = express();
 
 // Middleware
@@ -52,16 +48,22 @@ app.use('/api/userUniversity', userUniversityRoutes);
 app.use('/api/groupRequests', groupRequestRoutes);
 app.use('/api/reports', reportRoutes);
 
-
 // Obsługa 404
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
 
-// Tworzenie serwera HTTP i inicjalizacja socketów
-const server = http.createServer(app);
-initSocket(server);
+if (process.env.NODE_ENV !== 'test') {
+  sequelize.authenticate()
+    .then(() => console.log("✅ Połączono z bazą"))
+    .catch(err => console.error("❌ Błąd połączenia:", err));
 
-sequelize.sync().then(() => {
-  server.listen(3000, () => {
-    console.log('🚀 Server i Socket.io działają na http://localhost:3000');
+  const server = http.createServer(app);
+  initSocket(server);
+
+  sequelize.sync().then(() => {
+    server.listen(3000, () => {
+      console.log('🚀 Server i Socket.io działają na http://localhost:3000');
+    });
   });
-});
+}
+
+module.exports = app;

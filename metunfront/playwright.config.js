@@ -49,7 +49,17 @@ export default defineConfig({
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
     },
-
+  {
+    name: 'authenticated',
+    use: {
+      storageState: 'tests/auth/storageState.json',
+    },
+    dependencies: ['setup'],
+  },
+  {
+    name: 'setup',
+    testMatch: /.*auth\.setup\.js/,
+  },
     /* Test against mobile viewports. */
     // {
     //   name: 'Mobile Chrome',

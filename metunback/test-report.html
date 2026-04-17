@@ -1,0 +1,277 @@
+<html><head><meta charset="utf-8"/><title>API Test Report</title><style type="text/css">:root {
+  --text-primary: #111;
+  --text-secondary: #4f4f4f;
+  --success: #006633;
+  --success-bright: #80ffbf;
+  --danger: #cc071e;
+  --danger-bright: #fbdfe0;
+  --warning: #995c00;
+  --warning-bright: #ffeea8;
+  --panel: #eee;
+  --border: #949494;
+  --disabled: #6b6b6b;
+}
+
+html,
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  color: var(--text-primary);
+}
+body {
+  padding: 2rem 1rem;
+}
+.jesthtml-content {
+  margin: 0 auto;
+  max-width: 70rem;
+}
+header {
+  display: flex;
+  align-items: center;
+}
+#title {
+  margin: 0;
+  flex-grow: 1;
+}
+#logo {
+  height: 4rem;
+}
+#timestamp {
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+#metadata-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.additional-information-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+}
+
+/** SUMMARY */
+#summary {
+  color: var(--text-primary);
+  display: flex;
+  font-family: monospace;
+  font-size: 1rem;
+}
+#summary > div {
+  margin-right: 0.5rem;
+  background: var(--panel);
+  padding: 1rem;
+  min-width: 15rem;
+}
+#summary > div:last-child {
+  margin-right: 0;
+}
+@media only screen and (max-width: 720px) {
+  #summary {
+    flex-direction: column;
+  }
+  #summary > div {
+    margin-right: 0;
+    margin-top: 1rem;
+  }
+  #summary > div:first-child {
+    margin-top: 0;
+  }
+}
+
+.summary-total {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+.summary-passed {
+  color: var(--success);
+  border-left: 0.4rem solid var(--success);
+  padding-left: 0.5rem;
+  margin-bottom: 0.15rem;
+}
+.summary-failed,
+.summary-obsolete-snapshots {
+  color: var(--danger);
+  border-left: 0.4rem solid var(--danger);
+  padding-left: 0.5rem;
+  margin-bottom: 0.15rem;
+}
+.summary-pending {
+  color: var(--warning);
+  border-left: 0.4rem solid var(--warning);
+  padding-left: 0.5rem;
+  margin-bottom: 0.15rem;
+}
+.summary-empty {
+  color: var(--disabled);
+  border-left: 0.4rem solid var(--disabled);
+  margin-bottom: 0.15rem;
+}
+
+.test-result {
+  padding: 1rem;
+  margin-bottom: 0.25rem;
+}
+.test-result:last-child {
+  border: 0;
+}
+.test-result.passed {
+  background-color: var(--success-bright);
+  color: var(--success);
+}
+.test-result.failed {
+  background-color: var(--danger-bright);
+  color: var(--danger);
+}
+.test-result.pending {
+  background-color: var(--warning-bright);
+  color: var(--warning);
+}
+
+.test-info {
+  display: flex;
+  justify-content: space-between;
+}
+.test-suitename {
+  width: 20%;
+  text-align: left;
+  font-weight: bold;
+  word-break: break-word;
+}
+.test-title {
+  width: 40%;
+  text-align: left;
+  font-style: italic;
+}
+.test-status {
+  width: 20%;
+  text-align: right;
+}
+.test-duration {
+  width: 10%;
+  text-align: right;
+  font-size: 0.85rem;
+}
+
+.failureMessages {
+  padding: 0 1rem;
+  margin-top: 1rem;
+  border-top: 1px dashed var(--danger);
+}
+.failureMessages.suiteFailure {
+  border-top: none;
+}
+.failureMsg {
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+
+.suite-container {
+  margin-bottom: 1rem;
+}
+.suite-info {
+  padding: 1rem;
+  background-color: var(--panel);
+  color: var(--text-secondary);
+  border: 0.15rem solid;
+  border-color: var(--panel);
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+.suite-info:hover {
+  border-color: var(--border);
+  cursor: pointer;
+}
+.suite-info .suite-path {
+  word-break: break-all;
+  flex-grow: 1;
+  font-family: monospace;
+  font-size: 1rem;
+}
+.suite-info .suite-time {
+  margin-left: 1rem;
+  padding: 0.2rem 0.3rem;
+  font-size: 0.85rem;
+}
+.suite-info .suite-time.warn {
+  background-color: var(--danger);
+  color: #fff;
+}
+.suite-info:before {
+  content: "\2303";
+  display: inline-block;
+  margin-right: 1rem;
+  transform: rotate(180deg) translateY(0.15rem);
+}
+.suite-container[open] .suite-info:before {
+  transform: rotate(0deg) translateY(0.15rem);
+}
+
+/* CONSOLE LOGS */
+.suite-consolelog {
+  margin-bottom: 0.25rem;
+  padding: 1rem;
+  background-color: var(--panel);
+}
+.suite-consolelog-header {
+  font-weight: bold;
+}
+.suite-consolelog-item {
+  padding: 0.5rem;
+}
+.suite-consolelog-item pre {
+  margin: 0.5rem 0;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+.suite-consolelog-item-origin {
+  color: var(--text-secondary);
+  font-weight: bold;
+}
+.suite-consolelog-item-message {
+  color: var(--text-primary);
+  font-size: 1rem;
+  padding: 0 0.5rem;
+}
+
+/* OBSOLETE SNAPSHOTS */
+.suite-obsolete-snapshots {
+  margin-bottom: 0.25rem;
+  padding: 1rem;
+  background-color: var(--danger-bright);
+  color: var(--danger);
+}
+.suite-obsolete-snapshots-header {
+  font-weight: bold;
+}
+.suite-obsolete-snapshots-item {
+  padding: 0.5rem;
+}
+.suite-obsolete-snapshots-item pre {
+  margin: 0.5rem 0;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+.suite-obsolete-snapshots-item-message {
+  color: var(--text-primary);
+  font-size: 1rem;
+  padding: 0 0.5rem;
+}
+</style></head><body><main class="jesthtml-content"><header><h1 id="title">API Test Report</h1></header><section id="metadata-container"><div id="timestamp">Started: 2026-04-16 21:16:26</div><div id="summary"><div id="suite-summary"><div class="summary-total">Suites (14)</div><div class="summary-passed ">14 passed</div><div class="summary-failed  summary-empty">0 failed</div><div class="summary-pending  summary-empty">0 pending</div></div><div id="test-summary"><div class="summary-total">Tests (157)</div><div class="summary-passed ">157 passed</div><div class="summary-failed  summary-empty">0 failed</div><div class="summary-pending  summary-empty">0 pending</div></div></div></section><details id="suite-1" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\YangRafi\Desktop\Inżynierka\MeTun\metunback\__tests__\facultyService.test.js</div><div class="suite-time">0.757s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">FacultyService</div><div class="test-title">getAllFaculties returns all faculties</div><div class="test-status">passed</div><div class="test-duration">0.008s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">FacultyService</div><div class="test-title">getAllFaculties filters by universityId</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">FacultyService</div><div class="test-title">getFacultyById returns a faculty</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">FacultyService</div><div class="test-title">getFacultyById throws an error if faculty does not exist</div><div class="test-status">passed</div><div class="test-duration">0.013s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">FacultyService</div><div class="test-title">createFaculty creates a new faculty</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">FacultyService</div><div class="test-title">updateFaculty updates a faculty</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">FacultyService</div><div class="test-title">updateFaculty throws an error if faculty does not exist</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">FacultyService</div><div class="test-title">deleteFaculty deletes a faculty</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">FacultyService</div><div class="test-title">deleteFaculty throws an error if faculty does not exist</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details><details id="suite-2" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\YangRafi\Desktop\Inżynierka\MeTun\metunback\__tests__\adminService.test.js</div><div class="suite-time">0.748s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">AdminService</div><div class="test-title">getDashboardData returns correct statistics and lists</div><div class="test-status">passed</div><div class="test-duration">0.011s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">AdminService</div><div class="test-title">getDashboardData obsługuje błąd</div><div class="test-status">passed</div><div class="test-duration">0.013s</div></div></div></div></details><details id="suite-3" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\YangRafi\Desktop\Inżynierka\MeTun\metunback\__tests__\disciplineService.test.js</div><div class="suite-time">0.896s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">DisciplineService</div><div class="test-title">getAllDisciplines returns all disciplines</div><div class="test-status">passed</div><div class="test-duration">0.03s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">DisciplineService</div><div class="test-title">getDisciplinesByFaculty returns disciplines for a given faculty</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">DisciplineService</div><div class="test-title">getDisciplinesByFaculty throws an error when facultyId is missing</div><div class="test-status">passed</div><div class="test-duration">0.013s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">DisciplineService</div><div class="test-title">getDisciplineById returns a discipline by id</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">DisciplineService</div><div class="test-title">getDisciplineById throws an error when discipline does not exist</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">DisciplineService</div><div class="test-title">createDiscipline creates a new discipline</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">DisciplineService</div><div class="test-title">updateDiscipline updates an existing discipline</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">DisciplineService</div><div class="test-title">updateDiscipline throws an error when discipline does not exist</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">DisciplineService</div><div class="test-title">deleteDiscipline deletes a discipline</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">DisciplineService</div><div class="test-title">deleteDiscipline throws an error when discipline does not exist</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div></div></details><details id="suite-4" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\YangRafi\Desktop\Inżynierka\MeTun\metunback\__tests__\userUniversityService.test.js</div><div class="suite-time">0.919s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">getUserUniversities should return correct data</div><div class="test-status">passed</div><div class="test-duration">0.009s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">addUserUniversity creates a new record</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">addUserUniversity throws LIMIT_REACHED error</div><div class="test-status">passed</div><div class="test-duration">0.046s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">activateTrial sets trial and adds user to group</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">updateDocument updates document_url</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">deleteUserUniversity removes the record</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">updateStatus creates a group if it does not exist</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">getUserUniversities sets expired status and removes from group when trial has expired</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">updateDocument removes old file if it exists</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">deleteUserUniversity removes file if document exists</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">activateTrial throws TRIAL_ALREADY_USED error</div><div class="test-status">passed</div><div class="test-duration">0.011s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">activateTrial throws NOT_FOUND error when record does not exist</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">updateStatus does not add user if already in group</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">getUserUniversities sets expired status for non-trial record</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">updateDocument throws NOT_FOUND error if record does not exist</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">deleteUserUniversity throws NOT_FOUND error if record does not exist</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">activateTrial throws INVALID_STATUS error when status is not pending</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">activateTrial throws ALREADY_HAS_TRIAL error when record.trial is true</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">updateStatus throws NOT_FOUND error if record does not exist</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">updateStatus creates only group when group does not exist and Discipline is null</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">getAllApplications calls UserUniversity.findAll</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserUniversityService — unit tests</div><div class="test-title">getApplication calls UserUniversity.findByPk</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details><details id="suite-5" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\YangRafi\Desktop\Inżynierka\MeTun\metunback\__tests__\groupMemberService.test.js</div><div class="suite-time">0.928s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupMemberService</div><div class="test-title">getMembersByGroup returns group members</div><div class="test-status">passed</div><div class="test-duration">0.019s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupMemberService</div><div class="test-title">addMember adds a member to the group</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupMemberService</div><div class="test-title">updateMember updates member role</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupMemberService</div><div class="test-title">updateMember throws an error if member does not exist</div><div class="test-status">passed</div><div class="test-duration">0.041s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupMemberService</div><div class="test-title">removeMember removes a member from the group</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupMemberService</div><div class="test-title">removeMember throws an error if member does not exist</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupMemberService</div><div class="test-title">leaveGroup removes a member from the group</div><div class="test-status">passed</div><div class="test-duration">0.009s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupMemberService</div><div class="test-title">leaveGroup throws an error if group does not exist</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupMemberService</div><div class="test-title">leaveGroup throws an error if user is the group creator</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupMemberService</div><div class="test-title">leaveGroup throws an error if user is not a group member</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div></div></details><details id="suite-6" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\YangRafi\Desktop\Inżynierka\MeTun\metunback\__tests__\profileService.test.js</div><div class="suite-time">0.93s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">getAllProfiles returns a list of profiles</div><div class="test-status">passed</div><div class="test-duration">0.018s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">getProfileById returns a profile</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">getProfileByUserId returns a profile</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">checkUserProfile returns true if profile exists</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">checkUserProfile returns false if profile does not exist</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">createProfile creates a new profile</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">createProfile throws an error when user_id is missing</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">createProfile throws an error if profile already exists</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">updateProfile updates the profile</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">updateProfile throws an error if profile does not exist</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">deleteProfile deletes the profile</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">deleteProfile throws an error if profile does not exist</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">createProfile throws an error for invalid gender</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">createProfile throws an error when date_of_birth is in the future</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">createProfile throws an error when age is below MIN_AGE</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">createProfile throws an error if user does not exist</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">updateProfile throws an error for invalid gender</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">updateProfile throws an error when date_of_birth is in the future</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">updateProfile throws an error when age is below MIN_AGE</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ProfileService</div><div class="test-title">updateProfile updates profile with file and all fields</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div></div></details><details id="suite-7" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\YangRafi\Desktop\Inżynierka\MeTun\metunback\__tests__\groupRequestService.test.js</div><div class="suite-time">1.048s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">requestJoin creates a new join request</div><div class="test-status">passed</div><div class="test-duration">0.006s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">requestJoin throws an error if user is already a member</div><div class="test-status">passed</div><div class="test-duration">0.014s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">requestJoin throws an error if request already exists</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">inviteUser creates an invitation</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">inviteUser throws an error if invitation already exists</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">respondToRequest accepts a join request</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">respondToRequest rejects a join request</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">respondToRequest throws an error if request does not exist</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">respondToRequest throws an error for invalid action</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">deleteInvite deletes an invitation</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">deleteInvite throws an error if invitation does not exist</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">getJoinRequests returns a list of join requests</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">getGroupInvites returns invitations for a group</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">getPendingRequestsForUser returns pending requests</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">getAllRequests returns all requests</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">deleteRequest deletes request when user is the author</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">deleteRequest deletes request when user is an admin</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">deleteRequest throws an error if request does not exist</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">deleteRequest throws an error if user has no permissions</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupRequestService</div><div class="test-title">respondToRequest throws an error if request has already been accepted</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details><details id="suite-8" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\YangRafi\Desktop\Inżynierka\MeTun\metunback\__tests__\chatService.test.js</div><div class="suite-time">1.122s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">ChatService</div><div class="test-title">getPrivateChats returns a list of private chats</div><div class="test-status">passed</div><div class="test-duration">0.009s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ChatService</div><div class="test-title">getGroupChats returns a list of group chats</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ChatService</div><div class="test-title">getMessages returns private messages</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ChatService</div><div class="test-title">getMessages throws an error for private chat when access is denied</div><div class="test-status">passed</div><div class="test-duration">0.011s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ChatService</div><div class="test-title">getMessages returns group messages</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ChatService</div><div class="test-title">getMessages throws an error for group chat when user is not a member</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">ChatService</div><div class="test-title">getMessages throws an error for invalid chat type</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div></div></details><details id="suite-9" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\YangRafi\Desktop\Inżynierka\MeTun\metunback\__tests__\universityService.test.js</div><div class="suite-time">1.117s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">UniversityService</div><div class="test-title">getAll returns all universities when no query is provided</div><div class="test-status">passed</div><div class="test-duration">0.007s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UniversityService</div><div class="test-title">getAll filters universities when query is provided</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UniversityService</div><div class="test-title">getById returns a university</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UniversityService</div><div class="test-title">create adds a new university</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UniversityService</div><div class="test-title">update updates an existing university</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UniversityService</div><div class="test-title">update returns null if university does not exist</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UniversityService</div><div class="test-title">remove deletes the university</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UniversityService</div><div class="test-title">remove returns null if university does not exist</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details><details id="suite-10" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\YangRafi\Desktop\Inżynierka\MeTun\metunback\__tests__\groupService.test.js</div><div class="suite-time">1.147s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupService</div><div class="test-title">getAllGroups returns empty array when no groups exist</div><div class="test-status">passed</div><div class="test-duration">0.006s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupService</div><div class="test-title">getAllGroups filters by discipline_id</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupService</div><div class="test-title">getGroupsByCreator returns groups created by the user</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupService</div><div class="test-title">getMyGroups returns groups of the user</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupService</div><div class="test-title">getGroupById returns a group</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupService</div><div class="test-title">getGroupById throws an error when group does not exist</div><div class="test-status">passed</div><div class="test-duration">0.011s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupService</div><div class="test-title">createGroup creates a group</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupService</div><div class="test-title">createGroup throws an error if user already has 2 groups</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupService</div><div class="test-title">createGroup throws an error if user has no approved discipline</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupService</div><div class="test-title">updateGroup updates a group</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupService</div><div class="test-title">updateGroup throws an error when group does not exist</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupService</div><div class="test-title">deleteGroup deletes a group</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupService</div><div class="test-title">deleteGroup throws an error if group does not exist</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">GroupService</div><div class="test-title">deleteGroup throws an error if user is not the creator</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div></div></details><details id="suite-11" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\YangRafi\Desktop\Inżynierka\MeTun\metunback\__tests__\userService.test.js</div><div class="suite-time">1.212s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserService</div><div class="test-title">getAllUsers returns a list of users</div><div class="test-status">passed</div><div class="test-duration">0.007s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserService</div><div class="test-title">getUserById returns a user</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserService</div><div class="test-title">createUser creates a new user</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserService</div><div class="test-title">createUser throws error if email exists</div><div class="test-status">passed</div><div class="test-duration">0.011s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserService</div><div class="test-title">changePassword changes password</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserService</div><div class="test-title">changePassword throws error with wrong password</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserService</div><div class="test-title">updateUser correctly updates data</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserService</div><div class="test-title">deleteUser deletes user and sends socket event</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserService</div><div class="test-title">getStats returns statistics</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserService</div><div class="test-title">changeEmail works correctly</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserService</div><div class="test-title">changeUserRole changes the role and sends a socket</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserService</div><div class="test-title">banUser sets a ban and sends an event</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">UserService</div><div class="test-title">unbanUser works correctly</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details><details id="suite-12" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\YangRafi\Desktop\Inżynierka\MeTun\metunback\__tests__\matchService.test.js</div><div class="suite-time">1.201s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">MatchService</div><div class="test-title">getPotentialMatches filters profiles</div><div class="test-status">passed</div><div class="test-duration">0.006s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">MatchService</div><div class="test-title">voteUser creates a new match if it does not exist</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">MatchService</div><div class="test-title">voteUser activates match when both users liked each other</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">MatchService</div><div class="test-title">unlikeUser sets match_active to false and emits socket event</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">MatchService</div><div class="test-title">unlikeUser throws an error when match does not exist</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details><details id="suite-13" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\YangRafi\Desktop\Inżynierka\MeTun\metunback\__tests__\authService.test.js</div><div class="suite-time">1.557s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">authService</div><div class="test-title">signup creates a new user</div><div class="test-status">passed</div><div class="test-duration">0.005s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">authService</div><div class="test-title">signup throws an error if the email exists</div><div class="test-status">passed</div><div class="test-duration">0.007s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">authService</div><div class="test-title">login returns tokens and user information</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">authService</div><div class="test-title">login throws an error if email is invalid</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">authService</div><div class="test-title">login throws an error if password is incorrect</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">authService</div><div class="test-title">login throws an error if user is banned</div><div class="test-status">passed</div><div class="test-duration">0.013s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">authService</div><div class="test-title">refreshAccessToken returns a new access token</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">authService</div><div class="test-title">refreshAccessToken throws an error when no refresh token is provided</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">authService</div><div class="test-title">refreshAccessToken throws an error if user does not exist</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">authService</div><div class="test-title">checkIsVerified returns true if status approved</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">authService</div><div class="test-title">checkIsVerified returns false if there is no approval</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">authService</div><div class="test-title">handleBan does not throw if the user is not banned</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">authService</div><div class="test-title">handleBan unblocks the user if the ban has expired</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">authService</div><div class="test-title">handleBan throws an error if the ban is active</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details><details id="suite-14" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\YangRafi\Desktop\Inżynierka\MeTun\metunback\__tests__\auth.api.test.js</div><div class="suite-time">2.16s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">AUTH API</div><div class="test-title">POST /api/auth/signup</div><div class="test-status">passed</div><div class="test-duration">0.121s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">AUTH API</div><div class="test-title">POST /api/auth/login</div><div class="test-status">passed</div><div class="test-duration">0.111s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">AUTH API</div><div class="test-title">GET /api/auth/check</div><div class="test-status">passed</div><div class="test-duration">0.12s</div></div></div></div></details></main></body></html>
